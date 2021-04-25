@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Applied Machine Learning on Machine Learning for Educational Data Science</title>
+    <link>https://ml-21.netlify.app/</link>
+    <description>Recent content in Applied Machine Learning on Machine Learning for Educational Data Science</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 09 Mar 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://ml-21.netlify.app/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Lab 1</title>
+      <link>https://ml-21.netlify.app/lab-1/</link>
+      <pubDate>Tue, 09 Mar 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://ml-21.netlify.app/lab-1/</guid>
+      <description>The purpose of this lab is to get you working with base R looping functions while also being careful about data types. Your are welcome to work with a partner or in a small group of 3-4 people.
+Data structures set.seed(123) # Set random number generation m &amp;lt;- lm(mpg ~ hp + cyl + drat, mtcars) l &amp;lt;- list(a = list(m = matrix(1:12, ncol = 3), v = 1:7), b = data.</description>
+    </item>
+    
+    <item>
+      <title>Assignments</title>
+      <link>https://ml-21.netlify.app/assignments/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ml-21.netlify.app/assignments/</guid>
+      <description>This course includes three labs at 10 points each, a midterm quiz (10 points), a midterm take-home (60 points) and a final project.
+A note on deadlines I would like to, as much a possible, stick to the deadlines below so we can go over them together as a group after everyone has submitted their assignment. However, if you need additional time for any reason please just send me a note letting me know.</description>
+    </item>
+    
+    <item>
+      <title>Schedule</title>
+      <link>https://ml-21.netlify.app/schedule/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ml-21.netlify.app/schedule/</guid>
+      <description>Course Books Each of the below links to the full book. Icons in the schedule link to specific chapters.
+ Advanced R: Second Edition  Hadley Wickham   R for Data Science  Hadley Wickham &amp; Garrett Grolemund   Mastering Shiny  Hadley Wickham   Happy git with R  Jenny Bryan   Other content not in the course books    Week 1 Topics Slides Notes Assigned Due Supplemental Reading 03-29  Introduction  Weekly schedule of topics and an overview of the course requirements.</description>
+    </item>
+    
+    <item>
+      <title>Syllabus</title>
+      <link>https://ml-21.netlify.app/syllabus/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ml-21.netlify.app/syllabus/</guid>
+      <description>Below are the meeting times for our class
+ Term: Spring 2021 Time: Monday/Wednesday, 10:15-11:35 Classroom: REMOTE Instructor: Daniel Anderson, PhD  email: (preferred contact method) daniela@uoregon.edu office hours: By appointment pronouns: he/him/his       Course Overview This is the third course in the educational data science specialization. This course builds upon the content covered in the first two courses, with a specific focus on becoming a better programmer and improving workflows.</description>
+    </item>
+    
+  </channel>
+</rss>
