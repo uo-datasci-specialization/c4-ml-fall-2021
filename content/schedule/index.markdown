@@ -5,8 +5,9 @@ toc: true
 
 
 
-## Course Books
-Each of the below links to the full book. Icons in the schedule link to specific chapters.
+## Supplemental Resources
+
+Each of the below links to the full book. Icons in the schedule link to specific chapters. All books except two are freely available from the provided links. *Applied Predictive Modeling* is available online through UO Libraries. *Mathematics for Machine Learning* is not necessary for this course; however, I provide the link in case anybody is interested. A shorter version of similar content is freely available.
 
 {{< course-books >}}
 
@@ -14,8 +15,8 @@ Each of the below links to the full book. Icons in the schedule link to specific
  ## Week 1 
  {{< schedule >}}
 
-{{< week-odd "03-29" >}}
-  {{< description "Introduction" "Weekly schedule of topics and an overview of the course requirements. We will also have an intro to data types." >}}
+{{< week-odd "09-27" >}}
+  {{< description "Warm-up I: Linear Algebra" "A brief overview of some linear algebra concepts will be introduced using R to develop some terminology." >}}
   {{< wrap >}}
 {{< slides "w1p1" >}}
 {{< /wrap >}}
@@ -29,18 +30,17 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< due "assignments/#final-project" "Final" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< readings "hands" "process.html#prerequisites" "2.1" >}}
-{{< readings "hands" "linear-regression.html#multi-lm" "4.3" >}}
+{{< readings "mml2" "#pages=1" "Ch. 3" >}}
 {{< /wrap >}}
 {{< /week-odd >}}
 
-{{< week-even "03-31" >}}
-  {{< description "Data types" "We will finish up on discussing the four basic data types in depth and how coercion occurs. We will also discuss attributes, introduce lists, and discuss subsetting for lists versus atomic vectors." >}}
+{{< week-even "09-29" >}}
+  {{< description "Warm-up II: Optimization" "A brief overview of some calculus and optimization will be introduced using R." >}}
   {{< wrap >}}
-{{< slides "w1p2" >}}
+{{< slides "w1p1" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< notes "w1p2" >}}
+{{< notes "w1p1" >}}
 {{< /wrap >}}
   {{< wrap >}}
 {{< assigned "assignments/#final-project" "Final" >}}
@@ -49,7 +49,7 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< due "assignments/#final-project" "Final" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< readings "mml" "#pages=77" "3.1" >}}
+{{< readings "mml2" "#pages=27" "Ch. 4" >}}
 {{< /wrap >}}
 {{< /week-even >}}
 
@@ -57,13 +57,13 @@ Each of the below links to the full book. Icons in the schedule link to specific
  ## Week 2 
  {{< schedule >}}
 
-{{< week-odd "03-29" >}}
-  {{< description "Introduction" "Weekly schedule of topics and an overview of the course requirements. We will also have an intro to data types." >}}
+{{< week-odd "10-04" >}}
+  {{< description "Evaluation Metrics" "Several measures to evaluate the performance of a set of predictions will be introduced in the context of predicting a continuous outcome, a binary outcome, and a multi-class outcome." >}}
   {{< wrap >}}
-{{< slides "w1p1" >}}
+{{< slides "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< notes "w1p1" >}}
+{{< notes "" >}}
 {{< /wrap >}}
   {{< wrap >}}
 {{< assigned "assignments/#final-project" "Final" >}}
@@ -72,17 +72,19 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< due "assignments/#final-project" "Final" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< readings "isl" "#pages=136" "4" >}}
+{{< readings "apm" "NA" "Ch. 5.1" >}}
+{{< readings "apm" "NA" "Ch. 11.1" >}}
+{{< readings "scikit" "NA" "'""" >}}
 {{< /wrap >}}
 {{< /week-odd >}}
 
-{{< week-even "03-31" >}}
-  {{< description "Data types" "We will finish up on discussing the four basic data types in depth and how coercion occurs. We will also discuss attributes, introduce lists, and discuss subsetting for lists versus atomic vectors." >}}
+{{< week-even "10-06" >}}
+  {{< description "Overfitting and Resampling Techniques" "abcde" >}}
   {{< wrap >}}
-{{< slides "w1p2" >}}
+{{< slides "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< notes "w1p2" >}}
+{{< notes "" >}}
 {{< /wrap >}}
   {{< wrap >}}
 {{< assigned "assignments/#final-project" "Final" >}}
@@ -91,10 +93,34 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< due "assignments/#final-project" "Final" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< readings "esl" "#pages=210" "6" >}}
-{{< readings "feat" "resampling.html" "3.4" >}}
+{{< readings "hands" "process.html" "Ch. 2" >}}
+{{< readings "apm" "process.html" "Ch. 4" >}}
 {{< /wrap >}}
 {{< /week-even >}}
+
+{{< /schedule >}}
+ ## Week 3 
+ {{< schedule >}}
+
+{{< week-odd "10-11" >}}
+  {{< description "Introduction to Machine Learning" "abcde" >}}
+  {{< wrap >}}
+{{< slides "" >}}
+{{< /wrap >}}
+  {{< wrap >}}
+{{< notes "" >}}
+{{< /wrap >}}
+  {{< wrap >}}
+{{< assigned "assignments/#final-project" "Final" >}}
+{{< /wrap >}}
+  {{< wrap >}}
+{{< due "assignments/#final-project" "Final" >}}
+{{< /wrap >}}
+  {{< wrap >}}
+{{< readings "hands" "intro.html" "Ch. 1" >}}
+{{< readings "isl" "#pages=27" "Ch. 2.1-2.2" >}}
+{{< /wrap >}}
+{{< /week-odd >}}
 
 {{< /schedule >}}
 

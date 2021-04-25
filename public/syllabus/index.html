@@ -101,6 +101,9 @@
   a.isl,
   a.feat,
   a.esl,
+  a.mml2,
+  a.scikit,
+  a.apm,
   a.mml {
     border-bottom: none;
     box-shadow: none;
@@ -139,6 +142,14 @@
   a.esl:focus,
   a.feat:hover,
   a.feat:focus,
+  a.mml:hover,
+  a.mml:focus,
+  a.mml2:hover,
+  a.mml2:focus,
+  a.scikit:hover,
+  a.scikit:focus,
+  a.apm:hover,
+  a.apm:focus,
   a.notes:hover,
   a.notes:focus,
   a.assigned:hover,
@@ -178,7 +189,7 @@
     border: solid 3px #CAFEFE !important;
     border-radius: 10px;
     display: inline-grid;
-    grid-template-columns: 9% 25% 10%  10% 13% 15% 14%;
+    grid-template-columns: 9% 22% 10%  10% 13% 15% 18%;
     align-items: center;
     gap: 2px;
     width:100%;
@@ -189,7 +200,7 @@
     border: solid 3px #97CAEF !important;
     border-radius: 10px;
     display: inline-grid;
-    grid-template-columns:  9% 25% 10%  10% 13% 15% 14%;
+    grid-template-columns:  9% 22% 10%  10% 13% 15% 18%;
     align-items: center;
     gap: 2px;
     width:100%;
@@ -199,7 +210,7 @@
   .weeks-header {
     display: inline-grid;
     width:100%;
-    grid-template-columns: 5% 28% 10%  13% 13% 13% 16%;
+    grid-template-columns: 5% 25% 9%  13% 13% 13% 16%;
     text-align: center;
     font-size: 1.2rem;
     border-bottom: 1px solid #97CAEF;
@@ -267,7 +278,7 @@
     padding-right: .6rem;
     padding-left: .6rem;
     border-radius: 5px;
-    background-color: #97CAEF;
+    background-color: #332288;
   }
   
   a.hands:hover {
@@ -280,10 +291,10 @@
     padding-right: .6rem;
     padding-left: .6rem;
     border-radius: 5px;
-    background-color: #a75858;
+    background-color: #117733;
   }
   a.isl:hover{
-    background-color: #eddede;
+    background-color: #dee4ed;
     color: #FC4445 !important;
   }
   .feat {
@@ -292,11 +303,11 @@
     padding-right: .6rem;
     padding-left: .6rem;
     border-radius: 5px;
-    background-color: #6d58a7;
+    background-color: #44AA99;
   }
   
   a.feat:hover {
-    background-color: #e2deed;
+    background-color: #dee4ed;
     color: #FC4445 !important;
   }
   .esl {
@@ -305,26 +316,66 @@
     padding-right: .6rem;
     padding-left: .6rem;
     border-radius: 5px;
-    background-color: #588fa7;
+    background-color: #88CCEE;
   }
   
   a.esl:hover {
-    background-color: #dee9ed;
+    background-color: #dee4ed;
     color: #FC4445 !important;
   }
+  
   .mml {
     padding-top: .6rem;
     padding-bottom: .6rem;
     padding-right: .6rem;
     padding-left: .6rem;
     border-radius: 5px;
-    background-color: #58a7a0;
+    background-color: #DDCC77;
   }
+  
   a.mml:hover{
-    background-color: #deedec;
+    background-color: #dee4ed;
     color: #FC4445 !important;
   }
   
+  .mml2 {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #CC6677;
+  }
+  a.mml2:hover{
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }
+  
+  .scikit {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #AA4499;
+  }
+  a.scikit:hover{
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }
+
+  .apm {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #882255;
+  }
+  a.apm:hover{
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }  
      
     #nav a {
       color: #fff !important;
@@ -667,6 +718,19 @@ are all freely available online. We will have chapters from each of the followin
 		<span class = "book-author"> Deisenroth, A. Aldo Faisal, and Cheng Soon Ong </span>
 	<br/>
 	
+	<a class = "mml2" href="https://gwthomas.github.io/docs/math4ml.pdf"> <i data-feather="book"></i>
+		<span class = "book-title"> Mathematics for Machine Learning (short)</span>
+		</a>
+		<span class = "book-author"> Garrett Thomas </span>
+	<br/>
+	
+		<a class = "scikit" href="https://scikit-learn.org/stable/modules/model_evaluation.html"> <i data-feather="book"></i>
+		<span class = "book-title"> Quantifying the Quality of Predictions </span>
+		</a>
+		<span class = "book-author"> scikit-learn </span>
+	<br/>
+
+	
 	<a class = "hands" href= "https://bradleyboehmke.github.io/HOML/"> <i data-feather="book"></i>
 		<span class = "book-title"> Hands-On Machine Learning with R </span>
 	</a>
@@ -685,12 +749,19 @@ are all freely available online. We will have chapters from each of the followin
 		<span class = "book-author"> Trevor Hastie, Robert Tibshirani, Jerome Friedman </span>
 		<br/>
 
-
 	<a class = "feat" href= "http://www.feat.engineering/"> <i data-feather="book"></i>
 		<span class = "book-title"> Feature Engineering and Selection</span>
 	</a>
 		<span class = "book-author"> Max Kuhn and Kjell Johnson</span> 
     <br/>
+    
+	<a class = "apm" href= "http://appliedpredictivemodeling.com/"> <i data-feather="book"></i>
+		<span class = "book-title"> Applied Predictive Modeling*** </span>
+	</a>
+		<span class = "book-author"> Max Kuhn and Kjell Johnson</span> 
+    <br/>
+  
+  *** PDF is available through UO Libraries
     
 
 </div>

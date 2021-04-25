@@ -8,8 +8,9 @@ knitr::opts_chunk$set(echo = FALSE)
 library(blogdown)
 ```
 
-## Course Books
-Each of the below links to the full book. Icons in the schedule link to specific chapters.
+## Supplemental Resources
+
+Each of the below links to the full book. Icons in the schedule link to specific chapters. All books except two are freely available from the provided links. *Applied Predictive Modeling* is available online through UO Libraries. *Mathematics for Machine Learning* is not necessary for this course; however, I provide the link in case anybody is interested. A shorter version of similar content is freely available.
 
 {{< course-books >}}
 

@@ -14,7 +14,19 @@
 	{{ else if eq $arg1 "mml" }}
 
 		<span class = "readings"><a class = "mml" href="https://mml-book.github.io/book/mml-book.pdf{{ .Get 1 }}"> <i data-feather="book"></i> {{ .Get 2 }} </a></span>
+
+	{{ else if eq $arg1 "mml2" }}
+
+		<span class = "readings"><a class = "mml2" href="https://gwthomas.github.io/docs/math4ml.pdf{{ .Get 1 }}"> <i data-feather="book"></i> {{ .Get 2 }} </a></span>
+		
+	{{ else if eq $arg1 "scikit" }}
+
+		<span class = "readings"><a class = "scikit" href="https://scikit-learn.org/stable/modules/model_evaluation.html"> <i data-feather="book"></i> </a></span>
 	
+	{{ else if eq $arg1 "apm" }}
+
+		<span class = "readings"><a class = "apm" href="http://appliedpredictivemodeling.com/"> <i data-feather="book"></i> {{ .Get 2 }} </a></span>
+		
 	{{ else if eq $arg1 "isl" }}
 
 		<span class = "readings"><a class = "isl" href="https://www.statlearning.com/s/ISLRSeventhPrinting.pdf{{ .Get 1 }}"> <i data-feather="book"></i> {{ .Get 2 }} </a></span>
