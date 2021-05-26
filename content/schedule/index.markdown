@@ -12,6 +12,11 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< course-books >}}
 
 
+```
+## Warning: package 'dplyr' was built under R version 4.0.5
+```
+
+
  ## Week 1 
  {{< schedule >}}
 
@@ -21,7 +26,7 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< slides "w1p1" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< notes "w1p1" >}}
+{{< notes "warm-up-1" >}}
 {{< /wrap >}}
   {{< wrap >}}
 {{< assigned "assignments/#final-project" "Final" >}}

@@ -3,7 +3,7 @@ title: Schedule
 toc: true
 ---
 
-```{r include = FALSE}
+```{r include = FALSE, message=FALSE,warning=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 library(blogdown)
 ```
