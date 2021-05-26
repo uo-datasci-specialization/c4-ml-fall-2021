@@ -12,11 +12,6 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< course-books >}}
 
 
-```
-## Warning: package 'dplyr' was built under R version 4.0.5
-```
-
-
  ## Week 1 
  {{< schedule >}}
 
@@ -42,16 +37,16 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< week-even "09-29" >}}
   {{< description "Warm-up II: Optimization" "A brief overview of some calculus and optimization will be introduced using R." >}}
   {{< wrap >}}
-{{< slides "w1p1" >}}
+{{< slides "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< notes "w1p1" >}}
+{{< notes "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< assigned "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
-{{< due "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
 {{< readings "mml2" "#pages=27" "Ch. 4" >}}
@@ -71,10 +66,10 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< notes "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< assigned "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
-{{< due "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
 {{< readings "apm" "NA" "Ch. 5.1" >}}
@@ -92,10 +87,10 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< notes "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< assigned "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
-{{< due "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
 {{< readings "hands" "process.html" "Ch. 2" >}}
@@ -116,10 +111,10 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< notes "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< assigned "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
-{{< due "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
 {{< readings "hands" "intro.html" "Ch. 1" >}}
