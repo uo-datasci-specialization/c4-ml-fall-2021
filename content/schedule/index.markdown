@@ -12,10 +12,10 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< course-books >}}
 
 
- ## Week 1 
+ ## Week 0 - precourse 
  {{< schedule >}}
 
-{{< week-odd "09-27" >}}
+{{< week-odd "NA" >}}
   {{< description "Warm-up I: Linear Algebra" "A brief overview of some linear algebra concepts will be introduced using R to develop some terminology." >}}
   {{< wrap >}}
 {{< slides "w1p1" >}}
@@ -24,17 +24,17 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< notes "warm-up-1" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< assigned "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
-{{< due "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
 {{< readings "mml2" "#pages=1" "Ch. 3" >}}
 {{< /wrap >}}
 {{< /week-odd >}}
 
-{{< week-even "09-29" >}}
+{{< week-even "NA" >}}
   {{< description "Warm-up II: Optimization" "A brief overview of some calculus and optimization will be introduced using R." >}}
   {{< wrap >}}
 {{< slides "" >}}
@@ -54,10 +54,10 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< /week-even >}}
 
 {{< /schedule >}}
- ## Week 2 
+ ## Week 1 
  {{< schedule >}}
 
-{{< week-odd "10-04" >}}
+{{< week-odd "09-27" >}}
   {{< description "Evaluation Metrics" "Several measures to evaluate the performance of a set of predictions will be introduced in the context of predicting a continuous outcome, a binary outcome, and a multi-class outcome." >}}
   {{< wrap >}}
 {{< slides "" >}}
@@ -66,10 +66,10 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< notes "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-
+{{< assigned "assignments/#final-project" "Final" >}}
 {{< /wrap >}}
   {{< wrap >}}
-
+{{< due "assignments/#final-project" "Final" >}}
 {{< /wrap >}}
   {{< wrap >}}
 {{< readings "apm" "NA" "Ch. 5.1" >}}
@@ -78,7 +78,7 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< /wrap >}}
 {{< /week-odd >}}
 
-{{< week-even "10-06" >}}
+{{< week-even "09-29" >}}
   {{< description "Overfitting and Resampling Techniques" "abcde" >}}
   {{< wrap >}}
 {{< slides "" >}}
@@ -99,10 +99,10 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< /week-even >}}
 
 {{< /schedule >}}
- ## Week 3 
+ ## Week 2 
  {{< schedule >}}
 
-{{< week-odd "10-11" >}}
+{{< week-odd "10-04" >}}
   {{< description "Introduction to Machine Learning" "abcde" >}}
   {{< wrap >}}
 {{< slides "" >}}

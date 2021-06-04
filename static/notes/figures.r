@@ -176,6 +176,36 @@ surface3d(x=x,
 
 
 
+library("rgl")
+
+plot3d(x = 0,
+       y = 0,
+       z = 0,
+       size=1, 
+       type="s",
+       xlim=c(-100,100), 
+       ylim=c(-100,100),
+       zlim=c(-100,500),
+       xlab="X",ylab="Y",zlab="Z")
+
+x <- seq(-20,20,1)
+y <- seq(-20,20,1)
+
+z <- matrix(ncol=length(x),nrow=length(y))
+
+for(i in 1:nrow(z)){
+  for(j in 1:ncol(z)){
+    z[i,j] = x[i] ^2 + 2*y[j] - 5 
+  }
+}
+
+
+surface3d(x=x,
+          y=y,
+          z=z,
+          col="grey", alpha=.2)
+
+
 
 
 

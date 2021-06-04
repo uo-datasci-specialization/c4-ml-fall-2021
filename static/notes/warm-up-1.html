@@ -1360,6 +1360,166 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 </script>
+<script>/*!
+ * clipboard.js v1.7.1
+ * https://zenorocha.github.io/clipboard.js
+ *
+ * Licensed MIT © Zeno Rocha
+ */
+!function(t){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=t();else if("function"==typeof define&&define.amd)define([],t);else{var e;e="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,e.Clipboard=t()}}(function(){var t,e,n;return function t(e,n,o){function i(a,c){if(!n[a]){if(!e[a]){var l="function"==typeof require&&require;if(!c&&l)return l(a,!0);if(r)return r(a,!0);var s=new Error("Cannot find module '"+a+"'");throw s.code="MODULE_NOT_FOUND",s}var u=n[a]={exports:{}};e[a][0].call(u.exports,function(t){var n=e[a][1][t];return i(n||t)},u,u.exports,t,e,n,o)}return n[a].exports}for(var r="function"==typeof require&&require,a=0;a<o.length;a++)i(o[a]);return i}({1:[function(t,e,n){function o(t,e){for(;t&&t.nodeType!==i;){if("function"==typeof t.matches&&t.matches(e))return t;t=t.parentNode}}var i=9;if("undefined"!=typeof Element&&!Element.prototype.matches){var r=Element.prototype;r.matches=r.matchesSelector||r.mozMatchesSelector||r.msMatchesSelector||r.oMatchesSelector||r.webkitMatchesSelector}e.exports=o},{}],2:[function(t,e,n){function o(t,e,n,o,r){var a=i.apply(this,arguments);return t.addEventListener(n,a,r),{destroy:function(){t.removeEventListener(n,a,r)}}}function i(t,e,n,o){return function(n){n.delegateTarget=r(n.target,e),n.delegateTarget&&o.call(t,n)}}var r=t("./closest");e.exports=o},{"./closest":1}],3:[function(t,e,n){n.node=function(t){return void 0!==t&&t instanceof HTMLElement&&1===t.nodeType},n.nodeList=function(t){var e=Object.prototype.toString.call(t);return void 0!==t&&("[object NodeList]"===e||"[object HTMLCollection]"===e)&&"length"in t&&(0===t.length||n.node(t[0]))},n.string=function(t){return"string"==typeof t||t instanceof String},n.fn=function(t){return"[object Function]"===Object.prototype.toString.call(t)}},{}],4:[function(t,e,n){function o(t,e,n){if(!t&&!e&&!n)throw new Error("Missing required arguments");if(!c.string(e))throw new TypeError("Second argument must be a String");if(!c.fn(n))throw new TypeError("Third argument must be a Function");if(c.node(t))return i(t,e,n);if(c.nodeList(t))return r(t,e,n);if(c.string(t))return a(t,e,n);throw new TypeError("First argument must be a String, HTMLElement, HTMLCollection, or NodeList")}function i(t,e,n){return t.addEventListener(e,n),{destroy:function(){t.removeEventListener(e,n)}}}function r(t,e,n){return Array.prototype.forEach.call(t,function(t){t.addEventListener(e,n)}),{destroy:function(){Array.prototype.forEach.call(t,function(t){t.removeEventListener(e,n)})}}}function a(t,e,n){return l(document.body,t,e,n)}var c=t("./is"),l=t("delegate");e.exports=o},{"./is":3,delegate:2}],5:[function(t,e,n){function o(t){var e;if("SELECT"===t.nodeName)t.focus(),e=t.value;else if("INPUT"===t.nodeName||"TEXTAREA"===t.nodeName){var n=t.hasAttribute("readonly");n||t.setAttribute("readonly",""),t.select(),t.setSelectionRange(0,t.value.length),n||t.removeAttribute("readonly"),e=t.value}else{t.hasAttribute("contenteditable")&&t.focus();var o=window.getSelection(),i=document.createRange();i.selectNodeContents(t),o.removeAllRanges(),o.addRange(i),e=o.toString()}return e}e.exports=o},{}],6:[function(t,e,n){function o(){}o.prototype={on:function(t,e,n){var o=this.e||(this.e={});return(o[t]||(o[t]=[])).push({fn:e,ctx:n}),this},once:function(t,e,n){function o(){i.off(t,o),e.apply(n,arguments)}var i=this;return o._=e,this.on(t,o,n)},emit:function(t){var e=[].slice.call(arguments,1),n=((this.e||(this.e={}))[t]||[]).slice(),o=0,i=n.length;for(o;o<i;o++)n[o].fn.apply(n[o].ctx,e);return this},off:function(t,e){var n=this.e||(this.e={}),o=n[t],i=[];if(o&&e)for(var r=0,a=o.length;r<a;r++)o[r].fn!==e&&o[r].fn._!==e&&i.push(o[r]);return i.length?n[t]=i:delete n[t],this}},e.exports=o},{}],7:[function(e,n,o){!function(i,r){if("function"==typeof t&&t.amd)t(["module","select"],r);else if(void 0!==o)r(n,e("select"));else{var a={exports:{}};r(a,i.select),i.clipboardAction=a.exports}}(this,function(t,e){"use strict";function n(t){return t&&t.__esModule?t:{default:t}}function o(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}var i=n(e),r="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},a=function(){function t(t,e){for(var n=0;n<e.length;n++){var o=e[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(t,o.key,o)}}return function(e,n,o){return n&&t(e.prototype,n),o&&t(e,o),e}}(),c=function(){function t(e){o(this,t),this.resolveOptions(e),this.initSelection()}return a(t,[{key:"resolveOptions",value:function t(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};this.action=e.action,this.container=e.container,this.emitter=e.emitter,this.target=e.target,this.text=e.text,this.trigger=e.trigger,this.selectedText=""}},{key:"initSelection",value:function t(){this.text?this.selectFake():this.target&&this.selectTarget()}},{key:"selectFake",value:function t(){var e=this,n="rtl"==document.documentElement.getAttribute("dir");this.removeFake(),this.fakeHandlerCallback=function(){return e.removeFake()},this.fakeHandler=this.container.addEventListener("click",this.fakeHandlerCallback)||!0,this.fakeElem=document.createElement("textarea"),this.fakeElem.style.fontSize="12pt",this.fakeElem.style.border="0",this.fakeElem.style.padding="0",this.fakeElem.style.margin="0",this.fakeElem.style.position="absolute",this.fakeElem.style[n?"right":"left"]="-9999px";var o=window.pageYOffset||document.documentElement.scrollTop;this.fakeElem.style.top=o+"px",this.fakeElem.setAttribute("readonly",""),this.fakeElem.value=this.text,this.container.appendChild(this.fakeElem),this.selectedText=(0,i.default)(this.fakeElem),this.copyText()}},{key:"removeFake",value:function t(){this.fakeHandler&&(this.container.removeEventListener("click",this.fakeHandlerCallback),this.fakeHandler=null,this.fakeHandlerCallback=null),this.fakeElem&&(this.container.removeChild(this.fakeElem),this.fakeElem=null)}},{key:"selectTarget",value:function t(){this.selectedText=(0,i.default)(this.target),this.copyText()}},{key:"copyText",value:function t(){var e=void 0;try{e=document.execCommand(this.action)}catch(t){e=!1}this.handleResult(e)}},{key:"handleResult",value:function t(e){this.emitter.emit(e?"success":"error",{action:this.action,text:this.selectedText,trigger:this.trigger,clearSelection:this.clearSelection.bind(this)})}},{key:"clearSelection",value:function t(){this.trigger&&this.trigger.focus(),window.getSelection().removeAllRanges()}},{key:"destroy",value:function t(){this.removeFake()}},{key:"action",set:function t(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:"copy";if(this._action=e,"copy"!==this._action&&"cut"!==this._action)throw new Error('Invalid "action" value, use either "copy" or "cut"')},get:function t(){return this._action}},{key:"target",set:function t(e){if(void 0!==e){if(!e||"object"!==(void 0===e?"undefined":r(e))||1!==e.nodeType)throw new Error('Invalid "target" value, use a valid Element');if("copy"===this.action&&e.hasAttribute("disabled"))throw new Error('Invalid "target" attribute. Please use "readonly" instead of "disabled" attribute');if("cut"===this.action&&(e.hasAttribute("readonly")||e.hasAttribute("disabled")))throw new Error('Invalid "target" attribute. You can\'t cut text from elements with "readonly" or "disabled" attributes');this._target=e}},get:function t(){return this._target}}]),t}();t.exports=c})},{select:5}],8:[function(e,n,o){!function(i,r){if("function"==typeof t&&t.amd)t(["module","./clipboard-action","tiny-emitter","good-listener"],r);else if(void 0!==o)r(n,e("./clipboard-action"),e("tiny-emitter"),e("good-listener"));else{var a={exports:{}};r(a,i.clipboardAction,i.tinyEmitter,i.goodListener),i.clipboard=a.exports}}(this,function(t,e,n,o){"use strict";function i(t){return t&&t.__esModule?t:{default:t}}function r(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}function a(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}function c(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}function l(t,e){var n="data-clipboard-"+t;if(e.hasAttribute(n))return e.getAttribute(n)}var s=i(e),u=i(n),f=i(o),d="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(t){return typeof t}:function(t){return t&&"function"==typeof Symbol&&t.constructor===Symbol&&t!==Symbol.prototype?"symbol":typeof t},h=function(){function t(t,e){for(var n=0;n<e.length;n++){var o=e[n];o.enumerable=o.enumerable||!1,o.configurable=!0,"value"in o&&(o.writable=!0),Object.defineProperty(t,o.key,o)}}return function(e,n,o){return n&&t(e.prototype,n),o&&t(e,o),e}}(),p=function(t){function e(t,n){r(this,e);var o=a(this,(e.__proto__||Object.getPrototypeOf(e)).call(this));return o.resolveOptions(n),o.listenClick(t),o}return c(e,t),h(e,[{key:"resolveOptions",value:function t(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};this.action="function"==typeof e.action?e.action:this.defaultAction,this.target="function"==typeof e.target?e.target:this.defaultTarget,this.text="function"==typeof e.text?e.text:this.defaultText,this.container="object"===d(e.container)?e.container:document.body}},{key:"listenClick",value:function t(e){var n=this;this.listener=(0,f.default)(e,"click",function(t){return n.onClick(t)})}},{key:"onClick",value:function t(e){var n=e.delegateTarget||e.currentTarget;this.clipboardAction&&(this.clipboardAction=null),this.clipboardAction=new s.default({action:this.action(n),target:this.target(n),text:this.text(n),container:this.container,trigger:n,emitter:this})}},{key:"defaultAction",value:function t(e){return l("action",e)}},{key:"defaultTarget",value:function t(e){var n=l("target",e);if(n)return document.querySelector(n)}},{key:"defaultText",value:function t(e){return l("text",e)}},{key:"destroy",value:function t(){this.listener.destroy(),this.clipboardAction&&(this.clipboardAction.destroy(),this.clipboardAction=null)}}],[{key:"isSupported",value:function t(){var e=arguments.length>0&&void 0!==arguments[0]?arguments[0]:["copy","cut"],n="string"==typeof e?[e]:e,o=!!document.queryCommandSupported;return n.forEach(function(t){o=o&&!!document.queryCommandSupported(t)}),o}}]),e}(u.default);t.exports=p})},{"./clipboard-action":7,"good-listener":4,"tiny-emitter":6}]},{},[8])(8)});</script>
+<style type="text/css">.tooltipped {
+position: relative; }
+.tooltipped::after {
+position: absolute;
+z-index: 1000000;
+display: none;
+padding: 5px 8px;
+font: normal normal 11px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+-webkit-font-smoothing: subpixel-antialiased;
+color: #fff;
+text-align: center;
+text-decoration: none;
+text-shadow: none;
+text-transform: none;
+letter-spacing: normal;
+word-wrap: break-word;
+white-space: pre;
+pointer-events: none;
+content: attr(aria-label);
+background: rgba(27, 31, 35, 0.8);
+border-radius: 3px;
+opacity: 0; }
+.tooltipped::before {
+position: absolute;
+z-index: 1000001;
+display: none;
+width: 0;
+height: 0;
+color: rgba(27, 31, 35, 0.8);
+pointer-events: none;
+content: "";
+border: 5px solid transparent;
+opacity: 0; }
+@keyframes tooltip-appear {
+from {
+opacity: 0; }
+to {
+opacity: 1; } }
+.tooltipped:hover::before, .tooltipped:hover::after,
+.tooltipped:active::before,
+.tooltipped:active::after,
+.tooltipped:focus::before,
+.tooltipped:focus::after {
+display: inline-block;
+text-decoration: none;
+animation-name: tooltip-appear;
+animation-duration: 0.1s;
+animation-fill-mode: forwards;
+animation-timing-function: ease-in;
+animation-delay: 0.4s; }
+.tooltipped-no-delay:hover::before, .tooltipped-no-delay:hover::after,
+.tooltipped-no-delay:active::before,
+.tooltipped-no-delay:active::after,
+.tooltipped-no-delay:focus::before,
+.tooltipped-no-delay:focus::after {
+opacity: 1;
+animation: none; }
+.tooltipped-multiline:hover::after,
+.tooltipped-multiline:active::after,
+.tooltipped-multiline:focus::after {
+display: table-cell; }
+.tooltipped-s::after,
+.tooltipped-se::after,
+.tooltipped-sw::after {
+top: 100%;
+right: 50%;
+margin-top: 5px; }
+.tooltipped-s::before,
+.tooltipped-se::before,
+.tooltipped-sw::before {
+top: auto;
+right: 50%;
+bottom: -5px;
+margin-right: -5px;
+border-bottom-color: rgba(27, 31, 35, 0.8); }
+.tooltipped-se::after {
+right: auto;
+left: 50%;
+margin-left: -15px; }
+.tooltipped-sw::after {
+margin-right: -15px; }
+.tooltipped-n::after,
+.tooltipped-ne::after,
+.tooltipped-nw::after {
+right: 50%;
+bottom: 100%;
+margin-bottom: 5px; }
+.tooltipped-n::before,
+.tooltipped-ne::before,
+.tooltipped-nw::before {
+top: -5px;
+right: 50%;
+bottom: auto;
+margin-right: -5px;
+border-top-color: rgba(27, 31, 35, 0.8); }
+.tooltipped-ne::after {
+right: auto;
+left: 50%;
+margin-left: -15px; }
+.tooltipped-nw::after {
+margin-right: -15px; }
+.tooltipped-s::after,
+.tooltipped-n::after {
+transform: translateX(50%); }
+.tooltipped-w::after {
+right: 100%;
+bottom: 50%;
+margin-right: 5px;
+transform: translateY(50%); }
+.tooltipped-w::before {
+top: 50%;
+bottom: 50%;
+left: -5px;
+margin-top: -5px;
+border-left-color: rgba(27, 31, 35, 0.8); }
+.tooltipped-e::after {
+bottom: 50%;
+left: 100%;
+margin-left: 5px;
+transform: translateY(50%); }
+.tooltipped-e::before {
+top: 50%;
+right: -5px;
+bottom: 50%;
+margin-top: -5px;
+border-right-color: rgba(27, 31, 35, 0.8); }
+.tooltipped-multiline::after {
+width: max-content;
+max-width: 250px;
+word-wrap: break-word;
+white-space: pre-line;
+border-collapse: separate; }
+.tooltipped-multiline.tooltipped-s::after, .tooltipped-multiline.tooltipped-n::after {
+right: auto;
+left: 50%;
+transform: translateX(-50%); }
+.tooltipped-multiline.tooltipped-w::after, .tooltipped-multiline.tooltipped-e::after {
+right: 100%; }
+@media screen and (min-width: 0\0) {
+.tooltipped-multiline::after {
+width: 250px; } }
+.tooltipped-sticky::before, .tooltipped-sticky::after {
+display: inline-block; }
+.tooltipped-sticky.tooltipped-multiline::after {
+display: table-cell; }
+@media only screen and (-webkit-min-device-pixel-ratio: 2), only screen and (min--moz-device-pixel-ratio: 2), only screen and (-moz-min-device-pixel-ratio: 2), only screen and (-o-min-device-pixel-ratio: 2 / 1), only screen and (min-device-pixel-ratio: 2), only screen and (min-resolution: 192dpi), only screen and (min-resolution: 2dppx) {
+.tooltipped-w::after {
+margin-right: 4.5px; } }
+</style>
+<style type="text/css">.klippy{overflow:visible;position:relative}.btn-klippy{position:absolute;border:0;padding:1px 0 0 1px;background-color:transparent}.btn-klippy>div{margin:0;padding:0}.btn-klippy .octicon{display:inline-block;margin:0;padding:0}.btn-klippy:focus{outline:0}.btn-klippy:focus .octicon{border-width:thin;border-style:dotted;border-color:gray;border-radius:3px}
+</style>
+<script>function addClassKlippyToPreCode(){document.addEventListener("DOMContentLoaded",function(){for(var e=document.querySelectorAll("pre > code"),t=0;t<e.length;t+=1)e.item(t).parentElement.className+=" klippy"})}function addClassKlippyTo(e){document.addEventListener("DOMContentLoaded",function(){for(var t=document.querySelectorAll(e),o=0;o<t.length;o+=1)t.item(o).className+=" klippy"})}function changeTooltipMessage(e,t){e.setAttribute("aria-label",t)}function getUriOcticonClippy(e,t){var o;if("auto"===e){var n=document.createElement("a");document.body.appendChild(n),o=window.getComputedStyle(n).getPropertyValue("color"),document.body.removeChild(n)}else o=e;var l='<?xml version="1.0" encoding="UTF-8"?><svg version="1.1" viewBox="0 0 14 16" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="'+o+'" opacity="'+t+'"><path d="m2 13h4v1h-4v-1zm5-6h-5v1h5v-1zm2 3v-2l-3 3 3 3v-2h5v-2h-5zm-4.5-1h-2.5v1h2.5v-1zm-2.5 3h2.5v-1h-2.5v1zm9 1h1v2c-0.02 0.28-0.11 0.52-0.3 0.7s-0.42 0.28-0.7 0.3h-10c-0.55 0-1-0.45-1-1v-11c0-0.55 0.45-1 1-1h3c0-1.11 0.89-2 2-2s2 0.89 2 2h3c0.55 0 1 0.45 1 1v5h-1v-3h-10v9h10v-2zm-9-8h8c0-0.55-0.45-1-1-1h-1c-0.55 0-1-0.45-1-1s-0.45-1-1-1-1 0.45-1 1-0.45 1-1 1h-1c-0.55 0-1 0.45-1 1z"/></g></g></svg>';return"data:image/svg+xml;base64,"+window.btoa(l)}function initKlippy(t,o,n,l,i,a){document.addEventListener("DOMContentLoaded",function(){for(var r=getUriOcticonClippy(n,l),c="<button type='button' class='btn-klippy tooltipped tooltipped-no-delay' aria-label='"+i+"' onfocusout='changeTooltipMessage(this,&quot;"+i+"&quot;)' data-clipboard-klippy><div><img class='octicon' src='"+r+"' alt='Copy'></div></button>",d=document.querySelectorAll(".klippy > code"),p=0;p<d.length;p+=1)d.item(p).insertAdjacentHTML("beforebegin",c);var s=document.getElementsByClassName("btn-klippy");Array.prototype.map.call(s,function(e){var n=e.parentElement,l=window.getComputedStyle(n).getPropertyValue("padding-"+t),i=e.querySelector(".octicon");i.style.width=l,i.style.verticalAlign=o,"right"===t?(e.style.right="0",e.className+=" tooltipped-w"):(e.style.left="0",e.className+=" tooltipped-e"),"bottom"===o?e.style.bottom="0":e.style.top="0"});var u=new Clipboard("[data-clipboard-klippy]",{text:function(e){return e.parentNode.querySelector("code").textContent}});u.on("success",function(e){changeTooltipMessage(e.trigger,a),e.clearSelection()}),u.on("error",function(){changeTooltipMessage(e.trigger,"Press Ctrl+C or Command+C to copy")})})}function addKlippy(e,t,o,n,l,i){Clipboard.isSupported()&&initKlippy(e,t,o,n,l,i)}
+</script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -1665,7 +1825,7 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Applied Machine Learning for Educational Data Science</h1>
-<h3 class="subtitle">Warm-up I Linear Algebra</h3>
+<h3 class="subtitle">Warm-up I | Linear Algebra</h3>
 <h4 class="author">Cengiz Zopluoglu</h4>
 <address class="author_afil">
 University of Oregon | EDLD 654<br><h4 class="date">05/26/2021</h4>
@@ -1689,11 +1849,15 @@ body{
 /* Headers */
 
 h1,h2,h3,h4,h5,h6{
-  font-size: 20pt;
+  font-size: 24pt;
 }
 
 </style>
-<p>[Updated: Wed, May 26, 2021 - 12:14:22 ]</p>
+<script>
+  addClassKlippyTo("pre.r, pre.markdown");
+  addKlippy('right', 'top', 'auto', '1', 'Copy code', 'Copied!');
+</script>
+<p>[Updated: Fri, May 28, 2021 - 12:58:07 ]</p>
 <p>This is a crash course on Linear Algebra for students in social science. This document does not replace a course on Linear Algebra, and only serves the purpose of developing some vocabulary you will likely encounter in any Machine Learning course or textbook. If you had taken Linear Algebra before, it will refresh your memory.</p>
 <div id="vectors-and-scalars" class="section level1">
 <h1>Vectors and Scalars</h1>
@@ -1716,16 +1880,16 @@ h1,h2,h3,h4,h5,h6{
 3 &amp; 5 &amp; 8
 \end{bmatrix}
 \]</span></p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>vec1 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>)  </span>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>vec1 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>)  </span>
 <span id="cb1-2"><a href="#cb1-2"></a></span>
 <span id="cb1-3"><a href="#cb1-3"></a>vec1    <span class="co">#  this operates as a column vector</span></span></code></pre></div>
 <pre><code>[1] 3 5 8</code></pre>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>vec2 &lt;-<span class="st"> </span><span class="kw">t</span>(vec1)  <span class="co"># transpose the first vector</span></span>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>vec2 &lt;-<span class="st"> </span><span class="kw">t</span>(vec1)  <span class="co"># transpose the first vector</span></span>
 <span id="cb3-2"><a href="#cb3-2"></a></span>
 <span id="cb3-3"><a href="#cb3-3"></a>vec2</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3]
 [1,]    3    5    8</code></pre>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">dim</span>(vec2)  <span class="co"># Notice that vec2 has dimensions of 1 x 3.</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">dim</span>(vec2)  <span class="co"># Notice that vec2 has dimensions of 1 x 3.</span></span></code></pre></div>
 <pre><code>[1] 1 3</code></pre>
 <div id="euclidean-space" class="section level2">
 <h2>Euclidean Space</h2>
@@ -1738,7 +1902,7 @@ h1,h2,h3,h4,h5,h6{
 <ol style="list-style-type: decimal">
 <li>For all <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span>, there exists an additive identity such that <span class="math inline">\(\mathbf{x} + \mathbf{0} = \mathbf{x}\)</span>.</li>
 </ol>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>vec1  &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>vec1  &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb7-2"><a href="#cb7-2"></a>zeros &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>)</span>
 <span id="cb7-3"><a href="#cb7-3"></a></span>
 <span id="cb7-4"><a href="#cb7-4"></a>vec1 <span class="op">+</span><span class="st"> </span>zeros</span></code></pre></div>
@@ -1748,7 +1912,7 @@ h1,h2,h3,h4,h5,h6{
 <ol start="2" style="list-style-type: decimal">
 <li>For all <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span>, there exists an additive inverse such that <span class="math inline">\(\mathbf{x} + \mathbf{-x} = \mathbf{0}\)</span>.</li>
 </ol>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb9-2"><a href="#cb9-2"></a>vec1.inverse &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">3</span>, <span class="dv">-5</span>, <span class="dv">-8</span>, <span class="dv">-10</span>, <span class="dv">-9</span>)</span>
 <span id="cb9-3"><a href="#cb9-3"></a></span>
 <span id="cb9-4"><a href="#cb9-4"></a>vec1 <span class="op">+</span><span class="st"> </span>vec1.inverse</span></code></pre></div>
@@ -1758,67 +1922,67 @@ h1,h2,h3,h4,h5,h6{
 <ol start="3" style="list-style-type: decimal">
 <li>For all <span class="math inline">\(\mathbf{x},\mathbf{y} \in \mathbb{R}^n\)</span>, the following commutative law holds: <span class="math display">\[ \mathbf{x} + \mathbf{y} = \mathbf{y} + \mathbf{x}\]</span>.</li>
 </ol>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb11-2"><a href="#cb11-2"></a>vec2         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">7</span>, <span class="dv">3</span>, <span class="dv">5</span>)</span>
 <span id="cb11-3"><a href="#cb11-3"></a></span>
 <span id="cb11-4"><a href="#cb11-4"></a>vec1 <span class="op">+</span><span class="st"> </span>vec2</span></code></pre></div>
 <pre><code>[1]  4 15 15 13 14</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>vec2 <span class="op">+</span><span class="st"> </span>vec1</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>vec2 <span class="op">+</span><span class="st"> </span>vec1</span></code></pre></div>
 <pre><code>[1]  4 15 15 13 14</code></pre>
 <p><br />
 </p>
 <ol start="4" style="list-style-type: decimal">
 <li>For all <span class="math inline">\(\mathbf{x},\mathbf{y}, \mathbf{z} \in \mathbb{R}^n\)</span>, the following associative law holds: <span class="math display">\[ (\mathbf{x} + \mathbf{y}) + \mathbf{z}  = \mathbf{x} + (\mathbf{y} + \mathbf{z}) = \mathbf{y} + (\mathbf{x} + \mathbf{z})    \]</span>.</li>
 </ol>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb15-2"><a href="#cb15-2"></a>vec2         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">7</span>, <span class="dv">3</span>, <span class="dv">5</span>)</span>
 <span id="cb15-3"><a href="#cb15-3"></a>vec3         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">2</span>, <span class="dv">-4</span>, <span class="dv">7</span>, <span class="dv">3</span>, <span class="dv">-5</span>)</span>
 <span id="cb15-4"><a href="#cb15-4"></a></span>
 <span id="cb15-5"><a href="#cb15-5"></a></span>
 <span id="cb15-6"><a href="#cb15-6"></a>vec1 <span class="op">+</span><span class="st"> </span>(vec2 <span class="op">+</span><span class="st"> </span>vec3)</span></code></pre></div>
 <pre><code>[1]  2 11 22 16  9</code></pre>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>vec2 <span class="op">+</span><span class="st"> </span>(vec1 <span class="op">+</span><span class="st"> </span>vec3)</span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>vec2 <span class="op">+</span><span class="st"> </span>(vec1 <span class="op">+</span><span class="st"> </span>vec3)</span></code></pre></div>
 <pre><code>[1]  2 11 22 16  9</code></pre>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>vec3 <span class="op">+</span><span class="st"> </span>(vec1 <span class="op">+</span><span class="st"> </span>vec2)</span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>vec3 <span class="op">+</span><span class="st"> </span>(vec1 <span class="op">+</span><span class="st"> </span>vec2)</span></code></pre></div>
 <pre><code>[1]  2 11 22 16  9</code></pre>
 <p><br />
 </p>
 <ol start="5" style="list-style-type: decimal">
 <li>For all <span class="math inline">\(\mathbf{x},\mathbf{y} \in \mathbb{R}^n\)</span> and <span class="math inline">\(k \in \mathbb{R}\)</span>, the following distributive law holds: <span class="math display">\[k (\mathbf{x} + \mathbf{y}) = k\mathbf{x} + k\mathbf{y}\]</span>.</li>
 </ol>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb21-2"><a href="#cb21-2"></a>vec2         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">7</span>, <span class="dv">3</span>, <span class="dv">5</span>)</span>
 <span id="cb21-3"><a href="#cb21-3"></a>k            &lt;-<span class="st"> </span><span class="dv">5</span></span>
 <span id="cb21-4"><a href="#cb21-4"></a></span>
 <span id="cb21-5"><a href="#cb21-5"></a>k<span class="op">*</span>(vec1 <span class="op">+</span><span class="st"> </span>vec2)</span></code></pre></div>
 <pre><code>[1] 20 75 75 65 70</code></pre>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>k<span class="op">*</span>vec1 <span class="op">+</span><span class="st"> </span>k<span class="op">*</span>vec2</span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>k<span class="op">*</span>vec1 <span class="op">+</span><span class="st"> </span>k<span class="op">*</span>vec2</span></code></pre></div>
 <pre><code>[1] 20 75 75 65 70</code></pre>
 <p><br />
 </p>
 <ol start="6" style="list-style-type: decimal">
 <li>For all <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span> and <span class="math inline">\(k,u \in \mathbb{R}\)</span>, the following distributive law also holds: <span class="math display">\[ (k+u)\mathbf{x}= k\mathbf{x} + u\mathbf{x}\]</span>.</li>
 </ol>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb25-2"><a href="#cb25-2"></a>k            &lt;-<span class="st"> </span><span class="dv">5</span></span>
 <span id="cb25-3"><a href="#cb25-3"></a>u            &lt;-<span class="st"> </span><span class="dv">10</span></span>
 <span id="cb25-4"><a href="#cb25-4"></a></span>
 <span id="cb25-5"><a href="#cb25-5"></a>(k<span class="op">+</span>u)<span class="op">*</span>(vec1)</span></code></pre></div>
 <pre><code>[1]  45  75 120 150 135</code></pre>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a>k<span class="op">*</span>vec1 <span class="op">+</span><span class="st"> </span>u<span class="op">*</span>vec1</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a>k<span class="op">*</span>vec1 <span class="op">+</span><span class="st"> </span>u<span class="op">*</span>vec1</span></code></pre></div>
 <pre><code>[1]  45  75 120 150 135</code></pre>
 <ol start="7" style="list-style-type: decimal">
 <li>For all <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span> and <span class="math inline">\(k,u \in \mathbb{R}\)</span>, the following associative law holds: <span class="math display">\[ (ku)\mathbf{x}= k(u\mathbf{x}) = u(k\mathbf{x}) \]</span>.</li>
 </ol>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb29-2"><a href="#cb29-2"></a>k            &lt;-<span class="st"> </span><span class="dv">5</span></span>
 <span id="cb29-3"><a href="#cb29-3"></a>u            &lt;-<span class="st"> </span><span class="dv">10</span></span>
 <span id="cb29-4"><a href="#cb29-4"></a></span>
 <span id="cb29-5"><a href="#cb29-5"></a>(k<span class="op">*</span>u)<span class="op">*</span>(vec1)</span></code></pre></div>
 <pre><code>[1] 150 250 400 500 450</code></pre>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a>k<span class="op">*</span>(u<span class="op">*</span>vec1)</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a>k<span class="op">*</span>(u<span class="op">*</span>vec1)</span></code></pre></div>
 <pre><code>[1] 150 250 400 500 450</code></pre>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1"></a>u<span class="op">*</span>(k<span class="op">*</span>vec1)</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1"></a>u<span class="op">*</span>(k<span class="op">*</span>vec1)</span></code></pre></div>
 <pre><code>[1] 150 250 400 500 450</code></pre>
 <ol start="8" style="list-style-type: decimal">
 <li>For all <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span>, there is a neutral element, <span class="math display">\[\mathbf{1} \mathbf{x} = \mathbf{x}\]</span>.</li>
@@ -1829,13 +1993,13 @@ h1,h2,h3,h4,h5,h6{
 <p>Let <span class="math inline">\(\mathbf{x},\mathbf{y} \in \mathbb{R}^n\)</span> and defined as</p>
 <p><span class="math display">\[ \mathbf{x} = \begin{bmatrix} x_1 \\ x_2 \\ . \\ . \\ . \\ x_n \end{bmatrix},\]</span> <span class="math display">\[ \mathbf{y} = \begin{bmatrix} y_1 \\ y_2 \\ . \\ . \\ . \\ y_n \end{bmatrix}.\]</span> The dot product of <span class="math inline">\(\mathbf{x}\)</span> and <span class="math inline">\(\mathbf{y}\)</span> is defined as</p>
 <p><span class="math display">\[\mathbf{x} \cdot \mathbf{y} = x_1y_1 + x_2y_2 + ... + x_ny_n.\]</span></p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb35-2"><a href="#cb35-2"></a>vec2         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">7</span>, <span class="dv">3</span>, <span class="dv">5</span>)</span>
 <span id="cb35-3"><a href="#cb35-3"></a></span>
 <span id="cb35-4"><a href="#cb35-4"></a><span class="kw">sum</span>(vec1<span class="op">*</span>vec2)</span></code></pre></div>
 <pre><code>[1] 184</code></pre>
 <p>Note that both vectors must have the same dimensions, and the inner product of two vectors is always a scalar regardless of their dimensions. You can also use <code>%*%</code> to obtain the inner product of two vectors.</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1"></a>vec1<span class="op">%*%</span>vec2</span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1"></a>vec1<span class="op">%*%</span>vec2</span></code></pre></div>
 <pre><code>     [,1]
 [1,]  184</code></pre>
 </div>
@@ -1843,7 +2007,7 @@ h1,h2,h3,h4,h5,h6{
 <h3>Orthogonal vectors</h3>
 <p>If the inner product of two vectors is equal to <span class="math inline">\(0\)</span>, then the vectors are said to be orthogonal (or perpendicular). For all <span class="math inline">\(\mathbf{x},\mathbf{y} \in \mathbb{R}^n\)</span>, <span class="math inline">\(\mathbf{x}\)</span> and <span class="math inline">\(\mathbf{y}\)</span> are orthogonal if and only if the inner product is zero,</p>
 <p><span class="math display">\[ \mathbf{x} \cdot \mathbf{y} = 0.\]</span> Notice that the following two vectors are orthogonal to each other.</p>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">6</span>)</span>
+<div class="sourceCode" id="cb39"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">6</span>)</span>
 <span id="cb39-2"><a href="#cb39-2"></a>vec2         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">6</span>,<span class="dv">4</span>)</span>
 <span id="cb39-3"><a href="#cb39-3"></a></span>
 <span id="cb39-4"><a href="#cb39-4"></a>vec1<span class="op">%*%</span>vec2</span></code></pre></div>
@@ -1854,12 +2018,12 @@ h1,h2,h3,h4,h5,h6{
 <div id="the-euclidean-norm-of-a-vector" class="section level3">
 <h3>The Euclidean norm of a vector</h3>
 <p>For all <span class="math inline">\(\mathbf{x} \in \mathbb{R}^n\)</span>, the Euclidean norm of a vector is denoted as <span class="math inline">\(\left \| \mathbf{x} \right \|\)</span> and calculated as, <span class="math display">\[ \left \| \mathbf{x} \right \| = \sqrt{x_1^{2} + x_2^{2} + ... + x_n^{2}}. \]</span> The Euclidean norm of a vector is also known as the length of a vector.</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb41-2"><a href="#cb41-2"></a><span class="kw">sqrt</span>(<span class="kw">sum</span>(vec1<span class="op">^</span><span class="dv">2</span>))</span></code></pre></div>
 <pre><code>[1] 16.70329</code></pre>
 <p>Note that the Euclidean norm of a vector can also be represented as the dot product of a vector by itself,</p>
 <p><span class="math display">\[ \left \| \mathbf{x} \right \| = \sqrt{\mathbf{x} \cdot \mathbf{x}}\]</span></p>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb43-2"><a href="#cb43-2"></a><span class="kw">sqrt</span>(vec1<span class="op">%*%</span>vec1)</span></code></pre></div>
 <pre><code>         [,1]
 [1,] 16.70329</code></pre>
@@ -1869,13 +2033,13 @@ h1,h2,h3,h4,h5,h6{
 <h3>The distance between two vectors</h3>
 <p>Let <span class="math inline">\(\mathbf{x}\)</span> and <span class="math inline">\(\mathbf{y}\)</span> be two vectors in <span class="math inline">\(\mathbb{R}^n\)</span>. The distance between <span class="math inline">\(\mathbf{x}\)</span> and <span class="math inline">\(\mathbf{y}\)</span> is denoted as <span class="math inline">\(d(\mathbf{x},\mathbf{y})\)</span> and calculated as,</p>
 <p><span class="math display">\[d(\mathbf{x},\mathbf{y}) = \left \| \mathbf{x} -  \mathbf{y}\right \|.\]</span></p>
-<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb45-2"><a href="#cb45-2"></a>vec2         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">7</span>, <span class="dv">3</span>, <span class="dv">5</span>)</span>
 <span id="cb45-3"><a href="#cb45-3"></a></span>
 <span id="cb45-4"><a href="#cb45-4"></a>diff &lt;-<span class="st"> </span>vec1 <span class="op">-</span><span class="st"> </span>vec2</span>
 <span id="cb45-5"><a href="#cb45-5"></a>diff</span></code></pre></div>
 <pre><code>[1]  2 -5  1  7  4</code></pre>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1"></a><span class="kw">sqrt</span>(diff<span class="op">%*%</span>diff)</span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1"></a><span class="kw">sqrt</span>(diff<span class="op">%*%</span>diff)</span></code></pre></div>
 <pre><code>         [,1]
 [1,] 9.746794</code></pre>
 </div>
@@ -1887,7 +2051,7 @@ h1,h2,h3,h4,h5,h6{
 <p><img src="data:image/png;base64,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" width="384" style="display: block; margin: auto;" /></p>
 <p>We can compute the angle between two vectors (<span class="math inline">\(\theta\)</span>) using the following formula.</p>
 <p><span class="math display">\[ \theta = cos^{-1}( \frac{\mathbf{x} \cdot \mathbf{y}}{ \left \| \mathbf{x} \right \| \left \| \mathbf{y} \right \| }) \]</span></p>
-<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">6</span>)</span>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">6</span>)</span>
 <span id="cb49-2"><a href="#cb49-2"></a>vec2         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">2</span>,<span class="dv">8</span>)</span>
 <span id="cb49-3"><a href="#cb49-3"></a></span>
 <span id="cb49-4"><a href="#cb49-4"></a>vec1.norm &lt;-<span class="st"> </span><span class="kw">sqrt</span>(vec1<span class="op">%*%</span>vec1)</span>
@@ -1901,7 +2065,7 @@ h1,h2,h3,h4,h5,h6{
 <span id="cb49-12"><a href="#cb49-12"></a>angle </span></code></pre></div>
 <pre><code>          [,1]
 [1,] 0.8329813</code></pre>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1"></a><span class="co"># Convert from radian to degree</span></span>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1"></a><span class="co"># Convert from radian to degree</span></span>
 <span id="cb51-2"><a href="#cb51-2"></a></span>
 <span id="cb51-3"><a href="#cb51-3"></a>angle<span class="op">*</span>(<span class="dv">180</span><span class="op">/</span>pi)</span></code></pre></div>
 <pre><code>         [,1]
@@ -1909,7 +2073,7 @@ h1,h2,h3,h4,h5,h6{
 <p> </p>
 <p>Let’s see if we can recover the angle between two orthogonal vectors (90 degree) using this formula.</p>
 <p><img src="data:image/png;base64,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" width="384" style="display: block; margin: auto;" /></p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">6</span>)</span>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">6</span>)</span>
 <span id="cb53-2"><a href="#cb53-2"></a>vec2         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">6</span>,<span class="dv">4</span>)</span>
 <span id="cb53-3"><a href="#cb53-3"></a></span>
 <span id="cb53-4"><a href="#cb53-4"></a>vec1.norm &lt;-<span class="st"> </span><span class="kw">sqrt</span>(vec1<span class="op">%*%</span>vec1)</span>
@@ -1923,13 +2087,13 @@ h1,h2,h3,h4,h5,h6{
 <span id="cb53-12"><a href="#cb53-12"></a>angle </span></code></pre></div>
 <pre><code>         [,1]
 [1,] 1.570796</code></pre>
-<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1"></a><span class="co"># Convert from radian to degree</span></span>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1"></a><span class="co"># Convert from radian to degree</span></span>
 <span id="cb55-2"><a href="#cb55-2"></a></span>
 <span id="cb55-3"><a href="#cb55-3"></a>angle<span class="op">*</span>(<span class="dv">180</span><span class="op">/</span>pi)</span></code></pre></div>
 <pre><code>     [,1]
 [1,]   90</code></pre>
 <p>Note that this formula extends to any dimension although it is tough to visualize or conceptualize.</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb57-2"><a href="#cb57-2"></a>vec2         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">10</span>, <span class="dv">7</span>, <span class="dv">3</span>, <span class="dv">5</span>)</span>
 <span id="cb57-3"><a href="#cb57-3"></a></span>
 <span id="cb57-4"><a href="#cb57-4"></a>vec1.norm &lt;-<span class="st"> </span><span class="kw">sqrt</span>(vec1<span class="op">%*%</span>vec1)</span>
@@ -1943,7 +2107,7 @@ h1,h2,h3,h4,h5,h6{
 <span id="cb57-12"><a href="#cb57-12"></a>angle </span></code></pre></div>
 <pre><code>         [,1]
 [1,] 0.623063</code></pre>
-<div class="sourceCode" id="cb59"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1"></a><span class="co"># Convert from radian to degree</span></span>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1"></a><span class="co"># Convert from radian to degree</span></span>
 <span id="cb59-2"><a href="#cb59-2"></a></span>
 <span id="cb59-3"><a href="#cb59-3"></a>angle<span class="op">*</span>(<span class="dv">180</span><span class="op">/</span>pi)</span></code></pre></div>
 <pre><code>         [,1]
@@ -1954,17 +2118,17 @@ h1,h2,h3,h4,h5,h6{
 <p>A vector with a norm equal to 1 is called a unit vector. You can always find a unit vector in the direction of any non-zero vector if you divide the vector by its length. This is also called normalizing.</p>
 <p><span class="math display">\[ \hat{\mathbf{x}} = \frac{\mathbf{x}}{ \left \| \mathbf{x} \right \|}\]</span></p>
 <p><span class="math display">\[ \left \| \hat{\mathbf{x}}  \right \| = 1 \]</span></p>
-<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1"></a>vec1         &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">5</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">9</span>)</span>
 <span id="cb61-2"><a href="#cb61-2"></a></span>
 <span id="cb61-3"><a href="#cb61-3"></a><span class="co"># Let&#39;s normalize this vector and find a unit vector in the same direction</span></span>
 <span id="cb61-4"><a href="#cb61-4"></a></span>
 <span id="cb61-5"><a href="#cb61-5"></a>l &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw">sqrt</span>(vec1<span class="op">%*%</span>vec1))</span>
 <span id="cb61-6"><a href="#cb61-6"></a>l</span></code></pre></div>
 <pre><code>[1] 16.70329</code></pre>
-<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1"></a>unit &lt;-<span class="st"> </span>vec1<span class="op">/</span>l</span>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1"></a>unit &lt;-<span class="st"> </span>vec1<span class="op">/</span>l</span>
 <span id="cb63-2"><a href="#cb63-2"></a>unit</span></code></pre></div>
 <pre><code>[1] 0.1796053 0.2993422 0.4789475 0.5986843 0.5388159</code></pre>
-<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1"></a><span class="co"># Check if the length of the unit vector is indeed equal to 1</span></span>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1"></a><span class="co"># Check if the length of the unit vector is indeed equal to 1</span></span>
 <span id="cb65-2"><a href="#cb65-2"></a></span>
 <span id="cb65-3"><a href="#cb65-3"></a><span class="kw">sqrt</span>(unit<span class="op">%*%</span>unit)</span></code></pre></div>
 <pre><code>     [,1]
@@ -1983,6 +2147,21 @@ h1,h2,h3,h4,h5,h6{
 <p>The shortest distance from a vector <span class="math inline">\(\mathbf{u}\)</span> to any point on the hyperplane <span class="math display">\[ \mathbf{m} \cdot \mathbf{H} + b = 0\]</span> is equal to</p>
 <p><span class="math display">\[ \frac{ | \mathbf{u} \cdot \mathbf{m} + b |} { \left \| \mathbf{m} \right \|}.\]</span></p>
 <p>Let’s try to understand this in a 2-dimensional space. In a two dimensional space, a hyperplane is a line and can be specified using a linear equation. For instance, suppose one wants to find the shortest distance between a point with the coordinates of (3,9) and a line with the equation of <span class="math display">\[ 3x + y + 4 = 0 .\]</span></p>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1"></a>f1 &lt;-<span class="st"> </span><span class="cf">function</span>(x) {<span class="op">-</span><span class="dv">3</span><span class="op">*</span>x<span class="dv">-4</span>}</span>
+<span id="cb67-2"><a href="#cb67-2"></a>f2 &lt;-<span class="st"> </span><span class="cf">function</span>(x) {x<span class="op">/</span><span class="dv">3</span><span class="op">+</span><span class="dv">8</span>}</span>
+<span id="cb67-3"><a href="#cb67-3"></a></span>
+<span id="cb67-4"><a href="#cb67-4"></a></span>
+<span id="cb67-5"><a href="#cb67-5"></a><span class="kw">ggplot</span>() <span class="op">+</span><span class="st"> </span></span>
+<span id="cb67-6"><a href="#cb67-6"></a><span class="st">  </span><span class="kw">xlim</span>(<span class="op">-</span><span class="dv">10</span>, <span class="dv">10</span>)<span class="op">+</span></span>
+<span id="cb67-7"><a href="#cb67-7"></a><span class="st">  </span><span class="kw">ylim</span>(<span class="op">-</span><span class="dv">10</span>,<span class="dv">10</span>) <span class="op">+</span><span class="st"> </span></span>
+<span id="cb67-8"><a href="#cb67-8"></a><span class="st">  </span><span class="kw">geom_function</span>(<span class="dt">fun =</span> f1)<span class="op">+</span></span>
+<span id="cb67-9"><a href="#cb67-9"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="dv">3</span>,<span class="dt">y=</span><span class="dv">9</span>))<span class="op">+</span></span>
+<span id="cb67-10"><a href="#cb67-10"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="op">-</span><span class="fl">3.6</span>,<span class="dt">y=</span><span class="fl">6.8</span>))<span class="op">+</span></span>
+<span id="cb67-11"><a href="#cb67-11"></a><span class="st">  </span><span class="kw">geom_segment</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="dv">3</span>,<span class="dt">xend=</span><span class="op">-</span><span class="fl">3.6</span>,<span class="dt">y=</span><span class="dv">9</span>,<span class="dt">yend=</span><span class="fl">6.8</span>))<span class="op">+</span></span>
+<span id="cb67-12"><a href="#cb67-12"></a><span class="st">  </span><span class="kw">theme_bw</span>()<span class="op">+</span></span>
+<span id="cb67-13"><a href="#cb67-13"></a><span class="st">  </span><span class="kw">geom_text</span>() <span class="op">+</span><span class="st"> </span></span>
+<span id="cb67-14"><a href="#cb67-14"></a><span class="st">  </span><span class="kw">annotate</span>(<span class="st">&#39;text&#39;</span>, <span class="dt">label =</span> <span class="st">&#39;(3,9)&#39;</span>,<span class="dt">x =</span> <span class="fl">3.6</span>, <span class="dt">y =</span> <span class="fl">9.6</span>)<span class="op">+</span></span>
+<span id="cb67-15"><a href="#cb67-15"></a><span class="st">  </span><span class="kw">annotate</span>(<span class="st">&#39;text&#39;</span>, <span class="dt">label =</span> <span class="st">&#39;3x + y + 4 = 0&#39;</span>,<span class="dt">x =</span> <span class="fl">4.5</span>, <span class="dt">y =</span> <span class="dv">-10</span>)</span></code></pre></div>
 <p><img src="data:image/png;base64,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" width="576" style="display: block; margin: auto;" /></p>
 <p>First, we write the line equation (hyperplane in 2D) in the form of <span class="math display">\[ \mathbf{m} \cdot \mathbf{H} + b = 0\]</span>.</p>
 <p><span class="math display">\[ \begin{bmatrix} 3 \\ 1 \end{bmatrix}  \cdot \begin{bmatrix} x \\ y \end{bmatrix} + 4 = 0 \]</span></p>
@@ -1995,11 +2174,11 @@ h1,h2,h3,h4,h5,h6{
 <p><span class="math display">\[ b = 4 \]</span></p>
 <p><span class="math display">\[ \mathbf{u} = \begin{bmatrix} 3 \\ 9  \end{bmatrix} \]</span></p>
 <p>The distance can be found using the formula above:</p>
-<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1"></a>m &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">1</span>)</span>
-<span id="cb67-2"><a href="#cb67-2"></a>b &lt;-<span class="st"> </span><span class="dv">4</span></span>
-<span id="cb67-3"><a href="#cb67-3"></a>u &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">9</span>)</span>
-<span id="cb67-4"><a href="#cb67-4"></a></span>
-<span id="cb67-5"><a href="#cb67-5"></a><span class="kw">abs</span>((u<span class="op">%*%</span>m <span class="op">+</span><span class="st"> </span>b))<span class="op">/</span><span class="kw">sqrt</span>(m<span class="op">%*%</span>m)</span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1"></a>m &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">1</span>)</span>
+<span id="cb68-2"><a href="#cb68-2"></a>b &lt;-<span class="st"> </span><span class="dv">4</span></span>
+<span id="cb68-3"><a href="#cb68-3"></a>u &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">9</span>)</span>
+<span id="cb68-4"><a href="#cb68-4"></a></span>
+<span id="cb68-5"><a href="#cb68-5"></a><span class="kw">abs</span>((u<span class="op">%*%</span>m <span class="op">+</span><span class="st"> </span>b))<span class="op">/</span><span class="kw">sqrt</span>(m<span class="op">%*%</span>m)</span></code></pre></div>
 <pre><code>         [,1]
 [1,] 6.957011</code></pre>
 <p>We can generalize this concept to a 3-dimensional space. suppose one wants to find the shortest distance between a point with the coordinates of (-30,15,25) and a hyperplane with the equation of <span class="math display">\[ 3x + y + 2z + 8 = 0 .\]</span></p>
@@ -2015,11 +2194,11 @@ h1,h2,h3,h4,h5,h6{
 \end{bmatrix} \]</span></p>
 <p><span class="math display">\[ b = 8 \]</span></p>
 <p><span class="math display">\[ \mathbf{u} = \begin{bmatrix} -30 \\ 15 \\25 \end{bmatrix} \]</span></p>
-<div class="sourceCode" id="cb69"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1"></a>m &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">2</span>)</span>
-<span id="cb69-2"><a href="#cb69-2"></a>b &lt;-<span class="st"> </span><span class="dv">8</span></span>
-<span id="cb69-3"><a href="#cb69-3"></a>u &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">30</span>, <span class="dv">15</span>, <span class="dv">25</span>)</span>
-<span id="cb69-4"><a href="#cb69-4"></a></span>
-<span id="cb69-5"><a href="#cb69-5"></a><span class="kw">abs</span>((u<span class="op">%*%</span>m <span class="op">+</span><span class="st"> </span>b))<span class="op">/</span><span class="kw">sqrt</span>(m<span class="op">%*%</span>m)</span></code></pre></div>
+<div class="sourceCode" id="cb70"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb70-1"><a href="#cb70-1"></a>m &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>, <span class="dv">1</span>, <span class="dv">2</span>)</span>
+<span id="cb70-2"><a href="#cb70-2"></a>b &lt;-<span class="st"> </span><span class="dv">8</span></span>
+<span id="cb70-3"><a href="#cb70-3"></a>u &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="op">-</span><span class="dv">30</span>, <span class="dv">15</span>, <span class="dv">25</span>)</span>
+<span id="cb70-4"><a href="#cb70-4"></a></span>
+<span id="cb70-5"><a href="#cb70-5"></a><span class="kw">abs</span>((u<span class="op">%*%</span>m <span class="op">+</span><span class="st"> </span>b))<span class="op">/</span><span class="kw">sqrt</span>(m<span class="op">%*%</span>m)</span></code></pre></div>
 <pre><code>         [,1]
 [1,] 4.543441</code></pre>
 <p>This formula generalizes to larger dimensions.</p>
@@ -2069,13 +2248,13 @@ h1,h2,h3,h4,h5,h6{
 <p>When a matrix is multiplied by a scalar, the result is a matrix with the same size and each element of the matrix is multiplied with the same scalar.</p>
 <p><span class="math display">\[ \mathbf{A} = \begin{bmatrix} -1 &amp; 5 &amp; 4 \\ 3 &amp; -2 &amp; 0 \\ 9 &amp; 8 &amp; 12 \end{bmatrix}\]</span></p>
 <p><span class="math display">\[ 3 \cdot \mathbf{A} = \begin{bmatrix} -3 &amp; 15 &amp; 12 \\ 9 &amp; -6 &amp; 0 \\ 27 &amp; 24 &amp; 36 \end{bmatrix}\]</span></p>
-<div class="sourceCode" id="cb71"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">9</span>,<span class="dv">8</span>,<span class="dv">12</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb71-2"><a href="#cb71-2"></a>A</span></code></pre></div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb72-1"><a href="#cb72-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">9</span>,<span class="dv">8</span>,<span class="dv">12</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb72-2"><a href="#cb72-2"></a>A</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3]
 [1,]   -1    5    4
 [2,]    3   -2    0
 [3,]    9    8   12</code></pre>
-<div class="sourceCode" id="cb73"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1"></a><span class="dv">3</span><span class="op">*</span>A</span></code></pre></div>
+<div class="sourceCode" id="cb74"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb74-1"><a href="#cb74-1"></a><span class="dv">3</span><span class="op">*</span>A</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3]
 [1,]   -3   15   12
 [2,]    9   -6    0
@@ -2093,19 +2272,19 @@ h1,h2,h3,h4,h5,h6{
 <p><span class="math display">\[ \mathbf{A} = \begin{bmatrix} -1 &amp; 5 &amp; 4 \\ 3 &amp; -2 &amp; 0 \\ 9 &amp; 8 &amp; 12 \end{bmatrix}\]</span></p>
 <p><span class="math display">\[ \mathbf{B} = \begin{bmatrix} 4 &amp; 0 &amp; 1 \\ -5 &amp; 2 &amp; -1 \\ 15 &amp; 2 &amp; 4 \end{bmatrix}\]</span></p>
 <p><span class="math display">\[ \mathbf{A + B} = \begin{bmatrix} (-1) + 4 &amp; 5 + 0 &amp; 4 + 1 \\ 3 + (-5) &amp; (-2) + 2 &amp; 0 + (-1) \\ 9 + 15 &amp; 8 + 2 &amp; 12 + 4 \end{bmatrix} = \begin{bmatrix} 3 &amp; 5 &amp; 5 \\ -2 &amp; 0 &amp; -1 \\ 24 &amp; 10 &amp; 16 \end{bmatrix}\]</span></p>
-<div class="sourceCode" id="cb75"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">9</span>,<span class="dv">8</span>,<span class="dv">12</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb75-2"><a href="#cb75-2"></a>A</span></code></pre></div>
+<div class="sourceCode" id="cb76"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb76-1"><a href="#cb76-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">9</span>,<span class="dv">8</span>,<span class="dv">12</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb76-2"><a href="#cb76-2"></a>A</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3]
 [1,]   -1    5    4
 [2,]    3   -2    0
 [3,]    9    8   12</code></pre>
-<div class="sourceCode" id="cb77"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1"></a>B &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="op">-</span><span class="dv">5</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">1</span>,<span class="dv">15</span>,<span class="dv">2</span>,<span class="dv">4</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb77-2"><a href="#cb77-2"></a>B</span></code></pre></div>
+<div class="sourceCode" id="cb78"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb78-1"><a href="#cb78-1"></a>B &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">1</span>,<span class="op">-</span><span class="dv">5</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">1</span>,<span class="dv">15</span>,<span class="dv">2</span>,<span class="dv">4</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb78-2"><a href="#cb78-2"></a>B</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3]
 [1,]    4    0    1
 [2,]   -5    2   -1
 [3,]   15    2    4</code></pre>
-<div class="sourceCode" id="cb79"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1"></a>A<span class="op">+</span>B</span></code></pre></div>
+<div class="sourceCode" id="cb80"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb80-1"><a href="#cb80-1"></a>A<span class="op">+</span>B</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3]
 [1,]    3    5    5
 [2,]   -2    0   -1
@@ -2124,20 +2303,20 @@ h1,h2,h3,h4,h5,h6{
 <p><span class="math display">\[ \mathbf{A} = \begin{bmatrix} -1 &amp; 5 &amp; 4 &amp; 0 \\ 3 &amp; -2 &amp; 0 &amp; 1 \end{bmatrix}\]</span></p>
 <p><span class="math display">\[ \mathbf{A}^T = \begin{bmatrix} -1 &amp; 3 \\ 5 &amp; -2 \\ 4 &amp; 0 \\  0 &amp; 1 \end{bmatrix}\]</span></p>
 <p>In R, you can use the <code>t()</code> function to transpose a matrix.</p>
-<div class="sourceCode" id="cb81"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">1</span>),<span class="dt">nrow=</span><span class="dv">2</span>,<span class="dt">ncol=</span><span class="dv">4</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb81-2"><a href="#cb81-2"></a>A</span></code></pre></div>
+<div class="sourceCode" id="cb82"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb82-1"><a href="#cb82-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">1</span>),<span class="dt">nrow=</span><span class="dv">2</span>,<span class="dt">ncol=</span><span class="dv">4</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb82-2"><a href="#cb82-2"></a>A</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3] [,4]
 [1,]   -1    5    4    0
 [2,]    3   -2    0    1</code></pre>
-<div class="sourceCode" id="cb83"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1"></a><span class="kw">dim</span>(A)</span></code></pre></div>
+<div class="sourceCode" id="cb84"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb84-1"><a href="#cb84-1"></a><span class="kw">dim</span>(A)</span></code></pre></div>
 <pre><code>[1] 2 4</code></pre>
-<div class="sourceCode" id="cb85"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1"></a><span class="kw">t</span>(A)</span></code></pre></div>
+<div class="sourceCode" id="cb86"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb86-1"><a href="#cb86-1"></a><span class="kw">t</span>(A)</span></code></pre></div>
 <pre><code>     [,1] [,2]
 [1,]   -1    3
 [2,]    5   -2
 [3,]    4    0
 [4,]    0    1</code></pre>
-<div class="sourceCode" id="cb87"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1"></a><span class="kw">dim</span>(<span class="kw">t</span>(A))</span></code></pre></div>
+<div class="sourceCode" id="cb88"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb88-1"><a href="#cb88-1"></a><span class="kw">dim</span>(<span class="kw">t</span>(A))</span></code></pre></div>
 <pre><code>[1] 4 2</code></pre>
 <p>Sometimes, you will see that a column vector is written as transpose of a row vector to save space.</p>
 <p><span class="math display">\[ \mathbf{B} = \begin{bmatrix} -1 \\ 5 \\ 4 \\ 0 \end{bmatrix}\]</span></p>
@@ -2182,19 +2361,19 @@ h1,h2,h3,h4,h5,h6{
 <p><span class="math display">\[ \begin{bmatrix} 3 &amp; -2 &amp; 0 &amp; 1 \end{bmatrix} ^ T \cdot \begin{bmatrix} 0 \\ 2 \\ 2 \\ -3 \end{bmatrix} = (3 \times 0) + (-2 \times 2) + (0 \times 2) + (1 \times -3) = -7 \]</span></p>
 <p>So, the final result would be:</p>
 <p><span class="math display">\[ \mathbf{A} \times \mathbf{B} = \begin{bmatrix} 31 &amp; 18 \\ 22 &amp; -7 \end{bmatrix}\]</span></p>
-<div class="sourceCode" id="cb89"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">1</span>),<span class="dt">nrow=</span><span class="dv">2</span>,<span class="dt">ncol=</span><span class="dv">4</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb89-2"><a href="#cb89-2"></a>A</span></code></pre></div>
+<div class="sourceCode" id="cb90"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb90-1"><a href="#cb90-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="op">-</span><span class="dv">1</span>,<span class="dv">5</span>,<span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">1</span>),<span class="dt">nrow=</span><span class="dv">2</span>,<span class="dt">ncol=</span><span class="dv">4</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb90-2"><a href="#cb90-2"></a>A</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3] [,4]
 [1,]   -1    5    4    0
 [2,]    3   -2    0    1</code></pre>
-<div class="sourceCode" id="cb91"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1"></a>B &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">0</span>,<span class="op">-</span><span class="dv">5</span>,<span class="dv">2</span>,<span class="dv">15</span>,<span class="dv">2</span>,<span class="dv">0</span>,<span class="op">-</span><span class="dv">3</span>),<span class="dt">nrow=</span><span class="dv">4</span>,<span class="dt">ncol=</span><span class="dv">2</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb91-2"><a href="#cb91-2"></a>B</span></code></pre></div>
+<div class="sourceCode" id="cb92"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb92-1"><a href="#cb92-1"></a>B &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">0</span>,<span class="op">-</span><span class="dv">5</span>,<span class="dv">2</span>,<span class="dv">15</span>,<span class="dv">2</span>,<span class="dv">0</span>,<span class="op">-</span><span class="dv">3</span>),<span class="dt">nrow=</span><span class="dv">4</span>,<span class="dt">ncol=</span><span class="dv">2</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb92-2"><a href="#cb92-2"></a>B</span></code></pre></div>
 <pre><code>     [,1] [,2]
 [1,]    4    0
 [2,]   -5    2
 [3,]   15    2
 [4,]    0   -3</code></pre>
-<div class="sourceCode" id="cb93"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1"></a>A<span class="op">%*%</span>B</span></code></pre></div>
+<div class="sourceCode" id="cb94"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb94-1"><a href="#cb94-1"></a>A<span class="op">%*%</span>B</span></code></pre></div>
 <pre><code>     [,1] [,2]
 [1,]   31   18
 [2,]   22   -7</code></pre>
@@ -2213,26 +2392,26 @@ h1,h2,h3,h4,h5,h6{
 <h3>Inverse of a matrix</h3>
 <p>There is no matrix division. The closes concept of division in matrix algebra is an inverse of a matrix. The inverse of a matrix <span class="math inline">\(\mathbf{A}\)</span> is denoted as <span class="math inline">\(\mathbf{A}^{-1}\)</span>. Suppose <span class="math inline">\(\mathbf{A}\)</span> is a square matrix, the inverse of <span class="math inline">\(\mathbf{A}\)</span> satisfies the following equation:</p>
 <p><span class="math display">\[\mathbf{A} \times \mathbf{A}^{-1} = \mathbf{I}\]</span> In R, you can use the <code>solve()</code> function to find the inverse of a matrix.</p>
-<div class="sourceCode" id="cb95"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">5</span>,<span class="dv">7</span>,<span class="dv">9</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">4</span>,<span class="op">-</span><span class="dv">8</span>,<span class="dv">5</span>,<span class="dv">10</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">7</span>),<span class="dt">nrow=</span><span class="dv">4</span>,<span class="dt">ncol=</span><span class="dv">4</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb95-2"><a href="#cb95-2"></a>A</span></code></pre></div>
+<div class="sourceCode" id="cb96"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb96-1"><a href="#cb96-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">5</span>,<span class="dv">7</span>,<span class="dv">9</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">4</span>,<span class="op">-</span><span class="dv">8</span>,<span class="dv">5</span>,<span class="dv">10</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">7</span>),<span class="dt">nrow=</span><span class="dv">4</span>,<span class="dt">ncol=</span><span class="dv">4</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb96-2"><a href="#cb96-2"></a>A</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3] [,4]
 [1,]    1    2    3    4
 [2,]    0    5    7    9
 [3,]   -2    4   -8    5
 [4,]   10    6    6    7</code></pre>
-<div class="sourceCode" id="cb97"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1"></a><span class="co"># Find the inverse of A</span></span>
-<span id="cb97-2"><a href="#cb97-2"></a></span>
-<span id="cb97-3"><a href="#cb97-3"></a>B &lt;-<span class="st"> </span><span class="kw">solve</span>(A)</span>
-<span id="cb97-4"><a href="#cb97-4"></a></span>
-<span id="cb97-5"><a href="#cb97-5"></a>B</span></code></pre></div>
+<div class="sourceCode" id="cb98"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb98-1"><a href="#cb98-1"></a><span class="co"># Find the inverse of A</span></span>
+<span id="cb98-2"><a href="#cb98-2"></a></span>
+<span id="cb98-3"><a href="#cb98-3"></a>B &lt;-<span class="st"> </span><span class="kw">solve</span>(A)</span>
+<span id="cb98-4"><a href="#cb98-4"></a></span>
+<span id="cb98-5"><a href="#cb98-5"></a>B</span></code></pre></div>
 <pre><code>           [,1]       [,2]         [,3]        [,4]
 [1,]  0.4793388 -0.2520661 -0.002066116  0.05165289
 [2,] -2.1900826  0.7809917  0.030991736  0.22520661
 [3,] -0.3057851  0.1694215 -0.080578512  0.01446281
 [4,]  1.4545455 -0.4545455  0.045454545 -0.13636364</code></pre>
-<div class="sourceCode" id="cb99"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1"></a><span class="co"># Show that the A times inverse of A is an identity matrix</span></span>
-<span id="cb99-2"><a href="#cb99-2"></a></span>
-<span id="cb99-3"><a href="#cb99-3"></a><span class="kw">round</span>(A<span class="op">%*%</span>B,<span class="dv">3</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb100"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb100-1"><a href="#cb100-1"></a><span class="co"># Show that the A times inverse of A is an identity matrix</span></span>
+<span id="cb100-2"><a href="#cb100-2"></a></span>
+<span id="cb100-3"><a href="#cb100-3"></a><span class="kw">round</span>(A<span class="op">%*%</span>B,<span class="dv">3</span>)</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3] [,4]
 [1,]    1    0    0    0
 [2,]    0    1    0    0
@@ -2242,79 +2421,62 @@ h1,h2,h3,h4,h5,h6{
 <div id="determinant-of-a-matrix" class="section level3">
 <h3>Determinant of a matrix</h3>
 <p>Every square matrix has a unique value associated with it. This value can be used to examine whether or not a matrix has an inverse. If the determinant of a matrix is equal or close to zero, there is no inverse. In R, you can use the <code>det()</code> function to compute the determinant of a matrix. Let’s check the two examples from the previous section.</p>
-<div class="sourceCode" id="cb101"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb101-1"><a href="#cb101-1"></a></span>
-<span id="cb101-2"><a href="#cb101-2"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">1</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">5</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">7</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb101-3"><a href="#cb101-3"></a>A</span>
-<span id="cb101-4"><a href="#cb101-4"></a>     [,<span class="dv">1</span>] [,<span class="dv">2</span>] [,<span class="dv">3</span>]</span>
-<span id="cb101-5"><a href="#cb101-5"></a>[<span class="dv">1</span>,]    <span class="dv">1</span>    <span class="dv">1</span>    <span class="dv">2</span></span>
-<span id="cb101-6"><a href="#cb101-6"></a>[<span class="dv">2</span>,]   <span class="dv">-1</span>    <span class="dv">3</span>   <span class="dv">-5</span></span>
-<span id="cb101-7"><a href="#cb101-7"></a>[<span class="dv">3</span>,]    <span class="dv">2</span>   <span class="dv">-2</span>    <span class="dv">7</span></span>
-<span id="cb101-8"><a href="#cb101-8"></a></span>
-<span id="cb101-9"><a href="#cb101-9"></a><span class="kw">det</span>(A)</span>
-<span id="cb101-10"><a href="#cb101-10"></a>[<span class="dv">1</span>] <span class="dv">0</span></span>
-<span id="cb101-11"><a href="#cb101-11"></a></span>
-<span id="cb101-12"><a href="#cb101-12"></a>  <span class="co"># equals to zero so there is no inverse of A</span></span></code></pre></div>
-<div class="sourceCode" id="cb102"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb102-1"><a href="#cb102-1"></a></span>
-<span id="cb102-2"><a href="#cb102-2"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">5</span>,<span class="dv">7</span>,<span class="dv">9</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">4</span>,<span class="op">-</span><span class="dv">8</span>,<span class="dv">5</span>,<span class="dv">10</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">7</span>),<span class="dt">nrow=</span><span class="dv">4</span>,<span class="dt">ncol=</span><span class="dv">4</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<div class="sourceCode" id="cb102"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb102-1"><a href="#cb102-1"></a></span>
+<span id="cb102-2"><a href="#cb102-2"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">1</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">5</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">7</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
 <span id="cb102-3"><a href="#cb102-3"></a>A</span>
-<span id="cb102-4"><a href="#cb102-4"></a>     [,<span class="dv">1</span>] [,<span class="dv">2</span>] [,<span class="dv">3</span>] [,<span class="dv">4</span>]</span>
-<span id="cb102-5"><a href="#cb102-5"></a>[<span class="dv">1</span>,]    <span class="dv">1</span>    <span class="dv">2</span>    <span class="dv">3</span>    <span class="dv">4</span></span>
-<span id="cb102-6"><a href="#cb102-6"></a>[<span class="dv">2</span>,]    <span class="dv">0</span>    <span class="dv">5</span>    <span class="dv">7</span>    <span class="dv">9</span></span>
-<span id="cb102-7"><a href="#cb102-7"></a>[<span class="dv">3</span>,]   <span class="dv">-2</span>    <span class="dv">4</span>   <span class="dv">-8</span>    <span class="dv">5</span></span>
-<span id="cb102-8"><a href="#cb102-8"></a>[<span class="dv">4</span>,]   <span class="dv">10</span>    <span class="dv">6</span>    <span class="dv">6</span>    <span class="dv">7</span></span>
-<span id="cb102-9"><a href="#cb102-9"></a></span>
-<span id="cb102-10"><a href="#cb102-10"></a><span class="kw">det</span>(A)</span>
-<span id="cb102-11"><a href="#cb102-11"></a>[<span class="dv">1</span>] <span class="dv">484</span></span>
-<span id="cb102-12"><a href="#cb102-12"></a></span>
-<span id="cb102-13"><a href="#cb102-13"></a>  <span class="co"># different than zero, so there is inverse of A</span></span></code></pre></div>
+<span id="cb102-4"><a href="#cb102-4"></a>     [,<span class="dv">1</span>] [,<span class="dv">2</span>] [,<span class="dv">3</span>]</span>
+<span id="cb102-5"><a href="#cb102-5"></a>[<span class="dv">1</span>,]    <span class="dv">1</span>    <span class="dv">1</span>    <span class="dv">2</span></span>
+<span id="cb102-6"><a href="#cb102-6"></a>[<span class="dv">2</span>,]   <span class="dv">-1</span>    <span class="dv">3</span>   <span class="dv">-5</span></span>
+<span id="cb102-7"><a href="#cb102-7"></a>[<span class="dv">3</span>,]    <span class="dv">2</span>   <span class="dv">-2</span>    <span class="dv">7</span></span>
+<span id="cb102-8"><a href="#cb102-8"></a></span>
+<span id="cb102-9"><a href="#cb102-9"></a><span class="kw">det</span>(A)</span>
+<span id="cb102-10"><a href="#cb102-10"></a>[<span class="dv">1</span>] <span class="dv">0</span></span>
+<span id="cb102-11"><a href="#cb102-11"></a></span>
+<span id="cb102-12"><a href="#cb102-12"></a>  <span class="co"># equals to zero so there is no inverse of A</span></span></code></pre></div>
+<div class="sourceCode" id="cb103"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb103-1"><a href="#cb103-1"></a></span>
+<span id="cb103-2"><a href="#cb103-2"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">0</span>,<span class="dv">5</span>,<span class="dv">7</span>,<span class="dv">9</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">4</span>,<span class="op">-</span><span class="dv">8</span>,<span class="dv">5</span>,<span class="dv">10</span>,<span class="dv">6</span>,<span class="dv">6</span>,<span class="dv">7</span>),<span class="dt">nrow=</span><span class="dv">4</span>,<span class="dt">ncol=</span><span class="dv">4</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb103-3"><a href="#cb103-3"></a>A</span>
+<span id="cb103-4"><a href="#cb103-4"></a>     [,<span class="dv">1</span>] [,<span class="dv">2</span>] [,<span class="dv">3</span>] [,<span class="dv">4</span>]</span>
+<span id="cb103-5"><a href="#cb103-5"></a>[<span class="dv">1</span>,]    <span class="dv">1</span>    <span class="dv">2</span>    <span class="dv">3</span>    <span class="dv">4</span></span>
+<span id="cb103-6"><a href="#cb103-6"></a>[<span class="dv">2</span>,]    <span class="dv">0</span>    <span class="dv">5</span>    <span class="dv">7</span>    <span class="dv">9</span></span>
+<span id="cb103-7"><a href="#cb103-7"></a>[<span class="dv">3</span>,]   <span class="dv">-2</span>    <span class="dv">4</span>   <span class="dv">-8</span>    <span class="dv">5</span></span>
+<span id="cb103-8"><a href="#cb103-8"></a>[<span class="dv">4</span>,]   <span class="dv">10</span>    <span class="dv">6</span>    <span class="dv">6</span>    <span class="dv">7</span></span>
+<span id="cb103-9"><a href="#cb103-9"></a></span>
+<span id="cb103-10"><a href="#cb103-10"></a><span class="kw">det</span>(A)</span>
+<span id="cb103-11"><a href="#cb103-11"></a>[<span class="dv">1</span>] <span class="dv">484</span></span>
+<span id="cb103-12"><a href="#cb103-12"></a></span>
+<span id="cb103-13"><a href="#cb103-13"></a>  <span class="co"># different than zero, so there is inverse of A</span></span></code></pre></div>
 <p>If a matrix has no inverse, it is called a non-ivertible or singular matrix.</p>
 </div>
 <div id="rank-of-a-matrix" class="section level3">
 <h3>Rank of a matrix</h3>
 <p>The rank of a matrix is the maximal number of linearly independent columns in the matrix. You can use the <code>rankMatrix()</code> function from the <code>Matrix</code> package to find the rank of a matrix. Consider the following matrix with three columns.</p>
 <p><span class="math display">\[ \mathbf{A} = \begin{bmatrix} 3  &amp; 1 &amp; 4 \\ 5 &amp; 2 &amp; 6  \\ 8 &amp; 4 &amp; 8 \end{bmatrix}.\]</span></p>
-<div class="sourceCode" id="cb103"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb103-1"><a href="#cb103-1"></a></span>
-<span id="cb103-2"><a href="#cb103-2"></a><span class="kw">require</span>(Matrix)</span>
-<span id="cb103-3"><a href="#cb103-3"></a>Loading required package<span class="op">:</span><span class="st"> </span>Matrix</span>
-<span id="cb103-4"><a href="#cb103-4"></a></span>
-<span id="cb103-5"><a href="#cb103-5"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">2</span>,<span class="dv">6</span>,<span class="dv">8</span>,<span class="dv">4</span>,<span class="dv">8</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb103-6"><a href="#cb103-6"></a>A</span>
-<span id="cb103-7"><a href="#cb103-7"></a>     [,<span class="dv">1</span>] [,<span class="dv">2</span>] [,<span class="dv">3</span>]</span>
-<span id="cb103-8"><a href="#cb103-8"></a>[<span class="dv">1</span>,]    <span class="dv">3</span>    <span class="dv">1</span>    <span class="dv">4</span></span>
-<span id="cb103-9"><a href="#cb103-9"></a>[<span class="dv">2</span>,]    <span class="dv">5</span>    <span class="dv">2</span>    <span class="dv">6</span></span>
-<span id="cb103-10"><a href="#cb103-10"></a>[<span class="dv">3</span>,]    <span class="dv">8</span>    <span class="dv">4</span>    <span class="dv">8</span></span>
-<span id="cb103-11"><a href="#cb103-11"></a></span>
-<span id="cb103-12"><a href="#cb103-12"></a><span class="kw">rankMatrix</span>(A)</span>
-<span id="cb103-13"><a href="#cb103-13"></a>[<span class="dv">1</span>] <span class="dv">2</span></span>
-<span id="cb103-14"><a href="#cb103-14"></a><span class="kw">attr</span>(,<span class="st">&quot;method&quot;</span>)</span>
-<span id="cb103-15"><a href="#cb103-15"></a>[<span class="dv">1</span>] <span class="st">&quot;tolNorm2&quot;</span></span>
-<span id="cb103-16"><a href="#cb103-16"></a><span class="kw">attr</span>(,<span class="st">&quot;useGrad&quot;</span>)</span>
-<span id="cb103-17"><a href="#cb103-17"></a>[<span class="dv">1</span>] <span class="ot">FALSE</span></span>
-<span id="cb103-18"><a href="#cb103-18"></a><span class="kw">attr</span>(,<span class="st">&quot;tol&quot;</span>)</span>
-<span id="cb103-19"><a href="#cb103-19"></a>[<span class="dv">1</span>] <span class="fl">0.0000000000000006661338</span></span></code></pre></div>
+<div class="sourceCode" id="cb104"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb104-1"><a href="#cb104-1"></a></span>
+<span id="cb104-2"><a href="#cb104-2"></a><span class="kw">require</span>(Matrix)</span>
+<span id="cb104-3"><a href="#cb104-3"></a>Loading required package<span class="op">:</span><span class="st"> </span>Matrix</span>
+<span id="cb104-4"><a href="#cb104-4"></a></span>
+<span id="cb104-5"><a href="#cb104-5"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">2</span>,<span class="dv">6</span>,<span class="dv">8</span>,<span class="dv">4</span>,<span class="dv">8</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb104-6"><a href="#cb104-6"></a>A</span>
+<span id="cb104-7"><a href="#cb104-7"></a>     [,<span class="dv">1</span>] [,<span class="dv">2</span>] [,<span class="dv">3</span>]</span>
+<span id="cb104-8"><a href="#cb104-8"></a>[<span class="dv">1</span>,]    <span class="dv">3</span>    <span class="dv">1</span>    <span class="dv">4</span></span>
+<span id="cb104-9"><a href="#cb104-9"></a>[<span class="dv">2</span>,]    <span class="dv">5</span>    <span class="dv">2</span>    <span class="dv">6</span></span>
+<span id="cb104-10"><a href="#cb104-10"></a>[<span class="dv">3</span>,]    <span class="dv">8</span>    <span class="dv">4</span>    <span class="dv">8</span></span>
+<span id="cb104-11"><a href="#cb104-11"></a></span>
+<span id="cb104-12"><a href="#cb104-12"></a><span class="kw">rankMatrix</span>(A)</span>
+<span id="cb104-13"><a href="#cb104-13"></a>[<span class="dv">1</span>] <span class="dv">2</span></span>
+<span id="cb104-14"><a href="#cb104-14"></a><span class="kw">attr</span>(,<span class="st">&quot;method&quot;</span>)</span>
+<span id="cb104-15"><a href="#cb104-15"></a>[<span class="dv">1</span>] <span class="st">&quot;tolNorm2&quot;</span></span>
+<span id="cb104-16"><a href="#cb104-16"></a><span class="kw">attr</span>(,<span class="st">&quot;useGrad&quot;</span>)</span>
+<span id="cb104-17"><a href="#cb104-17"></a>[<span class="dv">1</span>] <span class="ot">FALSE</span></span>
+<span id="cb104-18"><a href="#cb104-18"></a><span class="kw">attr</span>(,<span class="st">&quot;tol&quot;</span>)</span>
+<span id="cb104-19"><a href="#cb104-19"></a>[<span class="dv">1</span>] <span class="fl">0.0000000000000006661338</span></span></code></pre></div>
 <p>In this case, this returns 2 as the rank of this matrix. The reason is that the third column of this matrix can indeed be obtained from the first two columns, see the section on <a href="#independence">Linear Independence</a>.</p>
 </div>
 <div id="trace-of-a-matrix" class="section level3">
 <h3>Trace of a matrix</h3>
 <p>The trace of a matrix <span class="math inline">\(\mathbf{A}\)</span> is the sum of its diagonal elements and is denoted as <span class="math inline">\(tr(\mathbf{A})\)</span> .</p>
-<div class="sourceCode" id="cb104"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb104-1"><a href="#cb104-1"></a></span>
-<span id="cb104-2"><a href="#cb104-2"></a><span class="kw">require</span>(Matrix)</span>
-<span id="cb104-3"><a href="#cb104-3"></a></span>
-<span id="cb104-4"><a href="#cb104-4"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">2</span>,<span class="dv">6</span>,<span class="dv">8</span>,<span class="dv">4</span>,<span class="dv">8</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb104-5"><a href="#cb104-5"></a>A</span>
-<span id="cb104-6"><a href="#cb104-6"></a>     [,<span class="dv">1</span>] [,<span class="dv">2</span>] [,<span class="dv">3</span>]</span>
-<span id="cb104-7"><a href="#cb104-7"></a>[<span class="dv">1</span>,]    <span class="dv">3</span>    <span class="dv">1</span>    <span class="dv">4</span></span>
-<span id="cb104-8"><a href="#cb104-8"></a>[<span class="dv">2</span>,]    <span class="dv">5</span>    <span class="dv">2</span>    <span class="dv">6</span></span>
-<span id="cb104-9"><a href="#cb104-9"></a>[<span class="dv">3</span>,]    <span class="dv">8</span>    <span class="dv">4</span>    <span class="dv">8</span></span>
-<span id="cb104-10"><a href="#cb104-10"></a></span>
-<span id="cb104-11"><a href="#cb104-11"></a><span class="kw">sum</span>(<span class="kw">diag</span>(A))</span>
-<span id="cb104-12"><a href="#cb104-12"></a>[<span class="dv">1</span>] <span class="dv">13</span></span></code></pre></div>
-</div>
-<div id="norm-of-a-matrix" class="section level3">
-<h3>Norm of a matrix</h3>
-<p>The norm of a matrix <span class="math inline">\(\mathbf{A}\)</span> can be calculated using</p>
-<p><span class="math display">\[||\mathbf{A}|| = tr(\mathbf{A}^T \times \mathbf{A})\]</span></p>
-<div class="sourceCode" id="cb105"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1"></a></span>
+<div class="sourceCode" id="cb105"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1"></a></span>
 <span id="cb105-2"><a href="#cb105-2"></a><span class="kw">require</span>(Matrix)</span>
 <span id="cb105-3"><a href="#cb105-3"></a></span>
 <span id="cb105-4"><a href="#cb105-4"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">2</span>,<span class="dv">6</span>,<span class="dv">8</span>,<span class="dv">4</span>,<span class="dv">8</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
@@ -2324,15 +2486,32 @@ h1,h2,h3,h4,h5,h6{
 <span id="cb105-8"><a href="#cb105-8"></a>[<span class="dv">2</span>,]    <span class="dv">5</span>    <span class="dv">2</span>    <span class="dv">6</span></span>
 <span id="cb105-9"><a href="#cb105-9"></a>[<span class="dv">3</span>,]    <span class="dv">8</span>    <span class="dv">4</span>    <span class="dv">8</span></span>
 <span id="cb105-10"><a href="#cb105-10"></a></span>
-<span id="cb105-11"><a href="#cb105-11"></a><span class="kw">t</span>(A)<span class="op">%*%</span>A</span>
-<span id="cb105-12"><a href="#cb105-12"></a>     [,<span class="dv">1</span>] [,<span class="dv">2</span>] [,<span class="dv">3</span>]</span>
-<span id="cb105-13"><a href="#cb105-13"></a>[<span class="dv">1</span>,]   <span class="dv">98</span>   <span class="dv">45</span>  <span class="dv">106</span></span>
-<span id="cb105-14"><a href="#cb105-14"></a>[<span class="dv">2</span>,]   <span class="dv">45</span>   <span class="dv">21</span>   <span class="dv">48</span></span>
-<span id="cb105-15"><a href="#cb105-15"></a>[<span class="dv">3</span>,]  <span class="dv">106</span>   <span class="dv">48</span>  <span class="dv">116</span></span>
-<span id="cb105-16"><a href="#cb105-16"></a></span>
-<span id="cb105-17"><a href="#cb105-17"></a></span>
-<span id="cb105-18"><a href="#cb105-18"></a><span class="kw">sum</span>(<span class="kw">diag</span>(<span class="kw">t</span>(A)<span class="op">%*%</span>A))</span>
-<span id="cb105-19"><a href="#cb105-19"></a>[<span class="dv">1</span>] <span class="dv">235</span></span></code></pre></div>
+<span id="cb105-11"><a href="#cb105-11"></a><span class="kw">sum</span>(<span class="kw">diag</span>(A))</span>
+<span id="cb105-12"><a href="#cb105-12"></a>[<span class="dv">1</span>] <span class="dv">13</span></span></code></pre></div>
+</div>
+<div id="norm-of-a-matrix" class="section level3">
+<h3>Norm of a matrix</h3>
+<p>The norm of a matrix <span class="math inline">\(\mathbf{A}\)</span> can be calculated using</p>
+<p><span class="math display">\[||\mathbf{A}|| = tr(\mathbf{A}^T \times \mathbf{A})\]</span></p>
+<div class="sourceCode" id="cb106"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb106-1"><a href="#cb106-1"></a></span>
+<span id="cb106-2"><a href="#cb106-2"></a><span class="kw">require</span>(Matrix)</span>
+<span id="cb106-3"><a href="#cb106-3"></a></span>
+<span id="cb106-4"><a href="#cb106-4"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">4</span>,<span class="dv">5</span>,<span class="dv">2</span>,<span class="dv">6</span>,<span class="dv">8</span>,<span class="dv">4</span>,<span class="dv">8</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb106-5"><a href="#cb106-5"></a>A</span>
+<span id="cb106-6"><a href="#cb106-6"></a>     [,<span class="dv">1</span>] [,<span class="dv">2</span>] [,<span class="dv">3</span>]</span>
+<span id="cb106-7"><a href="#cb106-7"></a>[<span class="dv">1</span>,]    <span class="dv">3</span>    <span class="dv">1</span>    <span class="dv">4</span></span>
+<span id="cb106-8"><a href="#cb106-8"></a>[<span class="dv">2</span>,]    <span class="dv">5</span>    <span class="dv">2</span>    <span class="dv">6</span></span>
+<span id="cb106-9"><a href="#cb106-9"></a>[<span class="dv">3</span>,]    <span class="dv">8</span>    <span class="dv">4</span>    <span class="dv">8</span></span>
+<span id="cb106-10"><a href="#cb106-10"></a></span>
+<span id="cb106-11"><a href="#cb106-11"></a><span class="kw">t</span>(A)<span class="op">%*%</span>A</span>
+<span id="cb106-12"><a href="#cb106-12"></a>     [,<span class="dv">1</span>] [,<span class="dv">2</span>] [,<span class="dv">3</span>]</span>
+<span id="cb106-13"><a href="#cb106-13"></a>[<span class="dv">1</span>,]   <span class="dv">98</span>   <span class="dv">45</span>  <span class="dv">106</span></span>
+<span id="cb106-14"><a href="#cb106-14"></a>[<span class="dv">2</span>,]   <span class="dv">45</span>   <span class="dv">21</span>   <span class="dv">48</span></span>
+<span id="cb106-15"><a href="#cb106-15"></a>[<span class="dv">3</span>,]  <span class="dv">106</span>   <span class="dv">48</span>  <span class="dv">116</span></span>
+<span id="cb106-16"><a href="#cb106-16"></a></span>
+<span id="cb106-17"><a href="#cb106-17"></a></span>
+<span id="cb106-18"><a href="#cb106-18"></a><span class="kw">sum</span>(<span class="kw">diag</span>(<span class="kw">t</span>(A)<span class="op">%*%</span>A))</span>
+<span id="cb106-19"><a href="#cb106-19"></a>[<span class="dv">1</span>] <span class="dv">235</span></span></code></pre></div>
 </div>
 </div>
 <div id="solving-sysyem-of-linear-equations" class="section level2">
@@ -2352,20 +2531,20 @@ h1,h2,h3,h4,h5,h6{
 <p><span class="math display">\[  \begin{bmatrix} x \\ y \\ z \\ k \end{bmatrix} = \begin{bmatrix} 1 &amp; 3 &amp; 1 &amp; -4 \\ 3 &amp; -1 &amp; 2 &amp; 1 \\ 2 &amp; -4 &amp; 5 &amp; -10 \\ 1 &amp; 1 &amp; 1 &amp;1 \end{bmatrix}^{-1} \times \begin{bmatrix} 7 \\ 12 \\ 1 \\ 5 \end{bmatrix}\]</span></p>
 <p><span class="math display">\[  \begin{bmatrix} x \\ y \\ z \\ k \end{bmatrix} = \begin{bmatrix} 0.29 &amp; 0.60 &amp; -0.13 &amp; -0.80 \\ 0.14 &amp; -.12 &amp; -0.04 &amp; 0.29 \\ -0.29 &amp; -0.43 &amp; 0.19 &amp; 1.19 \\ -0.14 &amp; -0.05 &amp; -0.02 &amp; 0.32 \end{bmatrix} \times \begin{bmatrix} 7 \\ 12 \\ 1 \\ 5 \end{bmatrix} \]</span></p>
 <p><span class="math display">\[  \begin{bmatrix} x \\ y \\ z \\ k \end{bmatrix} =  \begin{bmatrix} 5 \\ 1 \\ -1 \\ 0 \end{bmatrix} \]</span></p>
-<div class="sourceCode" id="cb106"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb106-1"><a href="#cb106-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">1</span>,<span class="op">-</span><span class="dv">4</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">4</span>,<span class="dv">5</span>,<span class="op">-</span><span class="dv">10</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>),<span class="dt">nrow=</span><span class="dv">4</span>,<span class="dt">ncol=</span><span class="dv">4</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb106-2"><a href="#cb106-2"></a>A</span></code></pre></div>
+<div class="sourceCode" id="cb107"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">1</span>,<span class="op">-</span><span class="dv">4</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">4</span>,<span class="dv">5</span>,<span class="op">-</span><span class="dv">10</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>),<span class="dt">nrow=</span><span class="dv">4</span>,<span class="dt">ncol=</span><span class="dv">4</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb107-2"><a href="#cb107-2"></a>A</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3] [,4]
 [1,]    1    3    1   -4
 [2,]    3   -1    2    1
 [3,]    2   -4    5  -10
 [4,]    1    1    1    1</code></pre>
-<div class="sourceCode" id="cb108"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb108-1"><a href="#cb108-1"></a>b &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">7</span>,<span class="dv">12</span>,<span class="dv">1</span>,<span class="dv">5</span>)</span>
-<span id="cb108-2"><a href="#cb108-2"></a></span>
-<span id="cb108-3"><a href="#cb108-3"></a><span class="co"># Find the solution</span></span>
-<span id="cb108-4"><a href="#cb108-4"></a></span>
-<span id="cb108-5"><a href="#cb108-5"></a>x &lt;-<span class="st"> </span><span class="kw">solve</span>(A) <span class="op">%*%</span><span class="st"> </span>b</span>
-<span id="cb108-6"><a href="#cb108-6"></a></span>
-<span id="cb108-7"><a href="#cb108-7"></a>x</span></code></pre></div>
+<div class="sourceCode" id="cb109"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb109-1"><a href="#cb109-1"></a>b &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">7</span>,<span class="dv">12</span>,<span class="dv">1</span>,<span class="dv">5</span>)</span>
+<span id="cb109-2"><a href="#cb109-2"></a></span>
+<span id="cb109-3"><a href="#cb109-3"></a><span class="co"># Find the solution</span></span>
+<span id="cb109-4"><a href="#cb109-4"></a></span>
+<span id="cb109-5"><a href="#cb109-5"></a>x &lt;-<span class="st"> </span><span class="kw">solve</span>(A) <span class="op">%*%</span><span class="st"> </span>b</span>
+<span id="cb109-6"><a href="#cb109-6"></a></span>
+<span id="cb109-7"><a href="#cb109-7"></a>x</span></code></pre></div>
 <pre><code>     [,1]
 [1,]    5
 [2,]    1
@@ -2374,15 +2553,15 @@ h1,h2,h3,h4,h5,h6{
 <p>With some simple matrix arithmetic, we can easily solve a system of linear equations regardless of its size as long as you have enough data.</p>
 <p>Note that there is not always a solution for a system of linear equations. Sometimes, a solution to one of the equations is inconsistent with a solution of another equation in the system. In such situations, there is no solution to the system and these systems are called inconsistent. See the following example. There is no solution because there is no inverse of <span class="math inline">\(\mathbf{A}\)</span>. R will give you a warning message indicating that the system is singular.</p>
 <p><span class="math display">\[x + y + 2z = 3\]</span> <span class="math display">\[-x + 3y - 5z = 7\]</span> <span class="math display">\[2x - 2y + 7z = 1\]</span></p>
-<div class="sourceCode" id="cb110"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb110-1"><a href="#cb110-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">1</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">5</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">7</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
-<span id="cb110-2"><a href="#cb110-2"></a>A</span></code></pre></div>
+<div class="sourceCode" id="cb111"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb111-1"><a href="#cb111-1"></a>A &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="dt">data =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">1</span>,<span class="dv">3</span>,<span class="op">-</span><span class="dv">5</span>,<span class="dv">2</span>,<span class="op">-</span><span class="dv">2</span>,<span class="dv">7</span>),<span class="dt">nrow=</span><span class="dv">3</span>,<span class="dt">ncol=</span><span class="dv">3</span>,<span class="dt">byrow=</span><span class="ot">TRUE</span>)</span>
+<span id="cb111-2"><a href="#cb111-2"></a>A</span></code></pre></div>
 <pre><code>     [,1] [,2] [,3]
 [1,]    1    1    2
 [2,]   -1    3   -5
 [3,]    2   -2    7</code></pre>
-<div class="sourceCode" id="cb112"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb112-1"><a href="#cb112-1"></a>b &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">7</span>,<span class="dv">1</span>)</span>
-<span id="cb112-2"><a href="#cb112-2"></a></span>
-<span id="cb112-3"><a href="#cb112-3"></a><span class="kw">solve</span>(A)</span></code></pre></div>
+<div class="sourceCode" id="cb113"><pre class="sourceCode r klippy"><code class="sourceCode r"><span id="cb113-1"><a href="#cb113-1"></a>b &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">3</span>,<span class="dv">7</span>,<span class="dv">1</span>)</span>
+<span id="cb113-2"><a href="#cb113-2"></a></span>
+<span id="cb113-3"><a href="#cb113-3"></a><span class="kw">solve</span>(A)</span></code></pre></div>
 <pre><code>Error in solve.default(A): Lapack routine dgesv: system is exactly singular: U[3,3] = 0</code></pre>
 <p>Also, if there are fewer equations than the number unknowns, there is an infinite number of solution to a system of linear equation. See the following example. There is no solution because there is no inverse of <span class="math inline">\(\mathbf{A}\)</span>. R will give you a warning message indicating that the system is singular.</p>
 <p>On the other hand, this system has infinite number of solutions because there are only two equations and three unknowns.</p>

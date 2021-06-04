@@ -1,6 +1,6 @@
 ---
 title: Applied Machine Learning for Educational Data Science
-subtitle: Warm-up I Linear Algebra
+subtitle: Warm-up I | Linear Algebra
 author:
   name: Cengiz Zopluoglu
   affiliation: University of Oregon | EDLD 654
@@ -48,7 +48,7 @@ body{
 /* Headers */
 
 h1,h2,h3,h4,h5,h6{
-  font-size: 20pt;
+  font-size: 24pt;
 }
 
 </style>
@@ -60,6 +60,10 @@ require(here)
 require(ggplot2)
 require(plot3D)
 options(scipen=99)
+```
+
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position=c('top','right'))
 ```
 
 `r paste('[Updated:',format(Sys.time(),'%a, %b %d, %Y - %H:%M:%S'),']')`
@@ -109,7 +113,7 @@ $$
 \end{bmatrix}
 $$
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1 <- c(3, 5, 8)  
 
@@ -140,7 +144,7 @@ The following properties hold for vectors that exist in $\mathbb{R}^n$:
 
 1. For all $\mathbf{x} \in \mathbb{R}^n$, there exists an additive identity such that $\mathbf{x} + \mathbf{0} = \mathbf{x}$.
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1  <- c(3, 5, 8, 10, 9)
 zeros <- c(0, 0, 0, 0, 0)
@@ -152,7 +156,7 @@ vec1 + zeros
 
 2. For all $\mathbf{x} \in \mathbb{R}^n$, there exists an additive inverse such that $\mathbf{x} + \mathbf{-x} = \mathbf{0}$.
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 vec1.inverse <- c(-3, -5, -8, -10, -9)
@@ -163,7 +167,7 @@ vec1 + vec1.inverse
 \
 
 3. For all $\mathbf{x},\mathbf{y} \in \mathbb{R}^n$, the following commutative law holds:  $$ \mathbf{x} + \mathbf{y} = \mathbf{y} + \mathbf{x}$$.
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 vec2         <- c(1, 10, 7, 3, 5)
@@ -178,7 +182,7 @@ vec2 + vec1
 
 4. For all $\mathbf{x},\mathbf{y}, \mathbf{z} \in \mathbb{R}^n$, the following associative law holds:  $$ (\mathbf{x} + \mathbf{y}) + \mathbf{z}  = \mathbf{x} + (\mathbf{y} + \mathbf{z}) = \mathbf{y} + (\mathbf{x} + \mathbf{z})    $$.
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 vec2         <- c(1, 10, 7, 3, 5)
@@ -197,7 +201,7 @@ vec3 + (vec1 + vec2)
 
 5. For all $\mathbf{x},\mathbf{y} \in \mathbb{R}^n$ and $k \in \mathbb{R}$, the following distributive law holds:  $$k (\mathbf{x} + \mathbf{y}) = k\mathbf{x} + k\mathbf{y}$$.
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 vec2         <- c(1, 10, 7, 3, 5)
@@ -213,7 +217,7 @@ k*vec1 + k*vec2
 
 6. For all $\mathbf{x} \in \mathbb{R}^n$ and $k,u \in \mathbb{R}$, the following distributive law also holds:  $$ (k+u)\mathbf{x}= k\mathbf{x} + u\mathbf{x}$$.
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 k            <- 5
@@ -227,7 +231,7 @@ k*vec1 + u*vec1
 
 7. For all $\mathbf{x} \in \mathbb{R}^n$ and $k,u \in \mathbb{R}$, the following associative law holds:  $$ (ku)\mathbf{x}= k(u\mathbf{x}) = u(k\mathbf{x}) $$.
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 k            <- 5
@@ -254,7 +258,8 @@ The dot product of $\mathbf{x}$ and $\mathbf{y}$ is defined as
 
 
 $$\mathbf{x} \cdot \mathbf{y} = x_1y_1 + x_2y_2 + ... + x_ny_n.$$ 
-```{r}
+
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 vec2         <- c(1, 10, 7, 3, 5)
@@ -264,7 +269,7 @@ sum(vec1*vec2)
 
 Note that both vectors must have the same dimensions, and the inner product of two vectors is always a scalar regardless of their dimensions. You can also use `%*%` to obtain the inner product of two vectors.
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1%*%vec2
 
@@ -278,7 +283,7 @@ If the inner product of two vectors is equal to $0$, then the vectors are said t
 $$ \mathbf{x} \cdot \mathbf{y} = 0.$$
 Notice that the following two vectors are orthogonal to each other.
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(4,6)
 vec2         <- c(-6,4)
@@ -297,7 +302,7 @@ knitr::include_graphics(here('static/notes/images/2dvec2.png'),dpi=100)
 For all $\mathbf{x} \in \mathbb{R}^n$, the Euclidean norm of a vector is denoted as $\left \| \mathbf{x} \right \|$ and calculated as, $$ \left \| \mathbf{x} \right \| = \sqrt{x_1^{2} + x_2^{2} + ... + x_n^{2}}. $$
 The Euclidean norm of a vector is also known as the length of a vector.
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 sqrt(sum(vec1^2))
@@ -307,7 +312,7 @@ Note that the Euclidean norm of a vector can also be represented as the dot prod
 
 $$ \left \| \mathbf{x} \right \| = \sqrt{\mathbf{x} \cdot \mathbf{x}}$$ 
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 sqrt(vec1%*%vec1)
@@ -322,7 +327,7 @@ Let $\mathbf{x}$ and $\mathbf{y}$ be two vectors in $\mathbb{R}^n$. The distance
 
 $$d(\mathbf{x},\mathbf{y}) = \left \| \mathbf{x} -  \mathbf{y}\right \|.$$
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 vec2         <- c(1, 10, 7, 3, 5)
@@ -353,7 +358,7 @@ We can compute the angle between two vectors ($\theta$) using the following form
 
 $$ \theta = cos^{-1}( \frac{\mathbf{x} \cdot \mathbf{y}}{ \left \| \mathbf{x} \right \| \left \| \mathbf{y} \right \| }) $$
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(4,6)
 vec2         <- c(-2,8)
@@ -384,7 +389,7 @@ knitr::include_graphics(here('static/notes/images/2dvec2.png'),dpi=100)
 
 ```
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(4,6)
 vec2         <- c(-6,4)
@@ -407,7 +412,7 @@ angle*(180/pi)
 
 Note that this formula extends to any dimension although it is tough to visualize or conceptualize.
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 vec2         <- c(1, 10, 7, 3, 5)
@@ -437,7 +442,7 @@ $$ \hat{\mathbf{x}} = \frac{\mathbf{x}}{ \left \| \mathbf{x} \right \|}$$
 
 $$ \left \| \hat{\mathbf{x}}  \right \| = 1 $$
 
-```{r}
+```{r,class.source='klippy'}
 
 vec1         <- c(3, 5, 8, 10, 9)
 
@@ -476,7 +481,7 @@ $$ \frac{ | \mathbf{u} \cdot \mathbf{m} + b |} { \left \| \mathbf{m} \right \|}.
 
 Let's try to understand this in a 2-dimensional space. In a two dimensional space, a hyperplane is a line and can be specified using a linear equation. For instance, suppose one wants to find the shortest distance between a point with the coordinates of (3,9) and a line with the equation of $$ 3x + y + 4 = 0 .$$
 
-```{r, echo = FALSE,fig.height= 6, fig.width=6,fig.align='center',warning=FALSE}
+```{r,fig.height= 6, fig.width=6,fig.align='center',warning=FALSE,class.source='klippy'}
 
 f1 <- function(x) {-3*x-4}
 f2 <- function(x) {x/3+8}
@@ -519,7 +524,7 @@ $$ \mathbf{u} = \begin{bmatrix} 3 \\ 9  \end{bmatrix} $$
 
 The distance can be found using the formula above:
 
-```{r}
+```{r,class.source='klippy'}
 
 m <- c(3, 1)
 b <- 4
@@ -556,7 +561,7 @@ $$ b = 8 $$
 
 $$ \mathbf{u} = \begin{bmatrix} -30 \\ 15 \\25 \end{bmatrix} $$
 
-```{r}
+```{r,class.source='klippy'}
 
 m <- c(3, 1, 2)
 b <- 8
@@ -638,7 +643,7 @@ When a matrix is multiplied by a scalar, the result is a matrix with the same si
 $$ \mathbf{A} = \begin{bmatrix} -1 & 5 & 4 \\ 3 & -2 & 0 \\ 9 & 8 & 12 \end{bmatrix}$$
 
 $$ 3 \cdot \mathbf{A} = \begin{bmatrix} -3 & 15 & 12 \\ 9 & -6 & 0 \\ 27 & 24 & 36 \end{bmatrix}$$
-```{r}
+```{r,class.source='klippy'}
 
 A <- matrix(data = c(-1,5,4,3,-2,0,9,8,12),nrow=3,ncol=3,byrow=TRUE)
 A
@@ -663,7 +668,7 @@ $$ \mathbf{B} = \begin{bmatrix} 4 & 0 & 1 \\ -5 & 2 & -1 \\ 15 & 2 & 4 \end{bmat
 
 
 $$ \mathbf{A + B} = \begin{bmatrix} (-1) + 4 & 5 + 0 & 4 + 1 \\ 3 + (-5) & (-2) + 2 & 0 + (-1) \\ 9 + 15 & 8 + 2 & 12 + 4 \end{bmatrix} = \begin{bmatrix} 3 & 5 & 5 \\ -2 & 0 & -1 \\ 24 & 10 & 16 \end{bmatrix}$$  
-```{r}
+```{r,class.source='klippy'}
 
 A <- matrix(data = c(-1,5,4,3,-2,0,9,8,12),nrow=3,ncol=3,byrow=TRUE)
 A
@@ -695,7 +700,7 @@ $$ \mathbf{A}^T = \begin{bmatrix} -1 & 3 \\ 5 & -2 \\ 4 & 0 \\  0 & 1 \end{bmatr
 
 In R, you can use the `t()` function to transpose a matrix.
 
-```{r}
+```{r,class.source='klippy'}
 
 A <- matrix(data = c(-1,5,4,0,3,-2,0,1),nrow=2,ncol=4,byrow=TRUE)
 A
@@ -764,7 +769,7 @@ So, the final result would be:
 
 
 $$ \mathbf{A} \times \mathbf{B} = \begin{bmatrix} 31 & 18 \\ 22 & -7 \end{bmatrix}$$
-```{r}
+```{r,class.source='klippy'}
 
 A <- matrix(data = c(-1,5,4,0,3,-2,0,1),nrow=2,ncol=4,byrow=TRUE)
 A
@@ -801,7 +806,7 @@ $$\mathbf{A} \times \mathbf{A}^{-1} = \mathbf{I}$$
 In R, you can use the `solve()` function to find the inverse of a matrix.
 
 
-```{r}
+```{r,class.source='klippy'}
 
 A <- matrix(data = c(1,2,3,4,0,5,7,9,-2,4,-8,5,10,6,6,7),nrow=4,ncol=4,byrow=TRUE)
 A
@@ -822,7 +827,7 @@ round(A%*%B,3)
 
 Every square matrix has a unique value associated with it. This value can be used to examine whether or not a matrix has an inverse. If the determinant of a matrix is equal or close to zero, there is no inverse. In R, you can use the `det()` function to compute the determinant of a matrix. Let's check the two examples from the previous section.
 
-```{r, error = TRUE, collapse=TRUE}
+```{r, error = TRUE, collapse=TRUE,class.source='klippy'}
 
 A <- matrix(data = c(1,1,2,-1,3,-5,2,-2,7),nrow=3,ncol=3,byrow=TRUE)
 A
@@ -834,7 +839,7 @@ det(A)
 ```
 
 
-```{r, collapse = TRUE}
+```{r, collapse = TRUE,class.source='klippy'}
 
 A <- matrix(data = c(1,2,3,4,0,5,7,9,-2,4,-8,5,10,6,6,7),nrow=4,ncol=4,byrow=TRUE)
 A
@@ -852,7 +857,7 @@ If a matrix has no inverse, it is called a non-ivertible or singular matrix.
 The rank of a matrix is the maximal number of linearly independent columns in the matrix. You can use the `rankMatrix()` function from the `Matrix` package to find the rank of a matrix. Consider the following matrix with three columns.
 
 $$ \mathbf{A} = \begin{bmatrix} 3  & 1 & 4 \\ 5 & 2 & 6  \\ 8 & 4 & 8 \end{bmatrix}.$$
-```{r, collapse = TRUE}
+```{r, collapse = TRUE,class.source='klippy'}
 
 require(Matrix)
 
@@ -869,7 +874,7 @@ In this case, this returns 2 as the rank of this matrix. The reason is that the 
 
 The trace of a matrix $\mathbf{A}$ is the sum of its diagonal elements and is denoted as $tr(\mathbf{A})$ . 
 
-```{r, collapse = TRUE}
+```{r, collapse = TRUE,class.source='klippy'}
 
 require(Matrix)
 
@@ -885,7 +890,7 @@ The norm of a matrix $\mathbf{A}$ can be calculated using
 
 $$||\mathbf{A}|| = tr(\mathbf{A}^T \times \mathbf{A})$$
 
-```{r, collapse = TRUE}
+```{r, collapse = TRUE,class.source='klippy'}
 
 require(Matrix)
 
@@ -941,7 +946,7 @@ $$  \begin{bmatrix} x \\ y \\ z \\ k \end{bmatrix} = \begin{bmatrix} 0.29 & 0.60
 $$  \begin{bmatrix} x \\ y \\ z \\ k \end{bmatrix} =  \begin{bmatrix} 5 \\ 1 \\ -1 \\ 0 \end{bmatrix} $$
 
 
-```{r}
+```{r,class.source='klippy'}
 
 A <- matrix(data = c(1,3,1,-4,3,-1,2,1,2,-4,5,-10,1,1,1,1),nrow=4,ncol=4,byrow=TRUE)
 A
@@ -963,7 +968,7 @@ $$x + y + 2z = 3$$
 $$-x + 3y - 5z = 7$$
 $$2x - 2y + 7z = 1$$
 
-```{r, error = TRUE}
+```{r, error = TRUE,class.source='klippy'}
 
 A <- matrix(data = c(1,1,2,-1,3,-5,2,-2,7),nrow=3,ncol=3,byrow=TRUE)
 A
