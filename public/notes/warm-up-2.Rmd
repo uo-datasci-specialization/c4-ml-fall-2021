@@ -1,0 +1,1444 @@
+---
+title: Applied Machine Learning for Educational Data Science
+subtitle: Warm-up II | Optimization
+author:
+  name: Cengiz Zopluoglu
+  affiliation: University of Oregon | EDLD 654
+date: 05/26/2021 ## Or "Lecture no."
+output: 
+  html_document:
+    keep_md: false
+    theme: journal
+    highlight: haddock
+    code_folding: hide
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  pdf_document:
+    extra_dependencies: ["amssymb","animate"]
+    keep_tex: false ## Change to true if want keep intermediate .tex file
+    toc: true
+    toc_depth: 3
+    dev: cairo_pdf
+always_allow_html: true
+urlcolor: blue
+mainfont: cochineal
+sansfont: Fira Sans
+monofont: Fira Code ## Although, see: https://tex.stackexchange.com/q/294362
+
+## Automatically knit to both formats:
+knit: (function(inputFile, encoding) {
+ rmarkdown::render(inputFile, encoding = encoding, 
+ output_format = 'all') 
+ })
+---
+
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position=c('top','right'))
+```
+
+<style>
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    z-index: 2;
+    color: #fff;
+    background-color: #FC4445;
+    border-color: #97CAEF;
+}
+
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = "",fig.align='center')
+require(here)
+require(ggplot2)
+require(plot3D)
+require(kableExtra)
+require(knitr)
+require(giski)
+require(magick)
+options(scipen=99)
+
+```
+
+`r paste('[Updated:',format(Sys.time(),'%a, %b %d, %Y - %H:%M:%S'),']')`
+
+This is a crash course on Optimization for students in social science. This document does not replace a course on Calculus or Optimization, and only serves the purpose of developing some vocabulary you will likely encounter in any Machine Learning course or textbook. If you had taken Calculus before, it will refresh your memory.
+
+# Functions
+
+A function is a rule to assign an input number from a defined domain to an output number in another defined domain. A domain is a set of all possible input and output values. For instance, $$f: \mathbb{R} \rightarrow \mathbb{R},$$ indicates that $f$ takes values from the real numbers as an input and then produces an output in the real numbers. When the set of domain is not explicitly defined, we typically assume that domain of inputs is the largest set of possible numbers the rule can apply.
+
+For instance, the following is a function:
+
+$$ f(x) = 5x^2 - 2x -12$$
+Below are the output of this function for a series of input values.
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy'}
+
+x <- -3:3
+
+d <- data.frame(x=x,fx = 5*x^2-2*x-12)
+
+kable(d,
+      'html',
+      col.names = c("$x$", "$f(x)$"),
+      escape=FALSE) %>% 
+  kable_styling(full_width = F)
+```
+
+```{r, echo=FALSE,eval=knitr::is_latex_output()}
+
+x <- -3:3
+
+d <- data.frame(x=x,fx = 5*x^2-2*x-12)
+
+kable(d,
+      'pipe',
+      col.names = c("$x$", "$f(x)$"),
+      escape=FALSE)
+```
+
+## Constant functions
+
+Some functions are constant. No matter what the input is they always produce the same output.
+
+$$f(x) = a_0$$,
+
+where $a_0$ is a constant number.
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {3}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  xlim(-5,5)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+
+## Identity functions
+
+Some functions always produces the output identical to the input.
+
+
+$$f(x) = x$$
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {x}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  xlim(-5,5)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+## Inverse functions
+
+Some functions are inverse of other functions. Consider the following function:
+
+$$ f(x) = 3x + 5$$
+For an input value of 2, this function returns a value of 11. If we want to find an inverse of this function, we should come up with something that takes the input value of 11 and returns a value of 2. Following is the inverse of this function:
+
+$$ f^{-1}(x) = \frac{x-5}{3}$$
+
+## Polynomials
+
+Polynomial functions are in the form of 
+
+$$ f(x) = a_0 + a_1x + a_2x^2 + a_3x^3 + ... + a_nx^n,$$
+
+where $a_0$, $a_1$, $a_2$, $a_3$,..., $a_n$ are coefficients, some of which may be zero. The largest power of $x$ in the function is called the order of the polynomial.
+
+Below is an example for a first-order polynomial function which is a straight line.
+
+
+$$f(x) = 10x + 5$$
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {10*x + 5}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  xlim(-5,5)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+Below is an example for a second-order polynomial function.
+
+$$f(x) = 3x^2 + 10x + 5$$
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {3*x^2 + 10*x + 5}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  xlim(-5,5)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+
+## Exponential functions
+
+Exponential functions are in the form of 
+
+$$ f(x) = a_0a_1^x,$$ 
+
+where $a_0$ and $a_1$ are coefficients.
+
+Below is an example for an exponential.
+
+$$f(x) = (\frac{1}{3})^x  $$
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {(1/3)^x}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  xlim(-5,5)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+A common exponential function uses $e$ as a base. $e$ is a mathematical constant just like $\pi$ and equals to 2.718282... In R, you can use `exp(x)` to specify $e^x$. Below is the graph for $e^2$
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {exp(x)}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  xlim(-5,5)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+## Logarithmic functions
+
+Logarithmic functions are the inverse of exponential functions. The expression $$ x = b^y$$ can be written as $$y = log_b(x)$$.$b$ is called the base. In R, you can use `log()` function to take logarithms.
+
+See the following examples:
+
+- $log_{10}(100) = 2$ because $10^2 = 100$. 
+
+```{r,class.source='klippy',class.source = 'fold-show'}
+log(100,base=10)
+```
+
+- $log_{2}(16) = 4$ because $2^4 = 16$. 
+
+```{r,class.source='klippy',class.source = 'fold-show'}
+log(16,base=2)
+```
+
+The most commonly used base is the base $e \approx 2.718$ and it is called natural logarithm when the base is $e$. 
+
+- $log_{e}(10) \approx 2.3026$ because $e^{2.3026} \approx 10$. 
+
+```{r, results='hold',class.source='klippy',class.source = 'fold-show'}
+log(10)
+
+  # when you don't specify a base, log() function uses e as base by default
+```
+
+
+## Bounded functions
+
+Some functions are bounded such that the output values are restricted within a range. Consider the following function.
+
+$$f(x) = x^2 + 5 $$
+
+This function can produce output values only within the the range of $[5,\infty]$
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {x^2 + 5}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  xlim(-5,5)+
+  ylim(0,30)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+An important bounded function is the sigmoid function (a.k.a., logistic function).
+
+
+$$f(x) = \frac{1}{1+e^{-x}} = \frac{e^x}{1 + e^x} $$
+The sigmoid function is always bounded between 0 and 1, and produces an S-shaped curve.
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {1/(1+exp(-x))}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  xlim(-5,5)+
+  ylim(0,1)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+## Trigonometric functions
+
+Trigonometric functions are defined using a *unit circle*, a circle centered at the origin and with a radius of 1. An angle always creates a triangle inside the circle. The cosine function takes the magnitude of the angle as an input and returns the signed length of the side of the triangle adjacent to the angle while the sine function returns the signed length of the opposite side. The tangent functions returns the ratio of the signed length of the opposite side to the signed length of the adjacent side.
+
+```{r, fig.align='center',fig.height=8,fig.width=8, message=F,warning=F,results='hold',class.source='klippy'}
+
+require(ggforce)
+
+ggplot() + 
+  geom_circle(aes(x0=0,y0=0,r=1))+
+  geom_segment(aes(x=0,y=-1,xend=0,yend=1),lty=2)+
+  geom_segment(aes(x=-1,y=0,xend=1,yend=0),lty=2)+
+  geom_segment(aes(x=0,y=0,xend=sqrt(.5),yend=sqrt(.5)))+
+  geom_segment(aes(x=sqrt(.5),y=0,xend=sqrt(.5),yend=sqrt(.5)))+
+  geom_segment(aes(x=0,y=0,xend=sqrt(.5),yend=0))+
+  geom_curve(aes(x = 0.3, y = 0, xend = .2, yend = 0.2),
+             color = "black",
+             arrow = arrow(type = "closed",length=unit(0.1, "inches")))+
+  xlim(-2,2)+
+  ylim(-2,2)+
+  xlab('')+
+  ylab('')+
+  theme_bw() + 
+  annotate('text',x=.4,y=-.1,label='cos(x)')+
+  annotate('text',x=.82,y=.3,label='sin(x)')+
+  annotate('text',x=.4,y=.5,label='1')
+  
+  
+
+```
+
+
+In R, you can use `cos()`, `sin()`, and `tan()` commands to calculate the value of cosine, sine, and tangent for a given angle. Note that an angle can be specified in terms of a degrees or radians, and these functions take radians as input. Below is simple formula to convert degrees to radians.
+
+For instance, below code calculates the sine, cosine, and tangent for a 45 degree angle.
+
+```{r,class.source='klippy', class.source = "fold-show"}
+
+# pi = 180 degrees
+
+cos(pi/4)
+
+sin(pi/4)
+
+tan(pi/4)
+
+```
+
+The cosine and sine functions are always return values between -1 and 1, while tangent can take values from - $\infty$ to $\infty$.
+
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {cos(pi*(x/180))}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  xlim(-720,720)+
+  ylim(-1,1)+
+  xlab('Degree')+
+  ylab('cos(x)')+
+  theme_bw()
+
+```
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {sin(pi*(x/180))}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  xlim(-720,720)+
+  ylim(-1,1)+
+  xlab('Degree')+
+  ylab('sin(x)')+
+  theme_bw()
+
+```
+
+```{r, fig.align='center',class.source='klippy'}
+
+f <- function(x) {tan(pi*(x/180))}
+
+ggplot() + 
+  geom_function(fun = f) + 
+  geom_vline(xintercept = -270,lty=2)+
+  geom_vline(xintercept = -90,lty=2)+
+  geom_vline(xintercept = 90,lty=2)+
+  geom_vline(xintercept = 270,lty=2)+
+  xlim(-360,360)+
+  ylim(-10,10)+
+  xlab('Degree')+
+  ylab('tan(x)')+
+  theme_bw()
+
+```
+
+
+## Multivariate Functions
+
+Functions don't have to have a single input variable. Some functions may have multiple inputs. For instance, below is an example of a function with two inputs.
+
+$$ f(x,y) = x^2 + 2y - 5$$
+Below this function looks like in 3D. x-axis and y-axis represent the input values and z-axis represent the output value based on the rule above. Note that most functions we will deal in machine learning are high dimensional with many variable inputs.
+
+
+```{r,fig.align='center',class.source='klippy',message=FALSE,warning=FALSE,fig.width=8,fig.height=8}
+
+require(plotly)
+
+grid     <- expand.grid(x=seq(-20,20,.2),y=seq(-20,20,.2))
+grid$z <- grid[,1] ^2 + 2*grid[,2] - 5 
+
+plot_ly(grid,
+        x = ~x,
+        y = ~y,
+        z = ~z) %>%
+  layout(
+    xaxis = list(range = c(-40, 40)),
+    yaxis = list(range = c(-40, 40)))
+
+```
+
+
+# The Derivative of a Function
+
+First, let's define the *difference quotient*. The difference quotient is defined as the change in a function's output value divided by the change in the function's input value. Suppose we have a $f(x)$ and find the output value for two input values, $x_1$ and $x_2$.
+
+$$y_1 = f(x_1)$$
+$$y_2 = f(x_2)$$
+Then, the difference quotient is 
+
+$$ \frac{y_2 - y_1}{x_2 - x_1} = \frac{\Delta y}{\Delta x} = \frac{f(x_2) - f(x_1)}{x_2 - x_1},$$
+
+where $\Delta$ means *change*. 
+
+Let's see an example. Consider the following function:
+
+$$ f(x) = y = 5 x^2 -3*x + 10 .$$
+If we compute the output value for $x_1 = 1$ and $x_2 = 5$, the difference quotient is
+
+
+$$\frac{\Delta y}{\Delta x} = \frac{f(5) - f(1)}{5 - 1} = = \frac{120 - 12}{5 - 1} = 27.$$
+
+If you look at this visually, the difference quotient gives the slope of the line that connects the two points (1,12) and (5,120). This line is called the secant line.
+
+```{r, fig.align='center',class.source='klippy',warning=FALSE,message=FALSE}
+
+f <- function(x) {5*x^2 -3*x + 10}
+
+ggplot() + 
+  geom_function(fun = f) +
+  geom_point(aes(x=1,y=12),size = 3) + 
+  geom_point(aes(x=5,y=120),size=3) + 
+  geom_abline(slope=27,intercept = -15,lty=2)+
+  xlim(-6,6)+
+  ylim(0,130)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+
+Now, consider that the change in $x$ is smaller. Instead of moving $x$ from 1 to 5, let's move $x$ from 1 to 3.
+
+
+$$\frac{\Delta y}{\Delta x} = \frac{f(3) - f(1)}{3 - 1} = = \frac{46 - 12}{3 - 1} = 17.$$
+The slope of the secant line, the line that connects (1,12) to (3,40), is now 17.
+
+```{r, fig.align='center',class.source='klippy',warning=FALSE,message=FALSE}
+
+f <- function(x) {5*x^2 -3*x + 10}
+
+ggplot() + 
+  geom_function(fun = f) +
+  geom_point(aes(x=1,y=12),size=3) + 
+  geom_point(aes(x=5,y=120),size=3) + 
+  geom_abline(slope=27,intercept = -15,lty=2)+
+  geom_point(aes(x=3,y=46),size=3) + 
+  geom_abline(slope=17,intercept = -5,lty=2)+
+  xlim(-6,6)+
+  ylim(0,130)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+Now, consider that the change in $x$ is such a tiny number, something not even noticeable such as 0.00001. So, let's move $x$ from 1 to 1.0001. The slope becomes 7.00005. In this case, secant line becomes a line that barely touches the function at $x=1$.
+
+$$\frac{\Delta y}{\Delta x} = \frac{f(1.00001) - f(1)}{1.00001 - 1} = 7.00005.$$
+
+```{r, fig.align='center',class.source='klippy',warning=FALSE,message=FALSE}
+
+f <- function(x) {5*x^2 -3*x + 10}
+
+ggplot() + 
+  geom_function(fun = f) +
+  geom_point(aes(x=1,y=12),size=3) + 
+  geom_point(aes(x=5,y=120),size=3) + 
+  geom_abline(slope=27,intercept = -15,lty=2)+
+  geom_point(aes(x=3,y=46),size=3) + 
+  geom_abline(slope=17,intercept = -5,lty=2)+
+  geom_abline(slope=7,intercept = 5,lty=2)+
+  xlim(-6,6)+
+  ylim(0,130)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+## First-order derivative
+
+The first-order derivative of a function is the limit of the difference quotient as the change in $x$ approximates to zero. In other words, when the change in $x$ becomes infinitely small, such a tiny number nobody has any idea what it is, the secant line becomes a line that barely touches to the function at $x_1$ and called *tangent line*. The first-order derivative of a function is something that tells us about the slope of this tangent line. 
+
+The first-order derivative of a function is denoted as $\frac{dy}{dx}$ and more formally defined as the following:
+
+$$\frac{df(x)}{dx} = \frac{dy}{dx} = \lim_{\Delta x \to 0} \frac{f(x_1 + \Delta x) - f(x_1)}{\Delta x}$$
+
+Most of the time you can numerically approximate the first-order derivative of a function by selecting such a small number for $\Delta x$ (e.g., .00001) as we did above, and it works no matter how complex the function is. You can also analytically find the first-order derivative of a function but it may become a tedious job as the function becomes more complex and you have to be familiar with a number of derivative rules and most of the time be creative when finding a solution. In some cases, there may not even be an easy analytic solution and numerical approximation is the easiest solution.
+
+You can get help from several tools while trying to find the first-order derivative of a function. There are online tools (e.g., [https://www.symbolab.com/solver/derivative-calculator]) you can use. You simply write the function and it returns the first-order derivative. In R, you can use the `calculus` package to find the derivatives of a function. For instance, see below for the example above. 
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show',results='hold'}
+
+require(calculus)
+
+derivative(f = '5*x^2 -3*x + 10', 
+           var = 'x', 
+           order = 1)
+
+  # var = 'x', indicates that we are taking the derivative with respect to variable x
+  # order = 1, indicates that we are asking for the first derivative
+
+```
+
+This indicates that the first-order derivative of the function $$ f(x) = 5 x^2 -3*x + 10 $$ is $$ f'(x) = 10 x - 3.$$ Note that the first derivative of $f(x)$ is also denoted as $f'(x)$. 
+
+$f'(x = x_1)$ gives you the slope of the tangent line that touches to $f(x)$ at $x=x_1$. The slope of the tangent line at x=1 for this function can be directly obtained using the first derivative of the function.
+
+$$f'(x) = 10*x - 3 $$ 
+
+$$f'(1) = 10*1 - 3 = 7 $$
+It is very close to what we computed above using a tiny change in $x$ above, $\Delta x = 0.00001$. Analytical solution is the accurate one, but numerical solution typically approximates enough for most applications.
+
+You can also use the same `derivative()` function from the `calculus` package to get the numerical approximation for the first-order derivative of any function.
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show',results='hold'}
+
+derivative(f = '5*x^2 -3*x + 10', 
+           var = c(x=1), 
+           order = 1)
+
+  # var = c(x=1), indicates that we are not interested in symbolic derivative 
+    # function and want to obtain a numerical solution of the 
+    # derivative function at x=1
+  
+```
+
+
+Let's find the first-order derivative at $x=-1$. 
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show',results='hold'}
+
+derivative(f = '5*x^2 -3*x + 10', 
+           var = c(x=-1), 
+           order = 1)
+
+```
+
+This indicates that the value of the first-order derivative at $x=-1$ is -13. Note that this is a negative number, so we understand that the slope of the tangent line that touches to this function at $x=-1$ is negative. 
+
+```{r, fig.align='center',class.source='klippy',warning=FALSE,message=FALSE}
+
+f <- function(x) {5*x^2 -3*x + 10}
+
+ggplot() + 
+  geom_function(fun = f) +
+  geom_point(aes(x=-1,y=18),size=3) + 
+  geom_abline(slope= - 13,intercept = 5,lty=2)+
+  xlim(-6,6)+
+  ylim(0,130)+
+  xlab('x')+
+  ylab('f(x)')+
+  theme_bw()
+
+```
+
+
+## Second-order and higher-order derivatives
+
+As derivatives are also functions, we can always take a derivative of a derivative. If we take the derivative of a first-order derivative function, then it becomes the second-order derivative of the original function. For instance, see below for the first-order and second-order derivatives of the original function above. 
+
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show',results='hold'}
+
+derivative(f = '5*x^2 -3*x + 10', 
+           var = 'x', 
+           order = 1)
+
+derivative(f = '5*x^2 -3*x + 10', 
+           var = 'x', 
+           order = 2)
+
+```
+
+
+
+$$ f(x) = y = 5 x^2 -3*x + 10 .$$
+$$ f'(x) = 10 x - 3.$$
+$$ f''(x) = 10.$$
+Below is an example of another function and its derivatives up to the fifth order.
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show',results='hold'}
+
+derivative(f = '5*x^4 + 3*x^2 + 4*x + 5', 
+           var = 'x', 
+           order = 1)
+
+derivative(f = '5*x^4 + 3*x^2 + 4*x + 5', 
+           var = 'x', 
+           order = 2)
+
+derivative(f = '5*x^4 + 3*x^2 + 4*x + 5', 
+           var = 'x', 
+           order = 3)
+
+derivative(f = '5*x^4 + 3*x^2 + 4*x + 5', 
+           var = 'x', 
+           order = 4)
+
+derivative(f = '5*x^4 + 3*x^2 + 4*x + 5', 
+           var = 'x', 
+           order = 5)
+
+
+```
+
+
+
+$$ f(x) = 5x^4 -3x^2 + 4x + 5$$
+
+
+$$ f'(x) = 20x^3 -6*x + 4$$
+
+$$ f''(x) = 60x^2 -6$$
+
+$$ f'''(x) = 120x$$
+
+$$ f''''(x) = 120$$
+
+$$ f'''''(x) = 0$$
+
+## Partial Derivatives
+
+A partial derivative is a derivative of a multivariate function with respective to a particular input variable while treating all other inputs as constant. The examples you read until this point considered a function with a single variable. Most of the time, we have to deal with functions with multiple variables, and they are sometimes highly complex. Consider the following function with two variables:
+
+$$ f(x,y) = - \sqrt{(x-1)^2 + y^2} $$
+
+We can take the first-order derivative of this function with respect to $x$ while treating $y$ as a constant, or we can take the first-order derivative of this function with respect to $y$ while treating $x$ as a constant. Without knowing anything about the rules of taking derivatives, you can find them using the `derivative()` function from the `calculus` package. 
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show'}
+
+derivative(f = '-sqrt((x-1)^2 + y^2)', 
+           var = 'x', 
+           order = 1)
+
+
+derivative(f = 'sin(x^2/2 - y^2/4)*cos(2*x - exp(y))', 
+           var = 'y', 
+           order = 1)
+
+```
+
+Below are the partial derivatives of this function with respect to $x$ and $y$.
+ 
+$$ \frac{\partial f(x,y)}{\partial x} = \frac{1-x}{\sqrt{(x-1)^2 + y^2}}$$
+
+$$ \frac{\partial f(x,y)}{\partial y} = \frac{-y}{\sqrt{(x-1)^2 + y^2}}$$
+
+Note that we use $\partial$ symbol instead of $d$ to differentiate that these are partial derivatives.
+
+### Gradient
+
+The first-order derivative of a single variable function indicates the slope of a tangent line that touches to that function at a particular point. Then, how do we interpret the partial derivatives? It is best to visualize this to get a glimpse of it. Below are how this function looks like in 3D. I also added a counterplot to represent the same shape in 2D.
+
+```{r,fig.align='center',class.source='klippy',message=FALSE,warning=FALSE,fig.width=8,fig.height=8}
+
+grid     <- expand.grid(x=seq(-5,5,.1),y=seq(-5,5,.1))
+grid$z   <- -((grid[,1] - 1)^2 + grid[,2]^2)^.5
+
+plot_ly(grid,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        marker = list(color = ~z,
+                      colorscale = 'YlGnBu',
+                      showscale = TRUE)) %>%
+  add_markers() %>%
+  layout(scene = list(xaxis=list(range = c(-5,5)),
+                      yaxis=list(range = c(-5,5))))
+
+```
+
+```{r,fig.align='center',class.source='klippy',message=FALSE,warning=FALSE,fig.width=8,fig.height=8}
+
+grid     <- expand.grid(x=seq(-5,5,.1),y=seq(-5,5,.1))
+grid$z   <- -((grid[,1] - 1)^2 + grid[,2]^2)^.5
+
+plot_ly(grid,
+        x = ~x, 
+        y = ~y,
+        z = ~z,
+        type='contour',
+        colors = 'YlGnBu',
+        showscale=TRUE,
+        reversescale =T)
+
+```
+
+Now, suppose that we dropped you with a helicopter on this surface and your coordinates are $x = -2$ and $y = 2$. Your goal is to hike to the top. The partial derivatives would help you to find your direction to the top in your hike. The partial derivatives with respect to $x$ and with respect $y$ would be equal to 0.832 and -0.554, respectively. 
+
+
+$$ \frac{\partial f(x,y)}{\partial x} = \frac{1-(-2)}{\sqrt{(-2-1)^2 + 2^2}} = 0.8320503$$
+
+$$ \frac{\partial f(x,y)}{\partial y} = \frac{-2}{\sqrt{(-2-1)^2 + 2^2}} = -0.5547002$$
+Or, you can find these values using the `gradient()` function from the `calculus` package.
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show'}
+
+gradient(f = '-sqrt((x-1)^2 + y^2)', 
+           var = c(x=-2,y=2))
+
+```
+
+If we add the gradient values with respect to $x$ and with respect to $y$ to the original coordinates of $x$ and $y$, then the new coordinate gives the direction with the largest slope at $(x,y)$ towards the maximum. In the graph below, the filled dot is (-2,2) and open circle is (-2 + 0.832, 2 - 0.554). The direction from the filled dot to the open circle gives the largest slope towards the maximum (steepest ascent). Or, if you want to reach to the maximum, it shows you the best next step.
+
+The dimensions of gradient depends on the number of inputs in a function. Suppose $f$ is a function with $n$ inputs, then the gradient of this function will be a column vector with length $n$. 
+
+$$ \Delta f = f'(x_1,x_2,...,x_n) = \begin{bmatrix} \frac{\partial y} {\partial x_1} \\ \frac{\partial y} {\partial x_2} \\ ... \\ \frac{\partial y} {\partial x_n} \end{bmatrix} $$
+
+```{r,fig.align='center',class.source='klippy',message=FALSE,warning=FALSE,fig.width=8,fig.height=8}
+
+a <- -2
+b <- 2
+
+gr <- gradient(f = '-sqrt((x-1)^2 + y^2)', 
+               var = c(x=a,y=b))
+
+
+grid     <- expand.grid(x=seq(-5,5,.1),y=seq(-5,5,.1))
+grid$z   <- -((grid[,1] - 1)^2 + grid[,2]^2)^.5
+
+plot_ly(grid,
+        x = ~x, 
+        y = ~y,
+        z = ~z,
+        type='contour',
+        colors = 'YlGnBu',
+        showscale=TRUE,
+        reversescale =T) %>%
+  add_trace(x = a, 
+            y = b, 
+            type = 'scatter',
+            mode = 'markers',
+            marker = list(color = 'black',size=8),
+            showlegend=FALSE,
+            showlegend = FALSE) %>%
+  add_trace(x = a+gr[1], 
+            y = b+gr[2], 
+            type = 'scatter',
+            mode = 'markers',
+            symbols = c('x'),
+            marker = list(color = 'black',size=8,symbol = 'circle-open'),
+            showlegend = FALSE) %>%
+ add_annotations(ax = a,
+                 ay = b,
+                 x = a + gr[1],
+                 y = b + gr[2],
+                 axref = 'x',
+                 ayref = 'y',
+                 xref = 'x',
+                 yref = 'y',
+                 text = '',
+                 showlegend=FALSE)
+```
+
+*Note*. We here assume that we are searching for the maximum. If we are searching for a minimum, then the open circle would be (-2 - 0.832, 2 + 0.554) and provide the direction with the largest slope towards the minimum (steepest descent).
+
+
+### Hessian
+
+If we take the first-order partial derivatives from a multivariate function and take derivative again with respect to each variable, then we obtain the second-order partial derivatives. The Hessian matrix is a way of organizing the second-order partial derivatives. For instance, consider the function used in the previous section.
+
+$$ f(x,y) = - \sqrt{(x-1)^2 + y^2} $$
+
+We found its first-order partial derivative with respect to $x$ as the following..
+
+$$ \frac{\partial f(x,y)}{\partial x} = \frac{1-x}{\sqrt{(x-1)^2 + y^2}} $$
+
+$\frac{\partial f(x,y)}{\partial x}$ is a function itself, so we can again take its derivatives with respect to $x$ and $y$. 
+
+$$\frac{\partial f^2(x,y)}{\partial x^2} = \frac{\partial}{\partial x} \left ( \frac{\partial f(x,y)}{\partial x}  \right )$$
+$$\frac{\partial f^2(x,y)}{\partial x \partial y} = \frac{\partial}{\partial y} \left ( \frac{\partial f(x,y)}{\partial x}  \right )$$
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show'}
+
+fprime.x <- '(1-x)/sqrt((x-1)^2 + y^2)'
+
+derivative(f = fprime.x, 
+           var = 'x', 
+           order = 1)
+
+derivative(f = fprime.x, 
+           var = 'y', 
+           order = 1)
+
+
+```
+
+This gets pretty ugly! I simplified it for you.
+
+$$\frac{\partial f^2(x,y)}{\partial x^2} = -\dfrac{y^2}{\left(\left(x-1\right)^2+y^2\right)^\frac{3}{2}}$$
+
+$$\frac{\partial f^2(x,y)}{\partial x \partial y} = \dfrac{\left(x-1\right)y}{\left(y^2+\left(x-1\right)^2\right)^\frac{3}{2}}$$
+
+We are not done yet! These are the derivatives of the first-order partial derivative with respect to $x$. We can do the same thing for the first-order partial derivative with respect to $y$.
+
+$$\frac{\partial f^2(x,y)}{\partial y^2} = \frac{\partial}{\partial y} \left ( \frac{\partial f(x,y)}{\partial y}  \right )$$
+
+$$\frac{\partial f^2(x,y)}{\partial y \partial x} = \frac{\partial}{\partial x} \left ( \frac{\partial f(x,y)}{\partial y}  \right )$$
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show'}
+
+fprime.y <- '(-y)/sqrt((x-1)^2 + y^2)'
+
+derivative(f = fprime.y, 
+           var = 'x', 
+           order = 1)
+
+derivative(f = fprime.x, 
+           var = 'y', 
+           order = 1)
+
+
+```
+
+They are simplified for you.
+
+$$\frac{\partial f^2(x,y)}{\partial y^2} = -\dfrac{\left(x-1\right)^2}{\left(y^2+\left(x-1\right)^2\right)^\frac{3}{2}}$$
+
+$$\frac{\partial f^2(x,y)}{\partial y \partial x} = \dfrac{y\left(x-1\right)}{\left(\left(x-1\right)^2+y^2\right)^\frac{3}{2}}$$
+We can organize these second-order derivatives in a 2 x 2 Hessian matrix. Since our function has only two input variables, the Hessian matrix will be a 2 x 2 matrix. For a function with $n$ input variables, the Hessian matrix would be an $n$ by $n$ matrix. 
+
+$$ \mathbf{H} = \begin{bmatrix} \frac{\partial f^2(x,y)}{\partial x^2} & \frac{\partial f^2(x,y)}{\partial x \partial y} \\ \frac{\partial f^2(x,y)}{\partial y \partial x} & \frac{\partial f^2(x,y)}{\partial y^2} \end{bmatrix}$$
+
+In the previous section, we calculated the gradient vector for $(x,y) = (-2,2)$. Now, let's compute the Hessian matrix for the same $(x,y) = (-2,2)$ coordinate.
+
+$$\frac{\partial f^2(x,y)}{\partial x^2} = -\dfrac{2^2}{\left(\left(-2-1\right)^2+2^2\right)^\frac{3}{2}} = -0.08533849$$
+
+$$\frac{\partial f^2(x,y)}{\partial x \partial y} = \dfrac{\left(-2-1\right)2}{\left(2^2+\left(-2-1\right)^2\right)^\frac{3}{2}} = -0.1280077$$
+
+$$\frac{\partial f^2(x,y)}{\partial y^2} = -\dfrac{\left(-2-1\right)^2}{\left(2^2+\left(-2-1\right)^2\right)^\frac{3}{2}} = -0.1920116$$
+
+$$\frac{\partial f^2(x,y)}{\partial y \partial x} = \dfrac{2\left(-2-1\right)}{\left(\left(-2-1\right)^2+2^2\right)^\frac{3}{2}} = -0.1280077$$
+
+$$ \mathbf{H} = \begin{bmatrix} -0.085 & -0.128 \\ -0.128 & 0.192 \end{bmatrix} $$
+
+Luckily, we don't have to do this tedious work by ourself. We can use the `hessian()` function from the calculus package to compute the hessian matrix for any given function.
+
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show'}
+
+hessian(f = '-sqrt((x-1)^2 + y^2)', 
+           var = c(x=-2,y=2))
+```
+
+# Optimization
+
+The optimization is finding a minimum or maximum of a function. The concept of gradient and Hessian can be used to find a minimum or maximum of a given function although they have their limitations. Here, we will focus on two methods, steepest ascent and Newton's algorithm, to give a sense of how optimization process looks like.
+
+## Steepest Ascent (or Descent)
+
+Let's consider the following function and its first-order derivatives (gradient vector). We would like to know the coordinates of the maximum. At which specific coordinates, does this function reach to a maximum value? We can have a guess that it is somewhere between 0 and 2 in terms of the x-axis and somewhere between -1 and 1 in terms of the y-axis by looking at the plot. We can actually mathematically show that it is exactly $(x,y) = (1,0)$, but we pretend that we do not know that.
+
+
+$$ f(x,y) = - \sqrt{(x-1)^2 + y^2} $$
+
+
+```{r, fig.align='center',class.source='klippy',warning=FALSE,message=FALSE}
+
+grid     <- expand.grid(x=seq(-5,5,.1),y=seq(-5,5,.1))
+grid$z   <- -((grid[,1] - 1)^2 + grid[,2]^2)^.5
+
+plot_ly(grid,
+        x = ~x, 
+        y = ~y,
+        z = ~z,
+        type='contour',
+        colors = 'YlGnBu',
+        showscale=TRUE,
+        reversescale =T)
+
+```
+
+Each optimization process starts with a wild guess about where the minimum or maximum is. Depending on the first guess, we can evaluate the gradient to update our guess. In a more formal way, we can summarize the steepest ascent for this function as the following.
+
+**Step 0**: Wild estimate about where the maximum is.
+
+$$ (x_0,y_0)$$
+
+**Step 1**: Update your first estimate.
+
+
+$$ (x_1,y_1) = (x_0,y_0) + \alpha f'(x_0,y_0)$$
+
+
+**StepY 2**: Continue updating your estimate until it doesn't significantly improve anymore.
+
+
+$$ (x_{n+1},y_{n+1}) = (x_n,y_n) + \alpha f'(x_n,y_n)$$
+
+$f'(x_n,y_n)$ is the gradient vector at the n^th step and $\alpha$ is known as the step size. While gradient indicates which direction to go for the next step, $\alpha$ indicates how big of a step to take in that direction. In machine learning literature, they call $\alpha$ the *learning rate*.
+
+Let's implement this algorithm for our function. For instance, suppose our initial estimate about the location of the maximum point is $(x,y) = c(-2,2)$. Below is an R script using a `while` loop to iterate this procedure until one of the two conditions is met. Either the change in function value is negative (so the function doesn't improve) or the number of iterations is less than 500. I used an $\alpha$ value of 0.1 at each step.
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show'}
+
+my.f               <- function(x,y){
+ -sqrt((x-1)^2 + y^2)
+}
+
+f                  <- '-sqrt((x-1)^2 + y^2)'
+
+iter               <- data.frame(x=NA,y=NA,z=NA)
+iter[1,c('x','y')] <- c(-2,2)
+iter[1,]$z         <- my.f(x=iter[1,1],y=iter[1,2])
+  
+
+change             <- 1
+i                  <- 1
+
+while((change > 0) & (i < 500)){
+  
+  der              <- gradient(f = f, 
+                               var = c(x=iter[i,1],y=iter[i,2]))
+  i                <- i + 1
+  
+  iter[i,1:2]      <- iter[i-1,1:2] + 0.1*der
+  iter[i,]$z       <- my.f(x=iter[i,1],y=iter[i,2])
+  
+  change           <- iter[i,]$z - iter[i-1,]$z
+  
+  #cat('Iteration :', i, 'Value :', round(iter[i,]$z,4),'\n')
+}
+
+iter
+```
+
+As you see, we start from the initial estimate of (-2,2), and the steepest ascent algorithm took us to a location of approximately 1 and 0. In this case, it is stuck between two data points, (0.995,.003) and (1.079, -0.052), and starts going back and forth between these two data points without finding a final solution. Let's see how this journey to the top visually looks like.
+
+```{r, fig.align='center',class.source='klippy',warning=FALSE,message=FALSE,eval=F,echo=F}
+
+grid     <- expand.grid(x=seq(-5,5,.1),y=seq(-5,5,.1))
+grid$z   <- -((grid[,1] - 1)^2 + grid[,2]^2)^.5
+
+
+p <- plot_ly(grid,
+        x = ~x, 
+        y = ~y,
+        z = ~z,
+        type='contour',
+        colors = 'YlGnBu',
+        showscale=FALSE,
+        reversescale =T) %>%
+  add_trace(x = iter[1,1], 
+          y = iter[1,2], 
+          type = 'scatter',
+          mode = 'markers',
+          marker = list(color = 'black',size=5),
+          showlegend=FALSE)
+
+
+  export(p,paste0(here('static/animations/steepest-ascent2/plot'),1,'.png'))
+
+
+  for(i in 2:40){
+    
+  p <- p  %>%
+    add_trace(x = iter[i,1], 
+              y = iter[i,2], 
+              type = 'scatter',
+              mode = 'markers',
+              marker = list(color = 'black',size=5,symbol = 'circle-open'),
+              showlegend=FALSE)%>%
+    add_segments(x = iter[i-1,1], 
+                 y = iter[i-1,2],
+                 xend = iter[i,1],
+                 yend = iter[i,2],
+              showlegend=FALSE)
+    
+    export(p,paste0(here('static/animations/steepest-ascent2/plot'),i,'.png'))
+    
+    print(i)
+  }
+
+
+require(stringr)
+  
+imgs <- list.files(here('static/animations/steepest-ascent2'),full.names=TRUE)
+loc <- order(as.numeric(substring(imgs, str_locate(imgs,'/plot')[,2]+1,str_locate(imgs,'.png')[,1]-1)))
+imgs <- imgs[loc]
+img_list <- lapply(imgs, image_read)
+img_joined <- image_join(img_list)
+img_animated <- image_animate(img_joined, fps = 10)
+img_animated
+image_write(image = img_animated,
+            path = here('static/animations/steepest-ascent2/steepest-ascent2.gif'))
+```
+
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.width=8,fig.height=8,fig.align='center'}
+
+knitr::include_graphics(here('static/animations/steepest-ascent1/steepest-ascent1.gif'),dpi=100)
+
+```
+
+If we start from another location, it will still find the way to the top. Below is an example when the starting position is $(x,y) = (4,3)$.
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.width=8,fig.height=8,fig.align='center'}
+
+knitr::include_graphics(here('static/animations/steepest-ascent2/steepest-ascent2.gif'),dpi=100)
+
+```
+
+For this example, it is straightforward to go to the top for the steepest ascent algorithm because the surface is not that complex and there is a single peak.
+
+### Another example of the Steepest Ascent
+
+Now, let's see how the steepest ascent behaves for a more complicated surface. Consider the following function and its 3D representation. As you see, this function has a more complex surface. Instead of an obvious single peak, there were three of them. The highest peak (global maximum) was around the coordinates of $(x,y,z) = (2.03,1.40,1.00)$. The second highest peak (local maximum) was around the coordinates of $(x,y,z) = (3.00,1.01,0.89)$, and the third highest peak (local maximum) was around the coordinates of $(x,y,z) = (0.34,1.43,0.41)$.
+
+
+The code below implements the steepest ascent algorithm using the starting values of $(x,y)=(0.1,0.3)$. After 134 iterations, the algorithm successfully finds the global maximum. As you will see, the path is not very straightforward, but the algorithm successfully finds the maximum point.
+
+$$ f(x,y) = sin(\frac{x^2}{2} - \frac{y^2}{4}) \times cos(2x - e^y) $$
+
+```{r,fig.align='center',class.source='klippy',message=FALSE,warning=FALSE,fig.width=8,fig.height=8}
+
+grid     <- expand.grid(x=seq(-.5,3,.01),y=seq(-.5,2,.01))
+grid$z   <- sin(grid[,1]^2/2 - grid[,2]^2/4)*cos(2*grid[,1] - exp(grid[,2]))
+
+plot_ly(grid,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        marker = list(color = ~z,
+                      colorscale = 'YlGnBu',
+                      showscale = FALSE)) %>%
+  add_markers() %>%
+  layout(scene = list(xaxis=list(range = c(3,-.5)),
+                      yaxis=list(range = c(2,-.5))))
+
+```
+
+
+```{r,fig.align='center',class.source='klippy',message=FALSE,warning=FALSE,fig.width=8,fig.height=8}
+
+plot_ly(grid,
+        x = ~x, 
+        y = ~y,
+        z = ~z,
+        type='contour',
+        colors = 'YlGnBu',
+        showscale=TRUE,
+        reversescale =T)
+
+```
+
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show'}
+
+my.f               <- function(x,y){
+ sin(x^2/2 - y^2/4)*cos(2*x - exp(y))
+}
+
+f                  <- 'sin(x^2/2 - y^2/4)*cos(2*x - exp(y))'
+
+iter               <- data.frame(x=NA,y=NA,z=NA)
+iter[1,c('x','y')] <- c(0.1,0.3)
+iter[1,]$z         <- my.f(x=iter[1,1],y=iter[1,2])
+  
+
+change             <- 1
+i                  <- 1
+
+while((change > 0) & (i < 500)){
+  
+  der              <- gradient(f = f, 
+                               var = c(x=iter[i,1],y=iter[i,2]))
+  i                <- i + 1
+  
+  iter[i,1:2]      <- iter[i-1,1:2] + 0.1*der
+  iter[i,]$z       <- my.f(x=iter[i,1],y=iter[i,2])
+  
+  change           <- iter[i,]$z - iter[i-1,]$z
+  
+  #cat('Iteration :', i, 'Value :', round(iter[i,]$z,4),'\n')
+}
+
+iter
+```
+
+```{r, fig.align='center',class.source='klippy',warning=FALSE,message=FALSE,eval=F,echo=F}
+
+
+p <- plot_ly(grid,
+        x = ~x, 
+        y = ~y,
+        z = ~z,
+        type='contour',
+        colors = 'YlGnBu',
+        showscale=FALSE,
+        reversescale =T) %>%
+  add_trace(x = iter[1,1], 
+          y = iter[1,2], 
+          type = 'scatter',
+          mode = 'markers',
+          marker = list(color = 'black',size=5),
+          showlegend=FALSE)
+
+
+  export(p,paste0(here('static/animations/steepest-ascent3/plot'),1,'.png'))
+
+
+  for(i in 2:100){
+    
+  p <- p  %>%
+    add_trace(x = iter[i,1], 
+              y = iter[i,2], 
+              type = 'scatter',
+              mode = 'markers',
+              marker = list(color = 'black',size=5,symbol = 'circle-open'),
+              showlegend=FALSE)%>%
+    add_segments(x = iter[i-1,1], 
+                 y = iter[i-1,2],
+                 xend = iter[i,1],
+                 yend = iter[i,2],
+              showlegend=FALSE)
+    
+   export(p,paste0(here('static/animations/steepest-ascent3/plot'),i,'.png'))
+    
+    print(i)
+  }
+
+
+require(stringr)
+  
+imgs <- list.files(here('static/animations/steepest-ascent3'),full.names=TRUE)
+loc <- order(as.numeric(substring(imgs, str_locate(imgs,'/plot')[,2]+1,str_locate(imgs,'.png')[,1]-1)))
+imgs <- imgs[loc]
+img_list <- lapply(imgs, image_read)
+img_joined <- image_join(img_list)
+img_animated <- image_animate(img_joined, fps = 10)
+img_animated
+image_write(image = img_animated,
+            path = here('static/animations/steepest-ascent3/steepest-ascent3.gif'))
+```
+
+
+
+```{r, fig.align='center',class.source='klippy',warning=FALSE,message=FALSE,eval=F,echo=F}
+
+p <- plot_ly(grid,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        marker = list(color = ~z,
+                      colorscale = 'YlGnBu',
+                      showscale = FALSE)) %>%
+  add_markers() %>%
+  layout(scene = list(xaxis=list(range = c(3,-.5)),
+                      yaxis=list(range = c(2,-.5)))) %>%
+  add_trace(x = iter[1,1], 
+            y = iter[1,2], 
+            z = sin(iter[1,1]^2/2 - iter[1,2]^2/4)*cos(2*iter[1,1] - exp(iter[1,2])),
+            type = 'scatter3d',
+            mode = 'markers',
+            marker = list(color = 'black',size=10),
+            showlegend=FALSE)
+
+
+ server$export(p,
+               paste0(here('static/animations/steepest-ascent4/plot'),1,'.png'),
+               width = 8,
+               height = 8)
+
+
+  for(i in 2:100){
+    
+  p <- p %>%
+    add_trace(x = iter[i,1], 
+              y = iter[i,2], 
+              z = sin(iter[i,1]^2/2 - iter[i,2]^2/4)*cos(2*iter[i,1] - exp(iter[i,2])),
+              type = 'scatter3d',
+              mode = 'markers',
+              marker = list(color = 'black',size=10),
+              showlegend=FALSE)
+  
+ server$export(p,
+               paste0(here('static/animations/steepest-ascent4/plot'),i,'.png'),
+               width = 8,
+               height = 8)
+ 
+   print(i)
+  }
+
+
+require(stringr)
+  
+imgs <- list.files(here('static/animations/steepest-ascent4'),full.names=TRUE)
+loc <- order(as.numeric(substring(imgs, str_locate(imgs,'/plot')[,2]+1,str_locate(imgs,'.png')[,1]-1)))
+imgs <- imgs[loc]
+img_list <- lapply(imgs, image_read)
+img_joined <- image_join(img_list)
+img_animated <- image_animate(img_joined, fps = 10)
+img_animated
+image_write(image = img_animated,
+            path = here('static/animations/steepest-ascent3/steepest-ascent4.gif'))
+```
+
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
+
+knitr::include_graphics(here('static/animations/steepest-ascent3/steepest-ascent3.gif'))
+
+```
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
+
+knitr::include_graphics(here('static/animations/steepest-ascent4/steepest-ascent4.gif'))
+
+```
+
+Limitations of steepest ascent ....
+
+- slow convergence
+- sensitivity to starting values for complex optimization problems
+
+...
+
+```{r, echo = TRUE,class.source='klippy',warning=FALSE,message=FALSE,class.source = 'fold-show'}
+
+grid     <- expand.grid(x=seq(-.5,3,.01),y=seq(-.5,2,.01))
+grid$z   <- sin(grid[,1]^2/2 - grid[,2]^2/4)*cos(2*grid[,1] - exp(grid[,2]))
+
+my.f               <- function(x,y){
+ sin(x^2/2 - y^2/4)*cos(2*x - exp(y))
+}
+
+f                  <- 'sin(x^2/2 - y^2/4)*cos(2*x - exp(y))'
+
+iter               <- data.frame(x=NA,y=NA,z=NA)
+iter[1,c('x','y')] <- c(0,0.3)
+iter[1,]$z         <- my.f(x=iter[1,1],y=iter[1,2])
+  
+
+change             <- 1
+i                  <- 1
+
+while((change > 0) & (i < 500)){
+  
+  der              <- gradient(f = f, 
+                               var = c(x=iter[i,1],y=iter[i,2]))
+  i                <- i + 1
+  
+  iter[i,1:2]      <- iter[i-1,1:2] + 0.1*der
+  iter[i,]$z       <- my.f(x=iter[i,1],y=iter[i,2])
+  
+  change           <- iter[i,]$z - iter[i-1,]$z
+  
+  #cat('Iteration :', i, 'Value :', round(iter[i,]$z,4),'\n')
+}
+
+iter
+```
+
+
+
+```{r, fig.align='center',class.source='klippy',warning=FALSE,message=FALSE,eval=F,echo=F}
+
+
+p <- plot_ly(grid,
+        x = ~x, 
+        y = ~y,
+        z = ~z,
+        type='contour',
+        colors = 'YlGnBu',
+        showscale=FALSE,
+        reversescale =T) %>%
+  add_trace(x = iter[1,1], 
+          y = iter[1,2], 
+          type = 'scatter',
+          mode = 'markers',
+          marker = list(color = 'black',size=5),
+          showlegend=FALSE)
+
+
+server$export(p,
+               paste0(here('static/animations/steepest-ascent5/plot'),1,'.png'),
+               width = 8,
+               height = 8)
+ 
+
+  for(i in 2:100){
+    
+  p <- p  %>%
+    add_trace(x = iter[i,1], 
+              y = iter[i,2], 
+              type = 'scatter',
+              mode = 'markers',
+              marker = list(color = 'black',size=5,symbol = 'circle-open'),
+              showlegend=FALSE)%>%
+    add_segments(x = iter[i-1,1], 
+                 y = iter[i-1,2],
+                 xend = iter[i,1],
+                 yend = iter[i,2],
+              showlegend=FALSE)
+    
+  server$export(p,
+                 paste0(here('static/animations/steepest-ascent5/plot'),i,'.png'),
+                 width = 8,
+                 height = 8)
+  
+    print(i)
+  }
+
+
+require(stringr)
+  
+imgs <- list.files(here('static/animations/steepest-ascent5'),full.names=TRUE)
+loc <- order(as.numeric(substring(imgs, str_locate(imgs,'/plot')[,2]+1,str_locate(imgs,'.png')[,1]-1)))
+imgs <- imgs[loc]
+img_list <- lapply(imgs, image_read)
+img_joined <- image_join(img_list)
+img_animated <- image_animate(img_joined, fps = 10)
+img_animated
+image_write(image = img_animated,
+            path = here('static/animations/steepest-ascent5/steepest-ascent5.gif'))
+```
+
+
+
+```{r, fig.align='center',class.source='klippy',warning=FALSE,message=FALSE,eval=F,echo=F}
+
+p <- plot_ly(grid,
+        x = ~x,
+        y = ~y,
+        z = ~z,
+        marker = list(color = ~z,
+                      colorscale = 'YlGnBu',
+                      showscale = FALSE)) %>%
+  add_markers() %>%
+  layout(scene = list(xaxis=list(range = c(3,-.5)),
+                      yaxis=list(range = c(2,-.5)))) %>%
+  add_trace(x = iter[1,1], 
+            y = iter[1,2], 
+            z = sin(iter[1,1]^2/2 - iter[1,2]^2/4)*cos(2*iter[1,1] - exp(iter[1,2])),
+            type = 'scatter3d',
+            mode = 'markers',
+            marker = list(color = 'black',size=10),
+            showlegend=FALSE)
+
+
+ server$export(p,
+               paste0(here('static/animations/steepest-ascent6/plot'),1,'.png'),
+               width = 8,
+               height = 8)
+
+
+  for(i in 2:100){
+    
+  p <- p %>%
+    add_trace(x = iter[i,1], 
+              y = iter[i,2], 
+              z = sin(iter[i,1]^2/2 - iter[i,2]^2/4)*cos(2*iter[i,1] - exp(iter[i,2])),
+              type = 'scatter3d',
+              mode = 'markers',
+              marker = list(color = 'black',size=10),
+              showlegend=FALSE)
+  
+ server$export(p,
+               paste0(here('static/animations/steepest-ascent6/plot'),i,'.png'),
+               width = 8,
+               height = 8)
+ 
+   print(i)
+  }
+
+
+require(stringr)
+  
+imgs <- list.files(here('static/animations/steepest-ascent6'),full.names=TRUE)
+loc <- order(as.numeric(substring(imgs, str_locate(imgs,'/plot')[,2]+1,str_locate(imgs,'.png')[,1]-1)))
+imgs <- imgs[loc]
+img_list <- lapply(imgs, image_read)
+img_joined <- image_join(img_list)
+img_animated <- image_animate(img_joined, fps = 10)
+img_animated
+image_write(image = img_animated,
+            path = here('static/animations/steepest-ascent6/steepest-ascent6.gif'))
+```
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
+
+knitr::include_graphics(here('static/animations/steepest-ascent5/steepest-ascent5.gif'))
+
+```
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
+
+knitr::include_graphics(here('static/animations/steepest-ascent6/steepest-ascent6.gif'))
+
+```
+
+
+## Newton Raphson algorithm
+
+## Other optimization algorithms
+
+  - R function `optimize()`
+  - Nelder-Mead
+  - Quasi-newton
+  - conjugate gradient
+  - simulated annealing
+  - genetic algorithm

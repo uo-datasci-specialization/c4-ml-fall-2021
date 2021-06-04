@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Applied Machine Learning on Machine Learning for Educational Data Science</title>
+    <link>https://ml-21.netlify.app/</link>
+    <description>Recent content in Applied Machine Learning on Machine Learning for Educational Data Science</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language><atom:link href="https://ml-21.netlify.app/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Assignments</title>
+      <link>https://ml-21.netlify.app/assignments/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ml-21.netlify.app/assignments/</guid>
+      <description>This course includes three labs at 10 points each, a midterm quiz (10 points), a midterm take-home (60 points) and a final project.
+A note on deadlines I would like to, as much a possible, stick to the deadlines below so we can go over them together as a group after everyone has submitted their assignment. However, if you need additional time for any reason please just send me a note letting me know.</description>
+    </item>
+    
+    <item>
+      <title>Schedule</title>
+      <link>https://ml-21.netlify.app/schedule/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ml-21.netlify.app/schedule/</guid>
+      <description>Supplemental Resources Each of the below links to the full book. Icons in the schedule link to specific chapters. All books except two are freely available from the provided links. Applied Predictive Modeling is available online through UO Libraries. Mathematics for Machine Learning is not necessary for this course; however, I provide the link in case anybody is interested. A shorter version of similar content is freely available.
+Mathematics for Machine LearningDeisenroth, A.</description>
+    </item>
+    
+    <item>
+      <title>Syllabus</title>
+      <link>https://ml-21.netlify.app/syllabus/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://ml-21.netlify.app/syllabus/</guid>
+      <description>Below are the meeting times for our class
+ Term: Fall 2021 Time: Monday/Wednesday, 12:00-13:20 Classroom: TBD Instructor: Cengiz Zopluoglu  email: (preferred contact method) cengiz@uoregon.edu office hours: TBD pronouns: he/him/his    Course Overview This is the third course in the educational data science specialization. This course builds upon the content covered in the first two courses, with a specific focus on becoming a better programmer and improving workflows.</description>
+    </item>
+    
+  </channel>
+</rss>
