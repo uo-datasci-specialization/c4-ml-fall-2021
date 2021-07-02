@@ -154,18 +154,38 @@ reticulate::import('tokenizers')
 ```
 
 
-
 # Recidivism
 
+The Recidivism dataset comes from The National Institute of Justice’s (NIJ) [Recidivism Forecasting Challenge](https://nij.ojp.gov/funding/recidivism-forecasting-challenge). The challenge aims to increase public safety and improve the fair administration of justice across the United States. This challenge had three stages of prediction, and all three stages require to model a binary outcome (recidivated vs. not recidivated in Year 1, Year 2, and Year 3). In this class, we will only work on the second stage and develop a model for predicting the probability that an individual will be recidivated in the second year after initial release.
+
+You can directly download the training dataset from [the competition website](https://data.ojp.usdoj.gov/stories/s/daxx-hznc), or you can import it from the course website. Either way, please make sure you read the [Terms of Use at this link](https://data.ojp.usdoj.gov/stories/s/NIJ-s-Recidivism-Challenge-Overview-and-Term-of-Us/gyxv-98b2/) before working with this dataset. 
+
+Note that the competition website has also test datasets for Year 1, Year 2, and Year 3; however, we will not use them because they don't have the outcome. These datasets are being used for competition. Participants were supposed to assign a probability at each stage and submit their predictions for internal performance evaluation. Therefore, we will not be able utilize these test datasets. 
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+recidivism_train <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_training.csv',header=TRUE)
+
+str(recidivism_train)
+
+```
+
+There are 18,028 observations in the training set and 53 variables including a unique ID variable, and four potential target variables (Recidivism in Year 1, Recidivism in Year 2, and Recidivism in Year 3). The remaining 49 variables are potential predictive features and include variables such as gender, race, age at release, gang affiliation, etc. A full list of these variables can be found at [this link](https://nij.ojp.gov/funding/recidivism-forecasting-challenge#recidivism-forecasting-challenge-database-fields-defined). 
 
 
+We will work on developing a model to predict the target variable `Recidivism_Arrest_Year2` using the 49 potential predictive variables. Before moving forward, we have to remove the individuals who had already been recidivated in Year 1. As you can see below, about 29.8% of the individuals were recidivated in Year 1. I am removing these individuals from the original training dataset and save the new dataset for later use in class.
 
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
 
+table(recidivism_train$Recidivism_Arrest_Year1)
 
+recidivism_train2 <- recidivism_train[recidivism_train$Recidivism_Arrest_Year1 == 'false',]
 
+write.csv(recidivism_train2, 
+          here('data/recidivism_train_y1 removed.csv'),
+          row.names = FALSE)
 
-
-
+```
 
 
 
