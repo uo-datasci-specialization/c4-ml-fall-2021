@@ -1531,6 +1531,105 @@ margin-right: 4.5px; } }
     </style>
 
 
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; } /* Alert */
+code span.an { color: #008000; } /* Annotation */
+code span.at { } /* Attribute */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #0000ff; } /* ControlFlow */
+code span.ch { color: #008080; } /* Char */
+code span.cn { } /* Constant */
+code span.co { color: #008000; } /* Comment */
+code span.cv { color: #008000; } /* CommentVar */
+code span.do { color: #008000; } /* Documentation */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.im { } /* Import */
+code span.in { color: #008000; } /* Information */
+code span.kw { color: #0000ff; } /* Keyword */
+code span.op { } /* Operator */
+code span.ot { color: #ff4000; } /* Other */
+code span.pp { color: #ff4000; } /* Preprocessor */
+code span.sc { color: #008080; } /* SpecialChar */
+code span.ss { color: #008080; } /* SpecialString */
+code span.st { color: #008080; } /* String */
+code span.va { } /* Variable */
+code span.vs { color: #008080; } /* VerbatimString */
+code span.wa { color: #008000; font-weight: bold; } /* Warning */
+
+.sourceCode .row {
+  width: 100%;
+}
+.sourceCode {
+  overflow-x: auto;
+}
+.code-folding-btn {
+  margin-right: -30px;
+}
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
 
 
 
@@ -1738,8 +1837,9 @@ University of Oregon | EDLD 654<br><h4 class="date">08/23/2021</h4>
   addClassKlippyTo("pre.r, pre.markdown");
   addKlippy('right', 'top', 'auto', '1', 'Copy code', 'Copied!');
 </script>
-<p>[Updated: Mon, Aug 23, 2021 - 18:27:31 ]</p>
+<p>[Updated: Tue, Aug 24, 2021 - 18:34:23 ]</p>
 <style>
+
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
     z-index: 2;
     color: #fff;
@@ -1749,7 +1849,7 @@ University of Oregon | EDLD 654<br><h4 class="date">08/23/2021</h4>
 
 </style>
 <div id="scales-of-measurement-and-types-of-variables" class="section level1">
-<h1>Scales of Measurement and Types of Variables</h1>
+<h1>1. Scales of Measurement and Types of Variables</h1>
 <p>It is important to understand the nature of variables and how they were measured and represented in a dataset. In social sciences, in particular psychology, there is a methodological consensus about the framework provided by <a href="https://www.jstor.org/stable/1671815">Stevens (1946)</a>, also see <a href="https://doi.org/10.1080/00049530210001706563">Michell (2002)</a> for an in-depth discussion. According to Stevens’ definition, there are four levels of measurement: nominal, ordinal, interval, and ratio. Whether a variable is considered having a nominal, ordinal, interval, or ratio scale depends on the character of the empirical operations performed while constructing the variable.</p>
 <ul>
 <li><p>Nominal scale: Variables with a nominal scale cannot be be meaningfully added, subtracted, divided, or multiplied. Also, there is no hierarchical order among the assigned values. Most variables that contains labels for individual observations can be considered as nominal, e.g., hair color, city, state, ethnicity.</p></li>
@@ -1809,33 +1909,294 @@ University of Oregon | EDLD 654<br><h4 class="date">08/23/2021</h4>
 <p>In this class, we classify the variables in two types: <strong>Categorical</strong> and <strong>Continuous</strong>. The variables with a nominal or ordinal scale are considered as <strong>Categorical</strong> and the variables with an interval or ratio scale are considered as <strong>Continuous</strong>.</p>
 </div>
 <div id="processing-categorical-variables" class="section level1">
-<h1>Processing Categorical Variables</h1>
-<div id="one-hot-encoding" class="section level2">
-<h2>One-hot encoding</h2>
+<h1>2. Processing Categorical Variables</h1>
+<p>When there are categorical predictors in a dataset, it is important to translate them into numerical codes. When encoding categorical predictors, we try to preserve as much information as possible from its labels. Therefore, different strategies may be used for categorical variables with different ordinal scales.</p>
+<div id="one-hot-encoding-dummy-variables" class="section level2">
+<h2>2.1 One-hot encoding (Dummy Variables)</h2>
+<p>A dummy variable is a synthetic variable with two outcomes (0 and 1) to represent a group membership. When there is a nominal variable with <em>N</em> levels, it is typical to create <em>N</em> dummy variables to represent the information in the nominal variable. Each dummy variable represents a membership to one of the levels in the nominal variable. These dummy variables can be used as features in predictive models.</p>
+<p>In its simplest case, consider variable <code>Race</code> in the Recidivism dataset with two levels: Black and White. We can create two dummy variables such that the first dummy variable represents whether or not an individual is Black and the second dummy variable represents whether or not the individual is White.</p>
+<table>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">Dummy Variable 1</th>
+<th align="center">Dummy Variable 2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Black</td>
+<td align="center">1</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td>White</td>
+<td align="center">0</td>
+<td align="center">1</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>recidivism &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_y1 removed.csv&#39;</span>,<span class="dt">header=</span><span class="ot">TRUE</span>)</span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">table</span>(recidivism<span class="op">$</span>Race)</span></code></pre></div>
+<pre><code>
+BLACK WHITE 
+10222  7889 </code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>recidivism<span class="op">$</span>black &lt;-<span class="st"> </span><span class="kw">ifelse</span>(recidivism<span class="op">$</span>Race<span class="op">==</span><span class="st">&#39;BLACK&#39;</span>,<span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb3-2"><a href="#cb3-2"></a>recidivism<span class="op">$</span>white &lt;-<span class="st"> </span><span class="kw">ifelse</span>(recidivism<span class="op">$</span>Race<span class="op">==</span><span class="st">&#39;WHITE&#39;</span>,<span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="kw">head</span>(recidivism[,<span class="kw">c</span>(<span class="st">&#39;Race&#39;</span>,<span class="st">&#39;black&#39;</span>,<span class="st">&#39;white&#39;</span>)])</span></code></pre></div>
+<pre><code>   Race black white
+1 BLACK     1     0
+2 BLACK     1     0
+3 BLACK     1     0
+4 WHITE     0     1
+5 WHITE     0     1
+6 BLACK     1     0</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">table</span>(recidivism<span class="op">$</span>black)</span></code></pre></div>
+<pre><code>
+    0     1 
+ 7889 10222 </code></pre>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">table</span>(recidivism<span class="op">$</span>white)</span></code></pre></div>
+<pre><code>
+    0     1 
+10222  7889 </code></pre>
+<p>Let’s consider another example from the Recidivism dataset. Variable <code>Prison_Offense</code> has five categories: Violent/Sex, Violent/Non-Sex, Property, Drug, Other. We can create five dummy variables using the following coding scheme.</p>
+<table style="width:100%;">
+<colgroup>
+<col width="16%"></col>
+<col width="16%"></col>
+<col width="16%"></col>
+<col width="16%"></col>
+<col width="16%"></col>
+<col width="16%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">Dummy Variable 1</th>
+<th align="center">Dummy Variable 2</th>
+<th align="center">Dummy Variable 3</th>
+<th align="center">Dummy Variable 4</th>
+<th align="center">Dummy Variable 5</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Violent/Sex</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td>Violent/Non-Sex</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td>Property</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td>Drug</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td>Other</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+</tr>
+</tbody>
+</table>
+<p>Note that <code>Prison_Offence</code> is missing for a number of observations. You can fill-in the missing values prior to creating dummy variables using one of the methods we will discuss later. Alternatively, we can define Missing as the sixth category to preserve that information.</p>
+<table style="width:100%;">
+<colgroup>
+<col width="14%"></col>
+<col width="14%"></col>
+<col width="14%"></col>
+<col width="14%"></col>
+<col width="14%"></col>
+<col width="14%"></col>
+<col width="14%"></col>
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th align="center">Dummy Variable 1</th>
+<th align="center">Dummy Variable 2</th>
+<th align="center">Dummy Variable 3</th>
+<th align="center">Dummy Variable 4</th>
+<th align="center">Dummy Variable 5</th>
+<th align="center">Dummy Variable 6</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Violent/Sex</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td>Violent/Non-Sex</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td>Property</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td>Drug</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr class="odd">
+<td>Other</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+</tr>
+<tr class="even">
+<td>Missing</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">table</span>(recidivism<span class="op">$</span>Prison_Offense)</span></code></pre></div>
+<pre><code>
+                           Drug           Other        Property Violent/Non-Sex 
+           2291            3852            1895            5330            4000 
+    Violent/Sex 
+            743 </code></pre>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">names</span>(<span class="kw">table</span>(recidivism<span class="op">$</span>Prison_Offense))</span></code></pre></div>
+<pre><code>[1] &quot;&quot;                &quot;Drug&quot;            &quot;Other&quot;           &quot;Property&quot;       
+[5] &quot;Violent/Non-Sex&quot; &quot;Violent/Sex&quot;    </code></pre>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>recidivism<span class="op">$</span>off_viosex   &lt;-<span class="st"> </span><span class="kw">ifelse</span>(recidivism<span class="op">$</span>Prison_Offense<span class="op">==</span><span class="st">&#39;Violent/Sex&#39;</span>,<span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb13-2"><a href="#cb13-2"></a>recidivism<span class="op">$</span>off_vionosex &lt;-<span class="st"> </span><span class="kw">ifelse</span>(recidivism<span class="op">$</span>Prison_Offense<span class="op">==</span><span class="st">&#39;Violent/Non-Sex&#39;</span>,<span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb13-3"><a href="#cb13-3"></a>recidivism<span class="op">$</span>off_property &lt;-<span class="st"> </span><span class="kw">ifelse</span>(recidivism<span class="op">$</span>Prison_Offense<span class="op">==</span><span class="st">&#39;Property&#39;</span>,<span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb13-4"><a href="#cb13-4"></a>recidivism<span class="op">$</span>off_drug     &lt;-<span class="st"> </span><span class="kw">ifelse</span>(recidivism<span class="op">$</span>Prison_Offense<span class="op">==</span><span class="st">&#39;Drug&#39;</span>,<span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb13-5"><a href="#cb13-5"></a>recidivism<span class="op">$</span>off_other    &lt;-<span class="st"> </span><span class="kw">ifelse</span>(recidivism<span class="op">$</span>Prison_Offense<span class="op">==</span><span class="st">&#39;Other&#39;</span>,<span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb13-6"><a href="#cb13-6"></a>recidivism<span class="op">$</span>off_missing  &lt;-<span class="st"> </span><span class="kw">ifelse</span>(recidivism<span class="op">$</span>Prison_Offense<span class="op">==</span><span class="st">&#39;&#39;</span>,<span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb13-7"><a href="#cb13-7"></a></span>
+<span id="cb13-8"><a href="#cb13-8"></a><span class="kw">head</span>(recidivism[,<span class="kw">c</span>(<span class="st">&#39;Prison_Offense&#39;</span>,<span class="st">&#39;off_viosex&#39;</span>,<span class="st">&#39;off_vionosex&#39;</span>,<span class="st">&#39;off_property&#39;</span>,<span class="st">&#39;off_drug&#39;</span>,<span class="st">&#39;off_other&#39;</span>,<span class="st">&#39;off_missing&#39;</span>)],<span class="dv">10</span>)</span></code></pre></div>
+<pre><code>    Prison_Offense off_viosex off_vionosex off_property off_drug off_other
+1             Drug          0            0            0        1         0
+2  Violent/Non-Sex          0            1            0        0         0
+3             Drug          0            0            0        1         0
+4         Property          0            0            1        0         0
+5         Property          0            0            1        0         0
+6                           0            0            0        0         0
+7             Drug          0            0            0        1         0
+8  Violent/Non-Sex          0            1            0        0         0
+9         Property          0            0            1        0         0
+10 Violent/Non-Sex          0            1            0        0         0
+   off_missing
+1            0
+2            0
+3            0
+4            0
+5            0
+6            1
+7            0
+8            0
+9            0
+10           0</code></pre>
+<p>In some cases, when you have geographical location with a reasonable number of categories (e.g., counties or cities in a state, schools in a district), you can also create dummy variables to represent this information. In our case, the Recidivism dataset has a variable called <code>Residence_PUMA</code> indicating <a href="https://www.census.gov/programs-surveys/geography/guidance/geo-areas/pumas.html">Public Use Microdata Area (PUMA)</a> for the residence address at the time individual was released. There is a total of 25 unique codes (1-25) for this variable; however, these numbers are just labels. So, one can create 25 different dummy variables to represent 25 different PUMAs.</p>
+<hr />
+<center style="color:orange;">
+<strong>NOTE</strong>
+</center>
+<p><left style="color:orange;"> When you fit a typical regression model without regularizaton using ordinary least-squares (OLS), a typical practice is to drop a dummy variable for one of the levels. So, for instance, if there are <em>N</em> levels for a nominal variable, you only have to create <em>(N-1)</em> dummy variables, as the Nth one has redundant information. The information regarding to the excluded category is represented in the intercept term. It creates a problem when you put all <em>N</em> dummy variables into the model, because the OLS procedure tries to invert a singular matrix and you will likely get an error message.</p>
+<p><left style="color:orange;"> On the other hand, this is not an issue when you fit a regularized regression model, which will be the case in this class. Therefore, you do not need to drop one of the dummy variables and can include all of them in the analysis. In fact, it may be beneficial to keep the dummy variables for all categories in the model when regularization is used in regression. Otherwise, the model may produce different predictions depending on which category is excluded.</p>
+<hr />
 </div>
 <div id="label-encoding" class="section level2">
-<h2>Label encoding</h2>
+<h2>2.2. Label encoding</h2>
+<p>When the variable of interest is ordinal and there is a hierarchy among the levels, we can still use one-hot encoding to create a set of dummy variables to represent the information in the ordinal variable. However, dummy variables will not provide any information regarding the hierarchy among categories.</p>
+<p>For instance, consider the variable <code>Age_At_Release</code> in the Recidivism dataset. It is coded as 7 different age intervals in the dataset: 18-22, 23-27, 28-32, 33-37, 38-42, 43-47, 48 or older. One can create 7 dummy variables to represent each category in this variable. Alternatively, we can assign a numeric variable to each category that may represent the information in these categories. For instance, we can assign numers from 1 to 7, respectively. Or, we can choose the midpoint of each interval to represent each category (e.g., 20,25,31,35,40,45,60).</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">require</span>(car)</span></code></pre></div>
+<pre><code>Loading required package: car</code></pre>
+<pre><code>Loading required package: carData</code></pre>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="kw">table</span>(recidivism<span class="op">$</span>Age_at_Release)</span></code></pre></div>
+<pre><code>
+      18-22       23-27       28-32       33-37       38-42       43-47 
+       1170        3314        3392        3070        2201        1975 
+48 or older 
+       2989 </code></pre>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="co">#?car::recode</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a>recidivism<span class="op">$</span>age &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism<span class="op">$</span>Age_at_Release,</span>
+<span id="cb20-3"><a href="#cb20-3"></a>                         <span class="dt">recodes =</span> <span class="st">&quot;&#39;18-22&#39; = 20;</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="st">                                    &#39;23-27&#39; = 25;</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a><span class="st">                                    &#39;28-32&#39; = 30;</span></span>
+<span id="cb20-6"><a href="#cb20-6"></a><span class="st">                                    &#39;33-37&#39; = 35;</span></span>
+<span id="cb20-7"><a href="#cb20-7"></a><span class="st">                                    &#39;38-42&#39; = 40;</span></span>
+<span id="cb20-8"><a href="#cb20-8"></a><span class="st">                                    &#39;43-47&#39; = 45;</span></span>
+<span id="cb20-9"><a href="#cb20-9"></a><span class="st">                                    &#39;48 or older&#39; = 60&quot;</span>)</span>
+<span id="cb20-10"><a href="#cb20-10"></a></span>
+<span id="cb20-11"><a href="#cb20-11"></a><span class="kw">hist</span>(recidivism<span class="op">$</span>age,<span class="dt">main=</span><span class="st">&#39;&#39;</span>,<span class="dt">xlab=</span><span class="st">&#39;Age at Release (Label Encoding)&#39;</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="polynomial-contrasts" class="section level2">
-<h2>Polynomial Contrasts</h2>
+<h2>2.3. Polynomial Contrasts</h2>
 </div>
 </div>
 <div id="processing-day-and-time-data" class="section level1">
-<h1>Processing Day and Time Data</h1>
+<h1>3. Processing Day and Time Data</h1>
 </div>
 <div id="processing-continuous-variables" class="section level1">
-<h1>Processing Continuous Variables</h1>
+<h1>4. Processing Continuous Variables</h1>
 <div id="centering-and-scaling" class="section level2">
-<h2>Centering and Scaling</h2>
+<h2>4.1 Centering and Scaling</h2>
 </div>
 <div id="transformations" class="section level2">
-<h2>Transformations</h2>
+<h2>4.2 Transformations</h2>
 </div>
 <div id="basis-expansions-and-splines" class="section level2">
-<h2>Basis Expansions and Splines</h2>
+<h2>4.3 Basis Expansions and Splines</h2>
 </div>
 <div id="linear-projections" class="section level2">
-<h2>Linear Projections</h2>
+<h2>4.4 Linear Projections</h2>
 </div>
 </div>
 <div id="handling-missing-data" class="section level1">
