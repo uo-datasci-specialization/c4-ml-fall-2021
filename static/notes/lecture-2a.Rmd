@@ -50,6 +50,14 @@ klippy::klippy(position=c('top','right'))
     border-color: #97CAEF;
 }
 
+#infobox {
+  padding: 1em 1em 1em 4em;
+  margin-bottom: 10px;
+  border: 2px solid blue;
+  border-radius: 10px;
+  background: #f5f5f5 5px center/3em no-repeat;
+}
+
 </style>
 
 
@@ -62,6 +70,7 @@ require(kableExtra)
 require(knitr)
 require(giski)
 require(magick)
+require(gridExtra)
 options(scipen=99)
 
 # Resources:
@@ -112,7 +121,7 @@ In its simplest case, consider variable `Race` in the Recidivism dataset with tw
 | White  |     0            |       1          |
 
 
-```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
 
 recidivism <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_y1 removed.csv',header=TRUE)
 
@@ -149,7 +158,7 @@ Note that `Prison_Offence` is missing for a number of observations. You can fill
 | Missing          |     0            |     0            |     0            |     0            |     0            |    1            |
 
 
-```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
 
 table(recidivism$Prison_Offense)
 names(table(recidivism$Prison_Offense))
@@ -168,24 +177,24 @@ head(recidivism[,c('Prison_Offense','off_viosex','off_vionosex','off_property','
 In some cases, when you have geographical location with a reasonable number of categories (e.g., counties or cities in a state, schools in a district), you can also create dummy variables to represent this information. In our case, the Recidivism dataset has a variable called `Residence_PUMA` indicating [Public Use Microdata Area (PUMA)](https://www.census.gov/programs-surveys/geography/guidance/geo-areas/pumas.html) for the residence address at the time individual was released. There is a total of 25 unique codes (1-25) for this variable; however, these numbers are just labels. So, one can create 25 different dummy variables to represent 25 different PUMAs.
 
 ***
+<div id="infobox">
 
-<center style="color:orange;"> **NOTE** </center>
+<center style="color:black;"> **NOTE** </center>
 
-<left style="color:orange;">
 When you fit a typical regression model without regularizaton using ordinary least-squares (OLS), a typical practice is to drop a dummy variable for one of the levels. So, for instance, if there are *N* levels for a nominal variable, you only have to create *(N-1)* dummy variables, as the Nth one has redundant information. The information regarding to the excluded category is represented in the intercept term. It creates a problem when you put all *N* dummy variables into the model, because the OLS procedure tries to invert a singular matrix and you will likely get an error message. 
 
-<left style="color:orange;">
 On the other hand, this is not an issue when you fit a regularized regression model, which will be the case in this class. Therefore, you do not need to drop one of the dummy variables and can include all of them in the analysis. In fact, it may be beneficial to keep the dummy variables for all categories in the model when regularization is used in regression. Otherwise, the model may produce different predictions depending on which category is excluded.
 
+</div>
 ***
 
 ## 2.2. Label encoding
 
 When the variable of interest is ordinal and there is a hierarchy among the levels, we can still use one-hot encoding to create a set of dummy variables to represent the information in the ordinal variable. However, dummy variables will not provide any information regarding the hierarchy among categories. 
 
-For instance, consider the variable `Age_At_Release` in the Recidivism dataset. It is coded as 7 different age intervals in the dataset: 18-22, 23-27, 28-32, 33-37, 38-42, 43-47, 48 or older. One can create 7 dummy variables to represent each category in this variable. Alternatively, we can assign a numeric variable to each category that may represent the information in these categories. For instance, we can assign numers from 1 to 7, respectively. Or, we can choose the midpoint of each interval to represent each category (e.g., 20,25,31,35,40,45,60).
+For instance, consider the variable `Age_At_Release` in the Recidivism dataset. It is coded as 7 different age intervals in the dataset: 18-22, 23-27, 28-32, 33-37, 38-42, 43-47, 48 or older. One can create 7 dummy variables to represent each category in this variable. Alternatively, one can assign a numeric variable to each category that may represent the information in these categories. For instance, one can assign numbers from 1 to 7, respectively. Or, one can choose the midpoint of each interval to represent each category (e.g., 20,25,31,35,40,45,60).
 
-```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
 
 require(car)
 table(recidivism$Age_at_Release)
@@ -203,10 +212,211 @@ recidivism$age <- recode(recidivism$Age_at_Release,
 hist(recidivism$age,main='',xlab='Age at Release (Label Encoding)')
 ```
 
+Another example would be the variable `Education Level`. It has three different levels: At least some college, High School Diploma, Less than HS diploma. One can create three dummy variables to represent each level. Alternatively, one can assign 1, 2, and 3, respectively. Or, one can assign a number for the approximate years of schooling for each level such as 9, 12, and 15.   
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(recidivism$Education_Level)
+
+recidivism$edu <- recode(recidivism$Education_Level,
+                         recodes = "'At least some college' = 14;
+                                    'High School Diploma'   = 12;
+                                    'Less than HS diploma'  = 8")
+
+hist(recidivism$edu,main='',xlab='Age at Release (Label Encoding)')
+```
 
 ## 2.3. Polynomial Contrasts
 
-# 3. Processing Day and Time Data
+Another way of encoding an ordinal variable is to use polynomial contrasts. The polynomial contrasts may be helpful if there is a linear, quadratic, cubic, etc. relationship between the predictor variable and outcome variable. You can use `contr.poly` function in R to obtain the set of polynomial contrasts. If there are *N* levels in an ordinal variable, then you can get polynomials up to degree *N-1*. 
+
+For instance, suppose you have an ordinal variable with three levels: Low, Medium, and High. Then, `contr.poly(3)` will return the polynomial contrasts for the linear and quadratic terms. Notice that the input value for the `contr.poly` function is the number of levels in the ordinal variable, and it creates two sets of vectors to represent this ordinal variable. Note that the sum of the squares within each column is equal to 1, and the dot product of the contrast vectors is equal to 0. So, the polynomial contrasts represent a set of orthonormal vectors.
+
+|        | Linear           | Quadratic        |
+|--------|:----------------:|:----------------:|
+| Low    |     -0.707       |       0.408      |
+| Medium |       0          |       -0.816     |
+| High   |     0.707        |       0.408      |
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+
+ctr <- contr.poly(3)
+ctr
+
+sum(ctr[,1]^2)
+sum(ctr[,2]^2)
+
+sum(ctr[,1]*ctr[,2])
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+
+linear <- ggplot()+
+  geom_point(aes(x=1:3,y=ctr[,1]),cex=3)+
+  geom_line(aes(x=1:3,y=ctr[,1]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Linear Term')
+
+quad <- ggplot()+
+  geom_point(aes(x=1:3,y=ctr[,2]),cex=3)+
+  geom_line(aes(x=1:3,y=ctr[,2]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Quadratic Term')
+
+grid.arrange(linear,quad,nrow=1)
+```
+
+If we consider the variable `Age_At_Release` with 7 different levels, then we can have polynomial ters up to the 6th degree. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+
+ctr <- contr.poly(7)
+ctr
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+
+linear <- ggplot()+
+  geom_point(aes(x=1:7,y=ctr[,1]),cex=3)+
+  geom_line(aes(x=1:7,y=ctr[,1]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Linear Term')
+
+quad <- ggplot()+
+  geom_point(aes(x=1:7,y=ctr[,2]),cex=3)+
+  geom_line(aes(x=1:7,y=ctr[,2]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Quadratic Term')
+
+cubic <- ggplot()+
+  geom_point(aes(x=1:7,y=ctr[,3]),cex=3)+
+  geom_line(aes(x=1:7,y=ctr[,3]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Cubic Term')
+
+fourth <- ggplot()+
+  geom_point(aes(x=1:7,y=ctr[,4]),cex=3)+
+  geom_line(aes(x=1:7,y=ctr[,4]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('4th Degree Term')
+
+fifth <- ggplot()+
+  geom_point(aes(x=1:7,y=ctr[,5]),cex=3)+
+  geom_line(aes(x=1:7,y=ctr[,5]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('5th Degree Term')
+
+
+sixth <- ggplot()+
+  geom_point(aes(x=1:7,y=ctr[,6]),cex=3)+
+  geom_line(aes(x=1:7,y=ctr[,6]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('6th Degree Term')
+
+
+grid.arrange(linear,quad,cubic,fourth,fifth,sixth,nrow=3,ncol=2)
+```
+
+We can create 6 new variables to represent the ordinal `Age_at_Release` variable in the dataset using the following coding scheme.
+
+| Age          | Linear| Quadratic|Qubic     |   ^4 |   ^5 |  ^6  |
+|--------------|:-----:|:--------:|:--------:|:----:|:----:|:----:|
+| 18-22        |-0.567 | 0.546    |-0.408    | 0.242|-0.109| 0.033| 
+| 23-27        |-0.378 | 0.000    | 0.408    |-0.564| 0.436|-0.197|
+| 28-32        |-0.189 |-0.327    | 0.408    | 0.081|-0.546| 0.493|
+| 33-37        | 0.000 |-0.436    | 0.000    | 0.483| 0.000|-0.068|
+| 38-42        | 0.189 |-0.327    |-0.408    | 0.081| 0.546| 0.493| 
+| 43-47        | 0.378 | 0.000    |-0.408    |-0.564|-0.436|-0.197|
+| 48 or older  | 0.567 | 0.546    | 0.408    | 0.242| 0.109| 0.033|
+
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show'}
+
+?dplyr::recode
+
+recidivism$agepoly1 <- dplyr::recode(recidivism$Age_at_Release,
+                                    '18-22' = ctr[1,1],
+                                    '23-27' = ctr[2,1],
+                                    '28-32' = ctr[3,1],
+                                    '33-37' = ctr[4,1],
+                                    '38-42' = ctr[5,1],
+                                    '43-47' = ctr[6,1],
+                                    '48 or older' = ctr[7,1])
+
+recidivism$agepoly2 <- dplyr::recode(recidivism$Age_at_Release,
+                                    '18-22' = ctr[1,2],
+                                    '23-27' = ctr[2,2],
+                                    '28-32' = ctr[3,2],
+                                    '33-37' = ctr[4,2],
+                                    '38-42' = ctr[5,2],
+                                    '43-47' = ctr[6,2],
+                                    '48 or older' = ctr[7,2])
+
+recidivism$agepoly3 <- dplyr::recode(recidivism$Age_at_Release,
+                                    '18-22' = ctr[1,3],
+                                    '23-27' = ctr[2,3],
+                                    '28-32' = ctr[3,3],
+                                    '33-37' = ctr[4,3],
+                                    '38-42' = ctr[5,3],
+                                    '43-47' = ctr[6,3],
+                                    '48 or older' = ctr[7,3])
+
+recidivism$agepoly4 <- dplyr::recode(recidivism$Age_at_Release,
+                                    '18-22' = ctr[1,4],
+                                    '23-27' = ctr[2,4],
+                                    '28-32' = ctr[3,4],
+                                    '33-37' = ctr[4,4],
+                                    '38-42' = ctr[5,4],
+                                    '43-47' = ctr[6,4],
+                                    '48 or older' = ctr[7,4])
+
+recidivism$agepoly5 <- dplyr::recode(recidivism$Age_at_Release,
+                                    '18-22' = ctr[1,5],
+                                    '23-27' = ctr[2,5],
+                                    '28-32' = ctr[3,5],
+                                    '33-37' = ctr[4,5],
+                                    '38-42' = ctr[5,5],
+                                    '43-47' = ctr[6,5],
+                                    '48 or older' = ctr[7,5])
+
+recidivism$agepoly6 <- dplyr::recode(recidivism$Age_at_Release,
+                                    '18-22' = ctr[1,6],
+                                    '23-27' = ctr[2,6],
+                                    '28-32' = ctr[3,6],
+                                    '33-37' = ctr[4,6],
+                                    '38-42' = ctr[5,6],
+                                    '43-47' = ctr[6,6],
+                                    '48 or older' = ctr[7,6])
+
+```
+
+
+# 3. Processing Cyclic Variables
 
 # 4. Processing Continuous Variables
 
@@ -224,8 +434,52 @@ hist(recidivism$age,main='',xlab='Age at Release (Label Encoding)')
 
 # Processing Text Data
 
+# All-in-one using the `recipes` package 
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+
+#recidivism$age <- dplyr::recode(recidivism$Age_at_Release,
+#                                    '18-22' = 1,
+#                                    '23-27' = 2,
+#                                    '28-32' = 3,
+#                                    '33-37' = 4,
+#                                    '38-42' = 5,
+#                                    '43-47' = 6,
+#                                    '48 or older' = 7)
+
+#recidivism$out <- ifelse(recidivism$Recidivism_Arrest_Year2=='true',1,0)
+
+#recidivism2 <- recidivism[,c('age','out','Prison_Offense','Avg_Days_per_DrugTest')]
+
+#recidivism2$age <- as.integer(recidivism2$age)
+
+#recidivism2 <- as_tibble(recidivism2)
+#recidivism2 <- recidivism2[1:100,]
+
+#ddd <- tibble(x = 1:5)
+
+#recipe(~ x, data = ddd) %>%
+#  step_poly(x, degree = 4) %>%
+#  prep() %>%
+#  juice()
 
 
+#recipe(out ~ ., data = recidivism2) %>%
+#  step_poly(age, degree = 6) %>%
+#  prep() %>%
+#  juice
+
+
+#blueprint <- recipe(out ~ ., data=recidivism2) %>% 
+#  step_poly(age,degree=6) %>%
+#  prep
+
+#prepare <- prep(blueprint, training = recidivism2)
+#prepare
+
+#baked_train <- bake(prepare, new_data = recidivism2)
+#baked_train
+```
 
 
 
