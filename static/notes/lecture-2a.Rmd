@@ -53,9 +53,9 @@ klippy::klippy(position=c('top','right'))
 #infobox {
   padding: 1em 1em 1em 4em;
   margin-bottom: 10px;
-  border: 2px solid blue;
+  border: 2px solid black;
   border-radius: 10px;
-  background: #f5f5f5 5px center/3em no-repeat;
+  background: #E6F6DC 5px center/3em no-repeat;
 }
 
 </style>
@@ -104,6 +104,17 @@ Below table provides a summary of properties for each scale.
 
 In this class, we classify the variables in two types: **Categorical** and **Continuous**. The variables with a nominal or ordinal scale are considered as **Categorical** and the variables with an interval or ratio scale are considered as **Continuous**.
 
+
+***
+<div id="infobox">
+
+<center style="color:black;"> **NOTE** </center>
+
+In the following sections, you will see some R code to process different types of variables using the base R functions to introduce certain types of coding schemes. At the end, I will introduce the `recipes` package to provide a more complete picture of how to do all these different types of encoding in a more efficient manner for this specific dataset.
+
+</div>
+***
+
 # 2. Processing Categorical Variables
 
 When there are categorical predictors in a dataset, it is important to translate them into numerical codes. When encoding categorical predictors, we try to preserve as much information as possible from its labels. Therefore, different strategies may be used for categorical variables with different ordinal scales.
@@ -121,7 +132,7 @@ In its simplest case, consider variable `Race` in the Recidivism dataset with tw
 | White  |     0            |       1          |
 
 
-```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
 recidivism <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_y1 removed.csv',header=TRUE)
 
@@ -158,7 +169,7 @@ Note that `Prison_Offence` is missing for a number of observations. You can fill
 | Missing          |     0            |     0            |     0            |     0            |     0            |    1            |
 
 
-```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
 table(recidivism$Prison_Offense)
 names(table(recidivism$Prison_Offense))
@@ -194,43 +205,43 @@ When the variable of interest is ordinal and there is a hierarchy among the leve
 
 For instance, consider the variable `Age_At_Release` in the Recidivism dataset. It is coded as 7 different age intervals in the dataset: 18-22, 23-27, 28-32, 33-37, 38-42, 43-47, 48 or older. One can create 7 dummy variables to represent each category in this variable. Alternatively, one can assign a numeric variable to each category that may represent the information in these categories. For instance, one can assign numbers from 1 to 7, respectively. Or, one can choose the midpoint of each interval to represent each category (e.g., 20,25,31,35,40,45,60).
 
-```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show', message=FALSE, warning=FALSE}
 
-require(car)
+require(dplyr)
 table(recidivism$Age_at_Release)
 
-#?car::recode
+#?dplyr::recode
 recidivism$age <- recode(recidivism$Age_at_Release,
-                         recodes = "'18-22' = 20;
-                                    '23-27' = 25;
-                                    '28-32' = 30;
-                                    '33-37' = 35;
-                                    '38-42' = 40;
-                                    '43-47' = 45;
-                                    '48 or older' = 60")
+                         '18-22' = 20,
+                         '23-27' = 25,
+                         '28-32' = 30,
+                         '33-37' = 35,
+                         '38-42' = 40,
+                         '43-47' = 45,
+                         '48 or older' = 60)
 
 hist(recidivism$age,main='',xlab='Age at Release (Label Encoding)')
 ```
 
 Another example would be the variable `Education Level`. It has three different levels: At least some college, High School Diploma, Less than HS diploma. One can create three dummy variables to represent each level. Alternatively, one can assign 1, 2, and 3, respectively. Or, one can assign a number for the approximate years of schooling for each level such as 9, 12, and 15.   
 
-```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
 table(recidivism$Education_Level)
 
 recidivism$edu <- recode(recidivism$Education_Level,
-                         recodes = "'At least some college' = 14;
-                                    'High School Diploma'   = 12;
-                                    'Less than HS diploma'  = 8")
+                         'At least some college' = 14,
+                         'High School Diploma'   = 12,
+                         'Less than HS diploma'  = 8)
 
-hist(recidivism$edu,main='',xlab='Age at Release (Label Encoding)')
+hist(recidivism$edu,main='',xlab='Education Level (Label Encoding)')
 ```
 
 ## 2.3. Polynomial Contrasts
 
-Another way of encoding an ordinal variable is to use polynomial contrasts. The polynomial contrasts may be helpful if there is a linear, quadratic, cubic, etc. relationship between the predictor variable and outcome variable. You can use `contr.poly` function in R to obtain the set of polynomial contrasts. If there are *N* levels in an ordinal variable, then you can get polynomials up to degree *N-1*. 
+Another way of encoding an ordinal variable is to use polynomial contrasts. The polynomial contrasts may be helpful if one wants to explore whether or not there is a linear, quadratic, cubic, etc. relationship between the predictor variable and outcome variable. You can use `stat::poly()` function in R to obtain the set of polynomial contrasts. If there are *N* levels in an ordinal variable, then you can get polynomials up to degree *N-1*. 
 
-For instance, suppose you have an ordinal variable with three levels: Low, Medium, and High. Then, `contr.poly(3)` will return the polynomial contrasts for the linear and quadratic terms. Notice that the input value for the `contr.poly` function is the number of levels in the ordinal variable, and it creates two sets of vectors to represent this ordinal variable. Note that the sum of the squares within each column is equal to 1, and the dot product of the contrast vectors is equal to 0. So, the polynomial contrasts represent a set of orthonormal vectors.
+For instance, suppose you have an ordinal variable with three levels: Low, Medium, and High. Then, `stat::poly(x=1:3,degree=2)` will return the polynomial contrasts for the linear and quadratic terms. Notice that the input values for the `poly` function is a vector of numeric values that correspond to the levels in the ordinal variable, and the degree of polynomial terms requested. For this examle, it creates two sets of vectors to represent this ordinal variable. Note that the sum of the squares within each column is equal to 1, and the dot product of the contrast vectors is equal to 0. In other words, the polynomial terms represent a set of **orthonormal vectors**.
 
 |        | Linear           | Quadratic        |
 |--------|:----------------:|:----------------:|
@@ -238,9 +249,9 @@ For instance, suppose you have an ordinal variable with three levels: Low, Mediu
 | Medium |       0          |       -0.816     |
 | High   |     0.707        |       0.408      |
 
-```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-ctr <- contr.poly(3)
+ctr <- poly(1:3,2)
 ctr
 
 sum(ctr[,1]^2)
@@ -250,7 +261,7 @@ sum(ctr[,1]*ctr[,2])
 
 ```
 
-```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
 linear <- ggplot()+
   geom_point(aes(x=1:3,y=ctr[,1]),cex=3)+
@@ -273,15 +284,15 @@ quad <- ggplot()+
 grid.arrange(linear,quad,nrow=1)
 ```
 
-If we consider the variable `Age_At_Release` with 7 different levels, then we can have polynomial ters up to the 6th degree. 
+If we consider the variable `Age_At_Release` with 7 different levels, then we can have polynomial terms up to the 6th degree. 
 
-```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-ctr <- contr.poly(7)
+ctr <- poly(1:7,6)
 ctr
 ```
 
-```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
 linear <- ggplot()+
   geom_point(aes(x=1:7,y=ctr[,1]),cex=3)+
@@ -342,91 +353,269 @@ sixth <- ggplot()+
 grid.arrange(linear,quad,cubic,fourth,fifth,sixth,nrow=3,ncol=2)
 ```
 
-We can create 6 new variables to represent the ordinal `Age_at_Release` variable in the dataset using the following coding scheme.
+When we apply this to a variable in the dataset, these columns are rescaled such that they are orthonormal vectors. See below for an example:
 
-| Age          | Linear| Quadratic|Qubic     |   ^4 |   ^5 |  ^6  |
-|--------------|:-----:|:--------:|:--------:|:----:|:----:|:----:|
-| 18-22        |-0.567 | 0.546    |-0.408    | 0.242|-0.109| 0.033| 
-| 23-27        |-0.378 | 0.000    | 0.408    |-0.564| 0.436|-0.197|
-| 28-32        |-0.189 |-0.327    | 0.408    | 0.081|-0.546| 0.493|
-| 33-37        | 0.000 |-0.436    | 0.000    | 0.483| 0.000|-0.068|
-| 38-42        | 0.189 |-0.327    |-0.408    | 0.081| 0.546| 0.493| 
-| 43-47        | 0.378 | 0.000    |-0.408    |-0.564|-0.436|-0.197|
-| 48 or older  | 0.567 | 0.546    | 0.408    | 0.242| 0.109| 0.033|
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
+# First, recode the Age_at_Release so that its levels are represented by numbers
+# poly() doesn't work with character vectors
 
-```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show'}
+recidivism$age <- dplyr::recode(recidivism$Age_at_Release,
+                                '18-22' = 1,
+                                '23-27' = 2,
+                                '28-32' = 3,
+                                '33-37' = 4,
+                                '38-42' = 5,
+                                '43-47' = 6,
+                                '48 or older' = 7)
 
-?dplyr::recode
+# Create polynomial terms
 
-recidivism$agepoly1 <- dplyr::recode(recidivism$Age_at_Release,
-                                    '18-22' = ctr[1,1],
-                                    '23-27' = ctr[2,1],
-                                    '28-32' = ctr[3,1],
-                                    '33-37' = ctr[4,1],
-                                    '38-42' = ctr[5,1],
-                                    '43-47' = ctr[6,1],
-                                    '48 or older' = ctr[7,1])
+poly.mat <- poly(x = recidivism$age, degree=6)
+head(poly.mat)
 
-recidivism$agepoly2 <- dplyr::recode(recidivism$Age_at_Release,
-                                    '18-22' = ctr[1,2],
-                                    '23-27' = ctr[2,2],
-                                    '28-32' = ctr[3,2],
-                                    '33-37' = ctr[4,2],
-                                    '38-42' = ctr[5,2],
-                                    '43-47' = ctr[6,2],
-                                    '48 or older' = ctr[7,2])
+# Append them to the original data
 
-recidivism$agepoly3 <- dplyr::recode(recidivism$Age_at_Release,
-                                    '18-22' = ctr[1,3],
-                                    '23-27' = ctr[2,3],
-                                    '28-32' = ctr[3,3],
-                                    '33-37' = ctr[4,3],
-                                    '38-42' = ctr[5,3],
-                                    '43-47' = ctr[6,3],
-                                    '48 or older' = ctr[7,3])
+recidivism$age_poly1 <- poly.mat[,1]
+recidivism$age_poly2 <- poly.mat[,2]
+recidivism$age_poly3 <- poly.mat[,3]
+recidivism$age_poly4 <- poly.mat[,4]
+recidivism$age_poly5 <- poly.mat[,5]
+recidivism$age_poly6 <- poly.mat[,6]
 
-recidivism$agepoly4 <- dplyr::recode(recidivism$Age_at_Release,
-                                    '18-22' = ctr[1,4],
-                                    '23-27' = ctr[2,4],
-                                    '28-32' = ctr[3,4],
-                                    '33-37' = ctr[4,4],
-                                    '38-42' = ctr[5,4],
-                                    '43-47' = ctr[6,4],
-                                    '48 or older' = ctr[7,4])
+head(recidivism[,c('Age_at_Release','age','age_poly1','age_poly2',
+                   'age_poly3','age_poly4','age_poly5','age_poly6')],10)
 
-recidivism$agepoly5 <- dplyr::recode(recidivism$Age_at_Release,
-                                    '18-22' = ctr[1,5],
-                                    '23-27' = ctr[2,5],
-                                    '28-32' = ctr[3,5],
-                                    '33-37' = ctr[4,5],
-                                    '38-42' = ctr[5,5],
-                                    '43-47' = ctr[6,5],
-                                    '48 or older' = ctr[7,5])
+```
 
-recidivism$agepoly6 <- dplyr::recode(recidivism$Age_at_Release,
-                                    '18-22' = ctr[1,6],
-                                    '23-27' = ctr[2,6],
-                                    '28-32' = ctr[3,6],
-                                    '33-37' = ctr[4,6],
-                                    '38-42' = ctr[5,6],
-                                    '43-47' = ctr[6,6],
-                                    '48 or older' = ctr[7,6])
+Notice that the values assigned to each category are different than the ones you see above, because they are rescaled such that polynomial terms have a unit length (sum of squared values equal to 1) and they are independent of each other (dot product is zero).
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Length of each polynomial term (sum of square values)
+
+colSums(recidivism[,c('age_poly1','age_poly2','age_poly3','age_poly4','age_poly5','age_poly6')]^2)
+
+# The dot product is zero for each pair of 6 terms, see for a few examples
+
+sum(recidivism[,c('age_poly1')]*recidivism[,c('age_poly2')])
+sum(recidivism[,c('age_poly1')]*recidivism[,c('age_poly3')])
+sum(recidivism[,c('age_poly4')]*recidivism[,c('age_poly6')])
 
 ```
 
 
+***
+<div id="infobox">
+
+<center style="color:black;"> **NOTE** </center>
+
+There are other ways of encoding nominal and ordinal variables (e.g., Helmert contrasts), or one can come up with their own set of contrast values. When the goal of analysis is inference and you run analysis to respond to a specific research question, your research question typically dictates the type of encoding to use. You choose a coding scheme that provides you the most interpretable coefficients to respond to your research question. 
+
+On the other hand, when the goal of analysis is prediction, how you encode your categorical variable does not make much difference. In fact, they provide very similar predictions. Below, I provide an example using Age_at_Release variable to predict the outcome using different coding schemes and report the average squared error of predictions from a logistic regression model. 
+
+<center>
+
+| Encoding             | Average Squared Error|
+|----------------------|:--------------------:|
+| Intercept-Only (NULL)|0.1885789             |                      
+| Dummy Variables      |0.1861276             | 
+| Label Encoding       |0.1861888             | 
+| Polynomial Contrasts |0.1861276             |
+| Helmert Contrasts    |0.1861276             | 
+
+</center>
+
+Notice that one-hot encoding, polynomial contrasts, and helmert contrasts have identical performance. In fact, they yield the exact same predicted value for observations. Moreover, a simple label encoding with a single constructed variable does (almost) as well as other encoding types with multiple constructed variables.  
+
+</div>
+***
+
 # 3. Processing Cyclic Variables
+
+There are sometimes variables that are cyclic by nature (e.g., months, days, hour), and a type of encoding that represents their cyclic nature may be the most meaningful way to represent them instead of numerical or categorical encoding. One way to achieve this is to create two new variables using a sine and cosine transformation as the following:
+
+$$x_{1} = sin(\frac{2 \pi x}{max(x)}),$$
+$$x_{2} = cos(\frac{2 \pi x}{max(x)}).$$
+
+For instance, suppose one of the variables in a dataset is the day of the week. We can represent its cyclic nature using the two variables as defined the following. Once the corresponding coordinates are calculated for each day of the week, the single variable that represents days in the data can be replaced with these two variables representing their coordinates in a unit circle.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+d <- data.frame(days = c('Mon','Tue','Wed','Thu','Fri','Sat','Sun'),
+                x = 1:7)
+
+d$x1 <- sin((2*pi*d$x)/7)
+d$x2 <- cos((2*pi*d$x)/7)
+
+d
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
+
+ggplot(data = d, aes(x=x1,y=x2))+
+  geom_point(cex=3)+
+  annotate("path",
+   x=cos(seq(0,2*pi,length.out=100)),
+   y=sin(seq(0,2*pi,length.out=100)))+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  annotate("text", x = 0, y = 0.95, label = "Sun")+
+  annotate("text", x = 0.72, y = 0.6, label = "Mon")+
+  annotate("text", x = 0.9, y = -0.2, label = "Tue")+
+  annotate("text", x = 0.39, y = -0.85, label = "Wed")+
+  annotate("text", x = -0.39, y = -0.85, label = "Thu")+
+  annotate("text", x = -.9, y = -0.2, label = "Fri")+
+  annotate("text", x = -.72, y = 0.6, label = "Sat")
+  
+```
+
+
+We can apply the same concept to any cyclic variable. Here is another example for the time of day.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+d <- data.frame(hour = 1:24)
+
+d$x1 <- sin((2*pi*d$hour)/24)
+d$x2 <- cos((2*pi*d$hour)/24)
+
+d
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
+
+ggplot(data = d, aes(x=x1,y=x2,label = 1:24))+
+  geom_point(cex=3)+
+  annotate("path",
+   x=cos(seq(0,2*pi,length.out=100)),
+   y=sin(seq(0,2*pi,length.out=100)))+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  geom_text(nudge_y = c(rep(-0.05,6),rep(0.05,6),rep(0.05,6),rep(-0.05,6)), 
+            nudge_x = c(rep(-0.02,6),rep(-0.02,6),rep(0.02,6),rep(0.02,6)))
+  
+```
+
 
 # 4. Processing Continuous Variables
 
-## 4.1 Centering and Scaling
+## 4.1 Centering and Scaling (Standardization)
 
-## 4.2 Transformations
+Centering a variable is done by substracting the mean of the variable from every value of the variable. This ensures that the mean of the centered variable is equal to zero. Scaling a variable is by dividing every value of variable by its standard deviation. When centering and scaling are both applied, this is called standardizing a variable. When we standardize a variable, we make sure that its mean is equal to zero and variance is equal to 1. Standardization may be important for certain types of models (e.g., K-nearest neighbor, support vector machines, penalized regression).
 
-## 4.3 Basis Expansions and Splines
+Below is an example from the Recidivism dataset using the variable `Avg_Days_per_DrugTest`.
 
-## 4.4 Linear Projections
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+require(psych)
+
+# Descriptive stats for the original variable
+
+describe(recidivism$Avg_Days_per_DrugTest)
+
+  # Center
+
+  recidivism$Avg_Days_per_DrugTest2 <- recidivism$Avg_Days_per_DrugTest - mean(recidivism$Avg_Days_per_DrugTest,na.rm=TRUE)
+
+  # Scale
+
+  recidivism$Avg_Days_per_DrugTest2 <- recidivism$Avg_Days_per_DrugTest2/sd(recidivism$Avg_Days_per_DrugTest,na.rm=TRUE)
+
+# Descriptive stats for the standardized variable
+  
+describe(recidivism$Avg_Days_per_DrugTest2)
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=10}
+
+p1 <- ggplot(data = recidivism, aes(x=Avg_Days_per_DrugTest))+
+  geom_histogram(col='white')+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Original')
+
+p2 <- ggplot(data = recidivism, aes(x=Avg_Days_per_DrugTest2))+
+  geom_histogram(col='white')+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Standardized')
+
+grid.arrange(p1,p2,nrow=1)
+```
+
+***
+<div id="infobox">
+
+<center style="color:black;"> **NOTE** </center>
+
+Standardizing a variable only changes the first and second moments of a distribution (mean and variance); however, it doesn't change the third and fourth moments of a distribution (skewness and kurtosis). Notice that the skewness and kurtosis for both the original and the standardized variable are 3.64 and 18.24, respectively. We only change the mean to zero and variance to one by standardizing a variable.
+
+</div>
+***
+## 4.2 Box-Cox transformation
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+require(MASS)
+
+bx <- boxcox(Avg_Days_per_DrugTest ~ 1,data=recidivism,
+             plotit=FALSE)
+
+bx
+
+which.max(bx$y)
+
+l <- bx$x[which.max(bx$y)]
+
+l
+
+recidivism$Avg_Days_per_DrugTest_norm <- recidivism$Avg_Days_per_DrugTest^l
+
+describe(recidivism$Avg_Days_per_DrugTest_norm)
+```
+
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=10}
+
+p1 <- ggplot(data = recidivism, aes(x=Avg_Days_per_DrugTest))+
+  geom_histogram(col='white')+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Original')
+
+p2 <- ggplot(data = recidivism, aes(x=Avg_Days_per_DrugTest_norm))+
+  geom_histogram(col='white')+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Box-Cox Transformation')
+
+grid.arrange(p1,p2,nrow=1)
+
+```
+
+***
+<div id="infobox">
+
+<center style="color:black;"> **NOTE** </center>
+
+Apply Box-Cox first, and then standardize.
+</div>
+***
+
+## 4.3 Yeo-Johnson transformation
+
+## 4.4. Logit Transformation
+
+## 4.5 Basis Expansions and Splines
+
+## 4.6 Principal Component Analysis
 
 # Handling Missing Data
 
