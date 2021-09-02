@@ -181,7 +181,7 @@ recidivism2 <- recidivism[recidivism$Recidivism_Arrest_Year1 == FALSE,]
 
 I will also do recoding of some variables before saving the new dataset for later use in class.
 
-- First, some variables in the dataset are coded as TRUE and FALSE. When these variables are imported into R, R automatically recognizes them as logical variables. I will recode all these variables such that FALSE = 0 and TRUE = 1
+- First, some variables in the dataset are coded as TRUE and FALSE. When these variables are imported into R, R automatically recognizes them as logical variables. I will recode all these variables such that FALSE = 0 and TRUE = 1.
 
 ```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
 
@@ -195,7 +195,7 @@ I will also do recoding of some variables before saving the new dataset for late
   
 ```
 
-- Second, the highest value for some variables are coded as 3 or more, 4 or more, 10 or more, etc. These variables can be considered as numeric, but R recognizes them as character vectors due to 'or more' phrase for the highest value. We will recode these variables so 'X or more' will be equal to X. 
+- Second, the highest value for some variables are coded as **3 or more**, **4 or more**, **10 or more**, etc. These variables can be considered as numeric, but R recognizes them as character vectors due to phrase **or more** for the highest value. We will recode these variables so 'X or more' will be equal to X. 
 
 ```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show',warning=FALSE,message=FALSE}
 
