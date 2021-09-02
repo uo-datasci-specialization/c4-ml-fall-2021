@@ -559,26 +559,27 @@ Standardizing a variable only changes the first and second moments of a distribu
 ***
 ## 4.2 Box-Cox transformation
 
+Variables with extreme skewness and kurtosis may deteriorate the model performance for certain types of models. Therefore, it may sometimes be useful to transform a variable with extreme skewness and kurtosis such that its distribution approximates to a normal distribution. Box-Cox transformation is a method to find an optimal parameter of $\lambda$ to apply the following transformation:
+
+$$y^{(\lambda)}=\left\{\begin{matrix}
+\frac{y^{\lambda}-1}{\lambda} & , \lambda \neq 0 \\
+ & \\ 
+ln(y) & , \lambda = 0 
+\end{matrix}\right.$$  
+
+Below is an example of transforming the `Avg_Days_per_DrugTest` variable using the `boxcox` function from the `bestNormalize` package. Notice that the skewness and the kurtosis for the transformed variable are 0 and -0.02, respectively.
+
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-require(MASS)
+require(bestNormalize)
 
-bx <- boxcox(Avg_Days_per_DrugTest ~ 1,data=recidivism,
-             plotit=FALSE)
+fit <- boxcox(recidivism$Avg_Days_per_DrugTest,standardize=FALSE)
+fit
 
-bx
-
-which.max(bx$y)
-
-l <- bx$x[which.max(bx$y)]
-
-l
-
-recidivism$Avg_Days_per_DrugTest_norm <- recidivism$Avg_Days_per_DrugTest^l
-
+recidivism$Avg_Days_per_DrugTest_norm <- predict(fit)
+ 
 describe(recidivism$Avg_Days_per_DrugTest_norm)
 ```
-
 
 ```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=10}
 
@@ -605,15 +606,516 @@ grid.arrange(p1,p2,nrow=1)
 
 <center style="color:black;"> **NOTE** </center>
 
-Apply Box-Cox first, and then standardize.
+Box-Cox transformation can be used only for variables with positive values. Therefore, it is a good idea to first implement the Box-Cox transformation, and then standardize a variable if both procedures will be applied to a variable. If there is a variable with negative values or a mix of both positive and negative values, the Yeo-Johnson transformation is available as an extension of the Box-Cox transformation. See [this link](https://www.stat.umn.edu/arc/yjpower.pdf) for more information. The function `yeojohnson` is available in the `bestNormalizer` package to implement the Yeo-Johnson transformation (See, [?bestNormalizer::yeojohnson](https://rdrr.io/cran/bestNormalize/man/yeojohnson.html)).
 </div>
 ***
 
-## 4.3 Yeo-Johnson transformation
+## 4.3. Logit Transformation
 
-## 4.4. Logit Transformation
+When a variable is a proportion bounded between 0 and 1, the logit transformation can be applied such that
 
-## 4.5 Basis Expansions and Splines
+$$\pi^{*} = ln(\frac{\pi}{1-\pi}),$$
+where $\pi$ represents a proportion. This may be particularly useful when your outcome variable is a proportion bounded between 0 and 1. When a linear model is used to model an outcome bounded between 0 and 1, the model predictions may exceed the reasonable range of values (predictions equal to less than zero or greater than one). Logit transformation scales variables such that the range of values becomes $-\infty$ and $\infty$ on the logit scale. One can build a model to predict logit ($\pi^*$) instead of proportion ($\pi$), and then ensure that the model predictions are bounded between 0 and 1 on the original proportion scale after a simple reverse operation for predicted values. 
+
+$$\pi = \frac{e^{\pi^*}}{1+e^{\pi^*}} $$
+One caveat of using logit transformation is that it is not defined for 0 and 1. So, when you have values in the dataset exactly equal to 0 or 1, logit transformation will return either $-\infty$ and $\infty$. In these situations, we may add or substract a very tiny constant (e.g., .0001) to force the transformation to return a numerical value. 
+
+$$\pi^{*} = ln(\frac{\pi}{1-\pi}) = ln(\frac{0}{1-0}) = -\infty$$
+$$\pi^{*} = ln(\frac{\pi}{1-\pi}) = ln(\frac{1}{1-1}) = \infty$$
+Below is an example of logit transformation for the variable `DrugTests_THC_Positive` in the dataset. There is a large amount of zeros in this variable, and some ones. First, I change the values in the dataset such that all zeros become 0.0001 and all ones become 0.9999. Then, I apply the logit transformation. Notice that the distribution looks more symmetric except the extreme values.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+recidivism$DrugTests_THC_Positive <- ifelse(recidivism$DrugTests_THC_Positive==0,
+                                            .0001,
+                                            recidivism$DrugTests_THC_Positive)
+
+recidivism$DrugTests_THC_Positive <- ifelse(recidivism$DrugTests_THC_Positive==1,
+                                            .9999,
+                                            recidivism$DrugTests_THC_Positive)
+
+recidivism$DrugTests_THC_Positive2 <- log(recidivism$DrugTests_THC_Positive/(1-recidivism$DrugTests_THC_Positive))
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=10}
+
+p1 <- ggplot(data = recidivism, aes(x=DrugTests_THC_Positive))+
+  geom_histogram(col='white')+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Original')
+
+p2 <- ggplot(data = recidivism, aes(x=DrugTests_THC_Positive2))+
+  geom_histogram(col='white')+
+  theme_bw()+
+  xlab('')+
+  ylab('')+
+  ggtitle('Logit Transformation')
+
+grid.arrange(p1,p2,nrow=1)
+
+```
+
+## 4.4 Basis Expansions
+
+Basis expansions are useful to address nonlinearity between a predictor variable and outcome variable. Using the basis expansions, one can create a set of feature variables using a nonlinear function of a variable *x*, $\phi(x)$. One simply replaces the original variable *x* with the new variables obtained from $\phi(x)$. For continuous predictors, the most commonly used expansions are polynomial basis expansions. The nth degree polynomial basis expansion can be represented by
+
+$$\phi(x) = \beta_1x + \beta_2x^2 + \beta_3x^3 + ... + \beta_nx^n .$$
+Suppose we have a variable *x* with values from 1 to 10. The third degree polynomial basis expansion (cubic basis expansion) can be found using the `poly` function as the following.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+set.seed(654)
+
+x <- rnorm(100,0,1)
+
+head(x)
+
+head(poly(x,degree=3))
+
+```
+
+So, one can use these three new variables representing a linear, quadratic, and cubic trend in our prediction model instead of the original variable *x*. See below the relationship between the original variable *x* and the new polynomial features to replace it. 
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE, fig.width=10}
+
+x1 <- poly(x,degree=3)
+
+linear <- ggplot()+
+  geom_point(aes(x=x,y=x1[,1]),cex=1)+
+  geom_line(aes(x=x,y=x1[,1]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('Linear Term')+
+  ggtitle('Linear Term')
+
+quad <- ggplot()+
+  geom_point(aes(x=x,y=x1[,2]),cex=1)+
+  geom_line(aes(x=x,y=x1[,2]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('Quadratic Term')+
+  ggtitle('Quadratic Term')
+
+cubic <- ggplot()+
+  geom_point(aes(x=x,y=x1[,3]),cex=1)+
+  geom_line(aes(x=x,y=x1[,3]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('Cubic Term')+
+  ggtitle('Cubic Term')
+
+grid.arrange(linear,quad,cubic,nrow=1,ncol=3)
+```
+
+For continuous predictors, there is no limit for the degree of polynomial. The higher the degree of polynomial, the more flexible the model becomes, and there is a higher chance of overfitting. Typically, polynomial terms up to the 3rd or 4th degree are more than enough.
+
+One drawback of the polynomial basis expansions is their non-locality. In other words, the value for a polynomial term at $x_0$ depends on data values far from $x_0$. This may lead unstable behavior at the edge of the distribution of variable *x*. Therefore, polynomial splines may provide a better representation. In polynomial splines, the range of variable *x* is divided into multiple regions and a separate polynomial piece is created within each region. The points that divide the regions are called *knots*. One particular class of basis functions that represent polynomial splines are called B-splines that can be and can be obtained using the `bs` function from the `splines` package. The number of new features to be created is equal to the sum of the number of knots and the degree of polynomial. 
+
+Suppose one wants to create B-splines with the first degree polynomial and a single knot ($\tau_1$). The basis function can be written as
+
+$$\phi(x) = \beta_0 + \beta_1x + \beta_2(x-\tau_1).$$
+For instance, `bs(x,degree=1,knot=0,intercept=TRUE)` will return a matrix with three columns representing the basis expansions of a first degree polynomial spline with a single knot at 0, $\tau=0$. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+require(splines)
+
+head(bs(x,degree=1,knot=0,intercept=TRUE))
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE, fig.width=10}
+
+x1 <- bs(x,degree=1,knot=0,intercept=TRUE)
+
+linear <- ggplot()+
+  geom_point(aes(x=x,y=x1[,1]),cex=1)+
+  geom_line(aes(x=x,y=x1[,1]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The First Term')+
+  ggtitle('The First Term')
+
+quad <- ggplot()+
+  geom_point(aes(x=x,y=x1[,2]),cex=1)+
+  geom_line(aes(x=x,y=x1[,2]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Second Term')+
+  ggtitle('The Second Term')
+
+cubic <- ggplot()+
+  geom_point(aes(x=x,y=x1[,3]),cex=1)+
+  geom_line(aes(x=x,y=x1[,3]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Third Term')+
+  ggtitle('The Third Term')
+
+grid.arrange(linear,quad,cubic,nrow=1,ncol=3)
+```
+
+Instead of a single knot, one can request the basis expansions of a first degree polynomial spline with two knots, $\tau_1$ and $\tau_2$. Then the basis function can be written as
+
+$$\phi(x) = \beta_0 + \beta_1x + \beta_2(x-\tau_1) + \beta_3(x-\tau_2),$$
+and `bs(x,degree=1,knot=c(-1,1),intercept=TRUE)` will return a matrix with four columns representing the basis expansions of a first degree polynomial spline with two knots at -1 and 1, $\tau_1=-1$ and $\tau_2=1$ . 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+head(bs(x,degree=1,knot=c(-1,1),intercept=TRUE))
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE, fig.width=10}
+
+x1 <- bs(x,degree=1,knot=c(-1,1),intercept=TRUE)
+
+linear <- ggplot()+
+  geom_point(aes(x=x,y=x1[,1]),cex=1)+
+  geom_line(aes(x=x,y=x1[,1]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The First Term')+
+  ggtitle('The First Term')
+
+quad <- ggplot()+
+  geom_point(aes(x=x,y=x1[,2]),cex=1)+
+  geom_line(aes(x=x,y=x1[,2]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Second Term')+
+  ggtitle('The Second Term')
+
+cubic <- ggplot()+
+  geom_point(aes(x=x,y=x1[,3]),cex=1)+
+  geom_line(aes(x=x,y=x1[,3]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Third Term')+
+  ggtitle('The Third Term')
+
+fourth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,4]),cex=1)+
+  geom_line(aes(x=x,y=x1[,4]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Fourth Term')+
+  ggtitle('The Fourth Term')
+
+grid.arrange(linear,quad,cubic,fourth,nrow=1,ncol=4)
+```
+
+A cubic spline with three knots is typically enough for most practical applications. The basis function can be written as
+
+$$\phi(x) = \beta_0 + \beta_1x + \beta_2x^2 + \beta_3x^3 + \beta_4(x-\tau_1)^3 + \beta_5(x-\tau_2)^3 + \beta_6(x-\tau_3)^3 ,$$
+and `bs(x,degree=3,knot=c(-1,0,1),intercept=TRUE)` will return a matrix with seven columns representing the basis expansions of cubic spline with three knots at -1, 0, and 1.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+head(bs(x,degree=3,knot=c(-1,0,1),intercept=TRUE))
+
+```
+
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE, fig.width=10}
+
+x1 <- bs(x,degree=3,knot=c(-1,0,1),intercept=TRUE)
+
+
+linear <- ggplot()+
+  geom_point(aes(x=x,y=x1[,1]),cex=1)+
+  geom_line(aes(x=x,y=x1[,1]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The First Term')+
+  ggtitle('The First Term')
+
+quad <- ggplot()+
+  geom_point(aes(x=x,y=x1[,2]),cex=1)+
+  geom_line(aes(x=x,y=x1[,2]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Second Term')+
+  ggtitle('The Second Term')
+
+cubic <- ggplot()+
+  geom_point(aes(x=x,y=x1[,3]),cex=1)+
+  geom_line(aes(x=x,y=x1[,3]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Third Term')+
+  ggtitle('The Third Term')
+
+
+fourth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,4]),cex=1)+
+  geom_line(aes(x=x,y=x1[,4]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Fourth Term')+
+  ggtitle('The Fourth Term')
+
+fifth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,5]),cex=1)+
+  geom_line(aes(x=x,y=x1[,5]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Fifth Term')+
+  ggtitle('The Fifth Term')
+
+sixth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,6]),cex=1)+
+  geom_line(aes(x=x,y=x1[,6]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Sixth Term')+
+  ggtitle('The Sixth Term')
+
+seventh <- ggplot()+
+  geom_point(aes(x=x,y=x1[,7]),cex=1)+
+  geom_line(aes(x=x,y=x1[,7]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Seventh Term') +
+  ggtitle('The Seventh Term')
+
+grid.arrange(linear,quad,cubic,fourth, fifth, sixth,seventh,nrow=2,ncol=4)
+```
+
+Another class of basis functions that represent polynomial splines is Natural Splines. Natural splines are similar to B-splines with additional constraints that they are linear in the tails of the boundary knots, $(-\infty,\tau_1]$ and $(\tau_n,\infty]$. The natural splines may provide better behavior at the boundaries of the variable. Below is an example how to request natural cubic splines basis functions with three knots at -1, 0, and 1 using the `ns` function from the `splines` package.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+head(ns(x,knot=c(-1,0,1),intercept=TRUE))
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE, fig.width=10}
+
+x1 <- ns(x,knot=c(-1,0,1),intercept=TRUE)
+
+
+linear <- ggplot()+
+  geom_point(aes(x=x,y=x1[,1]),cex=1)+
+  geom_line(aes(x=x,y=x1[,1]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The First Term')+
+  ggtitle('The First Term')
+
+quad <- ggplot()+
+  geom_point(aes(x=x,y=x1[,2]),cex=1)+
+  geom_line(aes(x=x,y=x1[,2]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Second Term')+
+  ggtitle('The Second Term')
+
+cubic <- ggplot()+
+  geom_point(aes(x=x,y=x1[,3]),cex=1)+
+  geom_line(aes(x=x,y=x1[,3]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Third Term')+
+  ggtitle('The Third Term')
+
+fourth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,4]),cex=1)+
+  geom_line(aes(x=x,y=x1[,4]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Fourth Term')+
+  ggtitle('The Fourth Term')
+
+fifth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,5]),cex=1)+
+  geom_line(aes(x=x,y=x1[,5]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Fifth Term')+
+  ggtitle('The Fifth Term')
+
+grid.arrange(linear,quad,cubic,fourth, fifth,nrow=2,ncol=3)
+```
+
+
+Below, there is an example of cubic basis expansion of a continuous predictor `Jobs_Per_Year` using B-splines and Natural Splines at three knot points. I choose the knot locations such that they correspond to the 25th, 50th, and 75th percentile in the distribution of this variable. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+knots <- quantile(recidivism$Jobs_Per_Year,probs = c(.25,.5,.75),na.rm=TRUE)
+
+head(bs(recidivism$Jobs_Per_Year,degree=3,knots = knots,intercept=TRUE))
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE, fig.width=10}
+
+knots <- quantile(recidivism$Jobs_Per_Year,probs = c(.25,.5,.75),na.rm=TRUE)
+
+x  <- recidivism$Jobs_Per_Year
+x1 <- bs(recidivism$Jobs_Per_Year,
+         degree=3,
+         knots = knots,
+         intercept=TRUE)
+
+linear <- ggplot()+
+  geom_point(aes(x=x,y=x1[,1]),cex=1)+
+  geom_line(aes(x=x,y=x1[,1]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The First Term')+
+  ggtitle('The First Term')
+
+quad <- ggplot()+
+  geom_point(aes(x=x,y=x1[,2]),cex=1)+
+  geom_line(aes(x=x,y=x1[,2]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Second Term')+
+  ggtitle('The Second Term')
+
+cubic <- ggplot()+
+  geom_point(aes(x=x,y=x1[,3]),cex=1)+
+  geom_line(aes(x=x,y=x1[,3]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Third Term')+
+  ggtitle('The Third Term')
+
+
+fourth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,4]),cex=1)+
+  geom_line(aes(x=x,y=x1[,4]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Fourth Term')+
+  ggtitle('The Fourth Term')
+
+fifth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,5]),cex=1)+
+  geom_line(aes(x=x,y=x1[,5]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Fifth Term')+
+  ggtitle('The Fifth Term')
+
+sixth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,6]),cex=1)+
+  geom_line(aes(x=x,y=x1[,6]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Sixth Term')+
+  ggtitle('The Sixth Term')
+
+seventh <- ggplot()+
+  geom_point(aes(x=x,y=x1[,7]),cex=1)+
+  geom_line(aes(x=x,y=x1[,7]),lty=2)+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Seventh Term') +
+  ggtitle('The Seventh Term')
+
+grid.arrange(linear,quad,cubic,fourth, fifth, sixth,seventh,nrow=2,ncol=4)
+```
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+knots <- quantile(recidivism$Jobs_Per_Year,probs = c(.25,.5,.75),na.rm=TRUE)
+
+head(ns(recidivism$Jobs_Per_Year,knots = knots,intercept=TRUE))
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE, fig.width=10}
+
+knots <- quantile(recidivism$Jobs_Per_Year,probs = c(.25,.5,.75),na.rm=TRUE)
+
+x  <- recidivism$Jobs_Per_Year
+x1 <- ns(recidivism$Jobs_Per_Year,
+         knots = knots,
+         intercept=TRUE)
+
+linear <- ggplot()+
+  geom_point(aes(x=x,y=x1[,1]),cex=1)+
+  geom_line(aes(x=x,y=x1[,1]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The First Term')+
+  ggtitle('The First Term')
+
+quad <- ggplot()+
+  geom_point(aes(x=x,y=x1[,2]),cex=1)+
+  geom_line(aes(x=x,y=x1[,2]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Second Term')+
+  ggtitle('The Second Term')
+
+cubic <- ggplot()+
+  geom_point(aes(x=x,y=x1[,3]),cex=1)+
+  geom_line(aes(x=x,y=x1[,3]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Third Term')+
+  ggtitle('The Third Term')
+
+
+fourth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,4]),cex=1)+
+  geom_line(aes(x=x,y=x1[,4]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Fourth Term')+
+  ggtitle('The Fourth Term')
+
+fifth <- ggplot()+
+  geom_point(aes(x=x,y=x1[,5]),cex=1)+
+  geom_line(aes(x=x,y=x1[,5]),lty=2)+
+  ylim(c(-1,1))+
+  theme_bw()+
+  xlab('X')+
+  ylab('The Fifth Term')+
+  ggtitle('The Fifth Term')
+
+grid.arrange(linear,quad,cubic,fourth, fifth,nrow=2,ncol=3)
+```
 
 ## 4.6 Principal Component Analysis
 
@@ -671,10 +1173,56 @@ Apply Box-Cox first, and then standardize.
 ```
 
 
+recidivism$DrugTests_THC_Positive <- ifelse(recidivism$DrugTests_THC_Positive==0,.0001,recidivism$DrugTests_THC_Positive)
+recidivism$DrugTests_THC_Positive <- ifelse(recidivism$DrugTests_THC_Positive==1,.9999,recidivism$DrugTests_THC_Positive)
+
+d2 <- recipe(DrugTests_THC_Positive ~ Jobs_Per_Year, data = recidivism) %>%
+      step_ns(Jobs_Per_Year,deg_free=2,na.rm=TRUE) %>%
+         prep() %>%
+          juice()
+          
+          
+d2 <- recipe(ID ~ Jobs_Per_Year, data = recidivism) %>%
+      step_logit(DrugTests_THC_Positive) %>%
+         prep() %>%
+          juice()
+          
+             
+          
+          
+          
+
+fit <- yeojohnson(recidivism$DrugTests_THC_Positive)
+
+hist(predict(fit))
+
+y <- seq(-4, 4, len = (nn <- 200))
+
+ltry <- c(0, 0.5, 1, 1.5, 2)  # Try these values of lambda
+
+lltry <- length(ltry)
+
+psi <- matrix(as.numeric(NA), nn, lltry)
+
+for (ii in 1:lltry)
+  psi[, ii] <- yeo.johnson(y, lambda = ltry[ii])
+
+}
+
+
+install.packages('bestNormalize')
+
+fit <- bestNormalize::boxcox(recidivism$Avg_Days_per_DrugTest,standardize=FALSE)
+fit
+describe(predict(fit))
 
 
 
+fit2 <- bestNormalize::yeojohnson(recidivism$Avg_Days_per_DrugTest,standardize=FALSE)
+fit2
+describe(predict(fit2))
 
+plot(predict(fit),predict(fit2))
 
 
 
