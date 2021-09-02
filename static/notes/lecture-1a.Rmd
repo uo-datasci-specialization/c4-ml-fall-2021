@@ -170,13 +170,189 @@ str(recidivism)
 
 There are 25,835 observations in the training set and 54 variables including a unique ID variable, four outcome variables (Recidivism in Year 1, Recidivism in Year 2, and Recidivism in Year 3, Recidivism within 3 years), and a filter variable to indicate whether an observation was included in the training dataset or test dataset. The remaining 48 variables are potential predictive features. A full list of these variables can be found at [this link](https://nij.ojp.gov/funding/recidivism-forecasting-challenge#recidivism-forecasting-challenge-database-fields-defined). 
 
-We will work on developing a model to predict the outcome variable `Recidivism_Arrest_Year2` using the 48 potential predictive variables. Before moving forward, we have to remove the individuals who had already been recidivated in Year 1. As you can see below, about 29.9% of the individuals were recidivated in Year 1. I am removing these individuals from the original dataset and save the new dataset for later use in class.
+We will work on developing a model to predict the outcome variable `Recidivism_Arrest_Year2` using the 48 potential predictive variables. Before moving forward, we have to remove the individuals who had already been recidivated in Year 1. As you can see below, about 29.9% of the individuals were recidivated in Year 1. I am removing these individuals from the original dataset 
 
 ```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
 
 table(recidivism$Recidivism_Arrest_Year1)
+recidivism2 <- recidivism[recidivism$Recidivism_Arrest_Year1 == FALSE,]
 
-recidivism2 <- recidivism[recidivism$Recidivism_Arrest_Year1 == 'false',]
+```
+
+I will also do recoding of some variables before saving the new dataset for later use in class.
+
+- First, some variables in the dataset are coded as TRUE and FALSE. When these variables are imported into R, R automatically recognizes them as logical variables. I will recode all these variables such that FALSE = 0 and TRUE = 1
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+# Find the columns recognized as logical
+
+  cols <- sapply(recidivism, is.logical)
+
+# Convert them to numeric 0s and 1s
+
+  recidivism2[,cols] <- lapply(recidivism2[,cols], as.numeric)
+  
+```
+
+- Second, the highest value for some variables are coded as 3 or more, 4 or more, 10 or more, etc. These variables can be considered as numeric, but R recognizes them as character vectors due to 'or more' phrase for the highest value. We will recode these variables so 'X or more' will be equal to X. 
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show',warning=FALSE,message=FALSE}
+
+require(dplyr)
+
+# ?recode for more info
+
+# Dependents
+
+  recidivism2$Dependents <- recode(recidivism2$Dependents,
+                                   '0'=0,
+                                   '1'=1,
+                                   '2'=2,
+                                   '3 or more'=3)
+
+# Prior Arrest Episodes Felony
+
+  recidivism2$Prior_Arrest_Episodes_Felony <- recode(recidivism2$Prior_Arrest_Episodes_Felony,
+                                                     '0'=0,
+                                                     '1'=1,
+                                                     '2'=2,
+                                                     '3'=3,
+                                                     '4'=4,
+                                                     '5'=5,
+                                                     '6'=6,
+                                                     '7'=7,
+                                                     '8'=8,
+                                                     '9'=9,
+                                                     '10 or more'=10)
+# Prior Arrest Episods Misd
+
+  recidivism2$Prior_Arrest_Episodes_Misd <- recode(recidivism2$Prior_Arrest_Episodes_Misd,
+                                                   '0'=0,
+                                                   '1'=1,
+                                                   '2'=2,
+                                                   '3'=3,
+                                                   '4'=4,
+                                                   '5'=5,
+                                                   '6 or more'=6)
+  
+# Prior Arrest Episodes Violent
+
+  recidivism2$Prior_Arrest_Episodes_Violent <- recode(recidivism2$Prior_Arrest_Episodes_Violent,
+                                                      '0'=0,
+                                                      '1'=1,
+                                                      '2'=2,
+                                                      '3 or more'=3)
+
+# Prior Arrest Episods Property
+
+  recidivism2$Prior_Arrest_Episodes_Property <- recode(recidivism2$Prior_Arrest_Episodes_Property,
+                                                       '0'=0,
+                                                       '1'=1,
+                                                       '2'=2,
+                                                       '3'=3,
+                                                       '4'=4,
+                                                       '5 or more'=5)
+  
+# Prior Arrest Episods Drug
+
+  recidivism2$Prior_Arrest_Episodes_Drug <- recode(recidivism2$Prior_Arrest_Episodes_Drug,
+                                                   '0'=0,
+                                                   '1'=1,
+                                                   '2'=2,
+                                                   '3'=3,
+                                                   '4'=4,
+                                                   '5 or more'=5) 
+# Prior Arrest Episods PPViolationCharges
+
+  recidivism2$Prior_Arrest_Episodes_PPViolationCharges <- recode(recidivism2$Prior_Arrest_Episodes_PPViolationCharges,
+                                                                 '0'=0,
+                                                                 '1'=1,
+                                                                 '2'=2,
+                                                                 '3'=3,
+                                                                 '4'=4,
+                                                                 '5 or more'=5)  
+  
+# Prior Conviction Episodes Felony
+
+  recidivism2$Prior_Conviction_Episodes_Felony <- recode(recidivism2$Prior_Conviction_Episodes_Felony,
+                                                         '0'=0,
+                                                         '1'=1,
+                                                         '2'=2,
+                                                         '3 or more'=3)
+
+# Prior Conviction Episodes Misd
+
+  recidivism2$Prior_Conviction_Episodes_Misd <- recode(recidivism2$Prior_Conviction_Episodes_Misd,
+                                                       '0'=0,
+                                                       '1'=1,
+                                                       '2'=2,
+                                                       '3'=3,
+                                                       '4 or more'=4)
+  
+# Prior Conviction Episodes Prop
+
+  recidivism2$Prior_Conviction_Episodes_Prop <- recode(recidivism2$Prior_Conviction_Episodes_Prop,
+                                                       '0'=0,
+                                                       '1'=1,
+                                                       '2'=2,
+                                                       '3 or more'=3)
+
+# Prior Conviction Episodes Drug
+
+  recidivism2$Prior_Conviction_Episodes_Drug <- recode(recidivism2$Prior_Conviction_Episodes_Drug,
+                                                       '0'=0,
+                                                       '1'=1,
+                                                       '2 or more'=2)
+
+# Delinquency Reports
+
+  recidivism2$Delinquency_Reports <- recode(recidivism2$Delinquency_Reports,
+                                            '0'=0,
+                                            '1'=1,
+                                            '2'=2,
+                                            '3'=3,
+                                            '4 or more'=4)
+
+# Program Attendances
+
+  recidivism2$Program_Attendances <- recode(recidivism2$Program_Attendances,
+                                            '0'=0,
+                                            '1'=1,
+                                            '2'=2,
+                                            '3'=3,
+                                            '4'=4,
+                                            '5'=5,
+                                            '6'=6,
+                                            '7'=7,
+                                            '8'=8,
+                                            '9'=9,
+                                            '10 or more'=10)
+
+# Program Unexcused Absences
+
+  recidivism2$Program_UnexcusedAbsences <- recode(recidivism2$Program_UnexcusedAbsences,
+                                                  '0'=0,
+                                                  '1'=1,
+                                                  '2'=2,
+                                                  '3 or more'=3)
+
+# Residence Changes
+
+  recidivism2$Residence_Changes <- recode(recidivism2$Residence_Changes,
+                                          '0'=0,
+                                          '1'=1,
+                                          '2'=2,
+                                          '3 or more'=3)  
+#############################################################
+  
+str(recidivism2)  
+```
+
+
+Now, we can write the final version of the dataset for later use.
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
 
 write.csv(recidivism2, 
           here('data/recidivism_y1 removed.csv'),

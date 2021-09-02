@@ -1117,8 +1117,6 @@ fifth <- ggplot()+
 grid.arrange(linear,quad,cubic,fourth, fifth,nrow=2,ncol=3)
 ```
 
-## 4.6 Principal Component Analysis
-
 # Handling Missing Data
 
 # Data Leakage 
