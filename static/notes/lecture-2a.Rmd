@@ -1,5 +1,5 @@
 ---
-title: Data Pre-processing (Feature Engineering)
+title: Data Pre-processing I (Continuous and Categorical Data)
 subtitle: Applied Machine Learning for Educational Data Science
 author:
   name: Cengiz Zopluoglu
