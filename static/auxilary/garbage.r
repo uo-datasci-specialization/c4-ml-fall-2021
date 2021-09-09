@@ -146,3 +146,78 @@ This gets pretty ugly! I simplified it for you.
 
 $$\frac{\partial f^2(x,y)}{\partial x^2} = cos(\frac{x^2}{2} - \frac{y^2}{4}) - $$
 
+
+
+
+
+
+a <- recipe(Recidivism_Arrest_Year2 ~ ., data = d_tr) %>%
+     step_indicate_na(all_of(nominal),all_of(ordinal),all_of(binary),all_of(numeric),all_of(props)) %>%
+     step_zv(all_numeric()) %>%
+     step_impute_mean(all_of(numeric),all_of(props)) %>%
+     step_impute_mode(all_of(nominal),all_of(ordinal),all_of(binary)) %>%
+     step_logit(all_of(props)) %>%
+     step_ns(all_of(numeric),all_of(props),deg_free=3) %>%
+     step_normalize(paste0(numeric,'_ns_1'),
+                    paste0(numeric,'_ns_2'),
+                    paste0(numeric,'_ns_3'),
+                    paste0(props,'_ns_1'),
+                    paste0(props,'_ns_2'),
+                    paste0(props,'_ns_3')) %>%
+     step_dummy(all_of(nominal),all_of(ordinal),all_of(binary),one_hot=TRUE) %>%
+     prep() %>%
+     juice
+
+b <- recipe(Recidivism_Arrest_Year2 ~ ., data = d_te) %>%
+     step_indicate_na(all_of(nominal),all_of(ordinal),all_of(binary),all_of(numeric),all_of(props)) %>%
+     step_zv(all_numeric()) %>%
+     step_impute_mean(all_of(numeric),all_of(props)) %>%
+     step_impute_mode(all_of(nominal),all_of(ordinal),all_of(binary)) %>%
+     step_logit(all_of(props)) %>%
+     step_ns(all_of(numeric),all_of(props),deg_free=3) %>%
+     step_normalize(paste0(numeric,'_ns_1'),
+                    paste0(numeric,'_ns_2'),
+                    paste0(numeric,'_ns_3'),
+                    paste0(props,'_ns_1'),
+                    paste0(props,'_ns_2'),
+                    paste0(props,'_ns_3')) %>%
+     step_dummy(all_of(nominal),all_of(ordinal),all_of(binary),one_hot=TRUE) %>%
+     prep() %>%
+     juice
+
+
+
+
+cv_elastic <- caret::train(x = as.matrix(a[,3:167]),
+                           y = factor(a$Recidivism_Arrest_Year2),
+                           method = "glmnet",
+                           family = 'binomial',
+                           trControl = trainControl(method = "cv", number = 10),
+                           type.measure = 'ROC',
+                           tuneLength = 10)
+
+cv_elastic$bestTune
+
+elastic.fit <- glmnet(x = as.matrix(a[,3:167]), 
+                      y = factor(a$Recidivism_Arrest_Year2), 
+                      alpha  = cv_elastic$bestTune$alpha, 
+                      lambda = cv_elastic$bestTune$lambda,
+                      family = "binomial")
+
+pred <- predict(elastic.fit,as.matrix(b[,3:167]))
+pred <- exp(pred)/(1+exp(pred))
+
+auc_roc(preds = pred[,1],
+        actuals=b$Recidivism_Arrest_Year2)
+
+
+mean((pred[,1]-b$Recidivism_Arrest_Year2)^2)
+
+
+mean((pred[which(b$Gender_F==1),1]-b[which(b$Gender_F==1),]$Recidivism_Arrest_Year2)^2)
+
+mean((pred[which(b$Gender_M==1),1]-b[which(b$Gender_M==1),]$Recidivism_Arrest_Year2)^2)
+
+
+
+

@@ -502,7 +502,7 @@ ggplot(data = d, aes(x=x1,y=x2,label = 1:24))+
 
 # 4. Processing Continuous Variables
 
-## 4.1 Centering and Scaling (Standardization)
+## 4.1. Centering and Scaling (Standardization)
 
 Centering a variable is done by substracting the mean of the variable from every value of the variable. This ensures that the mean of the centered variable is equal to zero. Scaling a variable is by dividing every value of variable by its standard deviation. When centering and scaling are both applied, this is called standardizing a variable. When we standardize a variable, we make sure that its mean is equal to zero and variance is equal to 1. Standardization may be important for certain types of models (e.g., K-nearest neighbor, support vector machines, penalized regression).
 
@@ -557,7 +557,7 @@ Standardizing a variable only changes the first and second moments of a distribu
 
 </div>
 ***
-## 4.2 Box-Cox transformation
+## 4.2. Box-Cox transformation
 
 Variables with extreme skewness and kurtosis may deteriorate the model performance for certain types of models. Therefore, it may sometimes be useful to transform a variable with extreme skewness and kurtosis such that its distribution approximates to a normal distribution. Box-Cox transformation is a method to find an optimal parameter of $\lambda$ to apply the following transformation:
 
@@ -658,7 +658,7 @@ grid.arrange(p1,p2,nrow=1)
 
 ```
 
-## 4.4 Basis Expansions
+## 4.4. Basis Expansions
 
 Basis expansions are useful to address nonlinearity between a predictor variable and outcome variable. Using the basis expansions, one can create a set of feature variables using a nonlinear function of a variable *x*, $\phi(x)$. One simply replaces the original variable *x* with the new variables obtained from $\phi(x)$. For continuous predictors, the most commonly used expansions are polynomial basis expansions. The nth degree polynomial basis expansion can be represented by
 
@@ -1117,110 +1117,374 @@ fifth <- ggplot()+
 grid.arrange(linear,quad,cubic,fourth, fifth,nrow=2,ncol=3)
 ```
 
-# Handling Missing Data
+# 5. Handling Missing Data
 
-# Data Leakage 
+Missing data deserves a course of its own. For a comprehensive review of how to handle and impute missing data. For certain types of models such as gradient boosting, missing data is not a problem, and one can leave them as is without any processing. On the other hand, some models such as regularized regression models require complete data and one have to deal with missing data before modeling data.
 
-# Processing Text Data
+First, we can do a very preliminary analysis about the amount of missing data. In the below code, we compute the proportion of missing values for 48 predictor variables and the outcome variable in the dataset using the `finalfit` package.
 
-# All-in-one using the `recipes` package 
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show'}
+recidivism <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_y1 removed.csv',header=TRUE)
+```
 
-#recidivism$age <- dplyr::recode(recidivism$Age_at_Release,
-#                                    '18-22' = 1,
-#                                    '23-27' = 2,
-#                                    '28-32' = 3,
-#                                    '33-37' = 4,
-#                                    '38-42' = 5,
-#                                    '43-47' = 6,
-#                                    '48 or older' = 7)
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE, fig.width=10}
 
-#recidivism$out <- ifelse(recidivism$Recidivism_Arrest_Year2=='true',1,0)
+require(finalfit)
 
-#recidivism2 <- recidivism[,c('age','out','Prison_Offense','Avg_Days_per_DrugTest')]
-
-#recidivism2$age <- as.integer(recidivism2$age)
-
-#recidivism2 <- as_tibble(recidivism2)
-#recidivism2 <- recidivism2[1:100,]
-
-#ddd <- tibble(x = 1:5)
-
-#recipe(~ x, data = ddd) %>%
-#  step_poly(x, degree = 4) %>%
-#  prep() %>%
-#  juice()
+ff_glimpse(recidivism)$Continuous[,c('n','missing_percent')]
 
 
-#recipe(out ~ ., data = recidivism2) %>%
-#  step_poly(age, degree = 6) %>%
-#  prep() %>%
-#  juice
+ff_glimpse(recidivism)$Categorical[,c('n','missing_percent')]
+
+```
+
+We will focus a few ideas about how to handle missing data.
+
+## 5.1. Creating missing data indicator variables
+
+For every variable, we can create a binary indicator variable to indicate missingess (0: not missing, 1: missing). This doesn't solve the missing data problem because we may still have to impute the missing values for modeling; however, the indicator variables about whether or not variables are missing may sometimes provide some information in predicting the outcome. If the missingness is not random and there is a systematic relationship between outcome and whether or not values are missing for a variable, then this may be some important information to bring into the model. For variables that doesn't have any missing value, this indicator variable would be meaningless. Therefore, one can remove them from any further consideration.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE, fig.width=10}
+
+# The code below generates a separate corresponding matrix of the indicator 
+# variables for missingness in the original data matrix
+
+missing_indicator <- function(x){
+  ifelse(is.na(x),1, 0)
+}
+
+recidivism_missing   <- apply(X       = recidivism, 
+                               MARGIN = 2, 
+                               FUN    = missing_indicator)
 
 
-#blueprint <- recipe(out ~ ., data=recidivism2) %>% 
-#  step_poly(age,degree=6) %>%
-#  prep
+# eliminate the variables with no missingness
 
-#prepare <- prep(blueprint, training = recidivism2)
-#prepare
+  # Calculate the variance
+  
+  variance.missing <- apply(X      = recidivism_missing,
+                          MARGIN = 2,
+                          FUN    = var)
+  
+  # Find variable with non-zero variance
+  
+  var.no.missing <- which(variance.missing!=0)
+  
+  # Selec the variables with non-zero variance
+  
+  recidivism_missing <- recidivism_missing[,var.no.missing]
 
-#baked_train <- bake(prepare, new_data = recidivism2)
-#baked_train
+head(recidivism_missing)
+```
+
+## 5.2. Imputation
+
+A common approach to missing data is to impute missing values. In imputation, each predictor becomes an outcome of interest and then the remaining predictors are used to build an imputation model to predict the missing values. Below is a very naive example of how it would work if we have an outcome variable (Y) and three predictors (X1, X2, X3). First, missing values are estimated and replaced for each predictor using an imputation model, and then the main outcome of interest is predicted using the imputed X1, X2, and X3.
+
+| Imputation Model |            |
+|:----------------:|:----------:|
+|      Outcome     | Predictors |
+|        X1        |    X2,X3   |
+|        X2        |    X1,X3   |
+|        X3        |    X1,X2   |
+
+| Prediction Model |            |
+|:----------------:|:----------:|
+|      Outcome     | Predictors |
+|         Y        | X1, X2, X3 |
+
+An imputation model can be something as simple as an intercept-only model (mean imputation). For numeric variables, missing values can be replaced with a simple mean, median, or mode of the observed data. For categorical variables, missing values can be replaced with a value randomly drawn from a binomial or multinomial distribution with the observed probabilities.
+
+An imputation model can also be as complex as desired using a regularized regression model, a decision tree model, or K-nearest neighbors model. The main idea of a more complex prediction model is to find other observations as similar as to an observation with a missing value in terms of other predictors, and use data from these similar observations to predict the missing values. We will rely on some built-in functions in R to impute values using such complex models. For more information about its theoretical foundations, [Applied Missing Data Analysis by Craig Enders](http://www.appliedmissingdata.com/) provide a comprehensive coverage for this topic.
+
+
+# 6. Wrapping-up using the `recipes` package
+
+We can pre-process all the variables in the dataset manually using the approaches discussed earlier. However, this would be a tedious work. It may be overwhelming to apply all the procedures simulatenously to different training and test datasets. Instead, we can use the `recipes` package to implement these approaches in a more organized an efficient way. 
+
+Before using the `recipes` package, there are a few things to do for this dataset.
+
+1) Read the original data
+
+2) Make a list of variables with different characteristics (binary, ordinal, nominal, continuous, proportions, etc.)
+
+3) Transform all variables with binary, ordinal, and nominal outcome to a `factor`.
+
+4) For variables that represent proportions, add/substract a small number to 0s/1s for logit transformation
+
+5) Split the data into training and test datasets by using the filter variable provided in the original data to be consistent with the original competition. 
+
+6) Remove the irrelevant variables not used (recidivism in year 1, year 3, and within 3 years) and filter variable for training/test split
+
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# 1) Read the original data
+
+  recidivism <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_y1 removed.csv',
+                         header=TRUE)
+  
+  str(recidivism)
+
+
+# 2) List of variable types
+  
+  outcome <- c('Recidivism_Arrest_Year2')
+  
+  id      <- c('ID')
+  
+  nominal <- c('Residence_PUMA',
+               'Prison_Offense')
+  
+  ordinal <- c('Age_at_Release',
+               'Supervision_Level_First',
+               'Education_Level',
+               'Prison_Years')
+  
+  binary  <- c('Gender',
+               'Race',
+               'Gang_Affiliated',
+               'Prior_Arrest_Episodes_DVCharges',
+               'Prior_Arrest_Episodes_GunCharges',
+               'Prior_Conviction_Episodes_Viol',
+               'Prior_Conviction_Episodes_PPViolationCharges',
+               'Prior_Conviction_Episodes_DomesticViolenceCharges',
+               'Prior_Conviction_Episodes_GunCharges',
+               'Prior_Revocations_Parole',
+               'Prior_Revocations_Probation',
+               'Condition_MH_SA',
+               'Condition_Cog_Ed',
+               'Condition_Other',
+               'Violations_ElectronicMonitoring',
+               'Violations_Instruction',
+               'Violations_FailToReport',
+               'Violations_MoveWithoutPermission',
+               'Employment_Exempt') 
+
+  numeric   <- c('Supervision_Risk_Score_First',
+                 'Dependents',
+                 'Prior_Arrest_Episodes_Felony',
+                 'Prior_Arrest_Episodes_Misd',
+                 'Prior_Arrest_Episodes_Violent',
+                 'Prior_Arrest_Episodes_Property',
+                 'Prior_Arrest_Episodes_Drug',
+                 'Prior_Arrest_Episodes_PPViolationCharges',
+                 'Prior_Conviction_Episodes_Felony',
+                 'Prior_Conviction_Episodes_Misd',
+                 'Prior_Conviction_Episodes_Prop',
+                 'Prior_Conviction_Episodes_Drug',
+                 'Delinquency_Reports',
+                 'Program_Attendances',
+                 'Program_UnexcusedAbsences',
+                 'Residence_Changes',
+                 'Avg_Days_per_DrugTest',
+                 'Jobs_Per_Year')
+  
+  props      <- c('DrugTests_THC_Positive',
+                  'DrugTests_Cocaine_Positive',
+                  'DrugTests_Meth_Positive',
+                  'DrugTests_Other_Positive',
+                  'Percent_Days_Employed')
+  
+  
+# 3) Convert all nominal, ordinal, and binary variables to factors
+  # Leave the rest as is
+  
+  for(i in c(ordinal,nominal,binary)){
+    
+    recidivism[,i] <- as.factor(recidivism[,i])
+    
+  }
+
+# 4) For variables that represent proportions, add/substract a small number
+  # to 0s/1s for logit transformation
+  
+  for(i in props){
+    recidivism[,i] <- ifelse(recidivism[,i]==0,.0001,recidivism[,i])
+    recidivism[,i] <- ifelse(recidivism[,i]==1,.9999,recidivism[,i])
+  }
+  
+# 5) training and test datasets
+
+  d_tr <- recidivism[recidivism$Training_Sample==1,]
+  d_te <- recidivism[recidivism$Training_Sample==0,]
+
+  
+# 6) Remove the irrelevant variables
+
+  rm_var <- c('Recidivism_Within_3years','Recidivism_Arrest_Year1',
+              'Recidivism_Arrest_Year3','Training_Sample')
+  
+  keep_var <- !colnames(recidivism)%in%rm_var
+  
+  d_tr <- d_tr[,keep_var]
+  d_te <- d_te[,keep_var]
+  
 ```
 
 
-recidivism$DrugTests_THC_Positive <- ifelse(recidivism$DrugTests_THC_Positive==0,.0001,recidivism$DrugTests_THC_Positive)
-recidivism$DrugTests_THC_Positive <- ifelse(recidivism$DrugTests_THC_Positive==1,.9999,recidivism$DrugTests_THC_Positive)
+Now, we can apply certain transformations to different types of variables. We will use the `step_***()` functions from the `recipes` package to implement different procedures. Below is a list of functions for most procedures discussed earlier in this lecture. A more detailed list of `step_***()` functions can be found the in [the package manual](https://cran.r-project.org/web/packages/recipes/recipes.pdf).
 
-d2 <- recipe(DrugTests_THC_Positive ~ Jobs_Per_Year, data = recidivism) %>%
-      step_ns(Jobs_Per_Year,deg_free=2,na.rm=TRUE) %>%
-         prep() %>%
-          juice()
-          
-          
-d2 <- recipe(ID ~ Jobs_Per_Year, data = recidivism) %>%
-      step_logit(DrugTests_THC_Positive) %>%
-         prep() %>%
-          juice()
-          
-             
-          
-          
-          
+- `step_dummy()`: creates dummy variables for one-hot encoding of categorical variables
+- `step_indicate_na()` creates an indicator variable for missingness 
+- `step_impute_bag()`, `step_impute_knn()`, `step_impute_linear()`, and `step_impute_mean()`: imputes missing values using an imputation model
+- `step_BoxCox()`: transforms non-negative data using Box-Cox method
+- `step_poly`,`step_bs()`, and `step_ns()` : creates basis expansions
+- `step_logit`: applies logit transformation
+- `step_zv`: removes variables with zero variance
+- `step_normalize`: standardize variables to have a mean of zero and standard deviation of one
 
-fit <- yeojohnson(recidivism$DrugTests_THC_Positive)
+Note that the order of procedures applied to variables is important. For instance, there would be no meaning of using `step_indicate_na()` after using `step_impute_bag()` (Why?). Or, there will be a problem when you first standardize variables using 'step_normalize()` and then apply a Box-Cox transformation (Why?).
 
-hist(predict(fit))
+For this dataset, we will implement the following steps:
 
-y <- seq(-4, 4, len = (nn <- 200))
+1) Create an indicator variable of missingness for all predictors (`step_indicate_na`)
+2) Remove the variables with zero variance (`step_zv`)
+2) Impute the missing values for all predictor variables using a mean or mode (`step_impute_mean` and `step_impute_mode`)
+3) Logit transform the variables that represent proportions(`step_logit`)
+4) Create natural splines for all numeric variables (`step_ns`)
+5) Standardize numeric features
+6) One-hot encoding of all categorical variables (`step_dummy`)
 
-ltry <- c(0, 0.5, 1, 1.5, 2)  # Try these values of lambda
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-lltry <- length(ltry)
+require(recipes)
 
-psi <- matrix(as.numeric(NA), nn, lltry)
+blueprint <- recipe(x  = d_tr,
+                    vars  = c(nominal,ordinal,binary,numeric,props,
+                              'Recidivism_Arrest_Year2','ID'),
+                    roles = c(rep('predictor',48),'outcome','ID')) %>%
+  
+  # for all 48 predictors, create an indicator variable for missingness
 
-for (ii in 1:lltry)
-  psi[, ii] <- yeo.johnson(y, lambda = ltry[ii])
+  step_indicate_na(all_of(nominal),all_of(ordinal),all_of(binary),all_of(numeric),all_of(props)) %>%
+  
+  # Remove the variable with zero variance, this will also remove the missingness 
+  # variables if there is no missingess
 
-}
+  step_zv(all_numeric()) %>%
+  
+  # Impute the missing values using mean and mode. You can instead use a 
+  # more advanced imputation model such as bagged trees. I haven't used it due
+  # to time concerns
+  
+  step_impute_mean(all_of(numeric),all_of(props)) %>%
+  step_impute_mode(all_of(nominal),all_of(ordinal),all_of(binary)) %>%
+  
+  #Logit transformation of proportions
+  
+  step_logit(all_of(props)) %>%
+  
+  # Natural splines for numeric variables and proportions
+  
+  step_ns(all_of(numeric),all_of(props),deg_free=3) %>%
+  
+  # Standardize the natural splines of numeric variables and proportions
+  
+  step_normalize(paste0(numeric,'_ns_1'),
+                 paste0(numeric,'_ns_2'),
+                 paste0(numeric,'_ns_3'),
+                 paste0(props,'_ns_1'),
+                 paste0(props,'_ns_2'),
+                 paste0(props,'_ns_3')) %>%
+  
+  # One-hot encoding for all categorical variables
+  
+  step_dummy(all_of(nominal),all_of(ordinal),all_of(binary),one_hot=TRUE)
 
 
-install.packages('bestNormalize')
 
-fit <- bestNormalize::boxcox(recidivism$Avg_Days_per_DrugTest,standardize=FALSE)
-fit
-describe(predict(fit))
+blueprint
 
+```
 
+Once the recipe is ready, we can train the blueprint on training data. When we say 'train' it means that weights or statistics for certain types of operations (e.g., standardization) are calculated based on training data and saved for later use. For instance, the mean and standard deviation of variable X from training data is calculated and later used to standardize the same variable X in testing data or future datasets.
 
-fit2 <- bestNormalize::yeojohnson(recidivism$Avg_Days_per_DrugTest,standardize=FALSE)
-fit2
-describe(predict(fit2))
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-plot(predict(fit),predict(fit2))
+prepare <- prep(blueprint, 
+                training = d_tr)
+prepare
 
+```
+
+Finally, we can apply this recipe to our training and test datasets to obtain processed variables accordingly to use in modeling later.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+baked_train <- bake(prepare, new_data = d_tr)
+baked_test  <- bake(prepare, new_data = d_te)
+
+baked_train
+
+baked_test
+```
+
+Notice that there are 167 variables (one outcome, one ID, and 165 predictors) in the new processed datasets. In the original dataset, there were 48 predictors. Below is a breakdown of where these 165 variables come from.
+
+| Variable Name                                      | Encoding | Number of Categories | Process         | Number of Constructed Variables |
+|:--------------------------------------------------:|:--------:|:--------------------:|:---------------:|:-------------------------------:|
+| Gender                                             |Binary    |        2             |One-hot encoding |               2                 |
+| Race                                               |Binary    |        2             |One-hot encoding |               2                 |
+| Gang affiliation                                   |Binary    |        2             |One-hot encoding |               2                 |
+| Prior_Arrest_Episodes_DVCharges                    |Binary    |        2             |One-hot encoding |               2                 |
+| Prior_Arrest_Episodes_GunCharges                   |Binary    |        2             |One-hot encoding |               2                 |
+| Prior_Conviction_Episodes_Viol                     |Binary    |        2             |One-hot encoding |               2                 |
+| Prior_Conviction_Episodes_PPViolationCharges       |Binary    |        2             |One-hot encoding |               2                 |
+| Prior_Conviction_Episodes_DomesticViolenceCharges  |Binary    |        2             |One-hot encoding |               2                 |
+| Prior_Conviction_Episodes_GunCharges               |Binary    |        2             |One-hot encoding |               2                 |
+| Prior_Revocations_Parole                           |Binary    |        2             |One-hot encoding |               2                 |
+| Prior_Revocations_Probation                        |Binary    |        2             |One-hot encoding |               2                 |
+| Condition_MH_SA                                    |Binary    |        2             |One-hot encoding |               2                 |
+| Condition_Cog_Ed                                   |Binary    |        2             |One-hot encoding |               2                 |
+| Condition_Other                                    |Binary    |        2             |One-hot encoding |               2                 |
+| Violations_ElectronicMonitoring                    |Binary    |        2             |One-hot encoding |               2                 |
+| Violations_Instruction                             |Binary    |        2             |One-hot encoding |               2                 |
+| Violations_FailToReport                            |Binary    |        2             |One-hot encoding |               2                 |
+| Violations_MoveWithoutPermission                   |Binary    |        2             |One-hot encoding |               2                 |
+| Employment_Exempt                                  |Binary    |        2             |One-hot encoding |               2                 |
+|                                                    |          |                      |                 |                                 |
+|                                                    |          |                      |                 |                                 |
+| Age_at_Release                                     |Ordinal   |        7             |One-hot encoding |               7                 |
+| Supervision_Level_First                            |Ordinal   |        3             |One-hot encoding |               3                 |
+| Education_Level                                    |Ordinal   |        3             |One-hot encoding |               3                 |
+| Prison_Years                                       |Ordinal   |        4             |One-hot encoding |               4                 |
+|                                                    |          |                      |                 |                                 |
+|                                                    |          |                      |                 |                                 |
+| Residence_PUMA                                     |Nominal   |       25             |One-hot encoding |              25                 |
+| Prison_Offense                                     |Nominal   |        5             |One-hot encoding |               5                 |
+|                                                    |          |                      |                 |                                 |
+|                                                    |          |                      |                 |                                 |
+|                                                    |          |                      |                 |                                 |                
+| Supervision_Risk_Score_First                       |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Dependents                                         |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Prior_Arrest_Episodes_Felony                       |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Prior_Arrest_Episodes_Misd                         |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Prior_Arrest_Episodes_Violent                      |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Prior_Arrest_Episodes_Property                     |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Prior_Arrest_Episodes_Drug                         |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Prior_Arrest_Episodes_PPViolationCharges           |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Prior_Conviction_Episodes_Felony                   |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Prior_Conviction_Episodes_Misd                     |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Prior_Conviction_Episodes_Prop                     |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Prior_Conviction_Episodes_Drug                     |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Delinquency_Reports                                |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Program_Attendances                                |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Program_UnexcusedAbsences                          |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Residence_Changes                                  |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Avg_Days_per_DrugTest                              |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Jobs_Per_Year                                      |Numeric   |                      | Natural Splines, Standardization |    3           |
+| DrugTests_THC_Positive                             |Numeric   |                      | Natural Splines, Standardization |    3           |
+| DrugTests_Cocaine_Positive                         |Numeric   |                      | Natural Splines, Standardization |    3           |
+| DrugTests_Meth_Positive                            |Numeric   |                      | Natural Splines, Standardization |    3           |
+| DrugTests_Other_Positive                           |Numeric   |                      | Natural Splines, Standardization |    3           |
+| Percent_Days_Employed                              |Numeric   |                      | Natural Splines, Standardization |    3           |
+|                                                    |          |                      |                 |                                 |
+|                                                    |          |                      |                 |                                 |
+| Missing value indicator variables                  |Binary    |                      |                 |               11                |
+|                                                    |          |                      |                 |                                 |
+|                                                    |          |                      |      Total      |              165                |
 
 
