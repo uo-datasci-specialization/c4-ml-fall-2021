@@ -1846,7 +1846,7 @@ University of Oregon | EDLD 654<br><h4 class="date">06/28/2021</h4>
 }
 
 </style>
-<p>[Updated: Thu, Sep 02, 2021 - 16:38:32 ]</p>
+<p>[Updated: Mon, Sep 13, 2021 - 14:06:18 ]</p>
 <p>There are two datasets we will analyze throughout the whole course. The first dataset has a continuous outcome and the second dataset has a binary outcome. We will apply several methods and algorithms to these two datasets during the course. This will give us an opportunity to compare and contrast the prediction outcomes from several models and methods on the same datasets. This section provides some background information and context for these two datasets.</p>
 <div id="readability" class="section level1">
 <h1>Readability</h1>
@@ -1869,15 +1869,25 @@ University of Oregon | EDLD 654<br><h4 class="date">06/28/2021</h4>
 <pre><code>[1] -0.3402591</code></pre>
 <p><a href="https://www.kaggle.com/c/commonlitreadabilityprize/discussion/240423">According to the data owner</a>, ‘<em>the target value is the result of a Bradley-Terry analysis of more than 111,000 pairwise comparisons between excerpts. Teachers spanning grades 3-12 served as the raters for these comparisons.</em>’ A higher target value indicates a more difficult text to read. The purpose is to develop a model that predicts a readability score for a given text to identify an appropriate reading level.</p>
 <p>We will not consider the standard error variable in our models although it has a strong relationship with the target outcome because the standard errors would not be available for new observations we would like to predict. There may be be creative ways to make use of standard error in a multi-step prediction model (e.g., develop a separate prediction model for standard errors in the first step, and then use the predicted standard errors to predict target scores in the second step); however, we will not get into that in this course.</p>
-<p>In the following weeks, we will cover how to generate features from plain text data and whether or not these features can successfully predict the target scores. These features will include <a href="https://universaldependencies.org/u/pos/index.html">universal POS tags</a>, <a href="https://universaldependencies.org/u/feat/index.html">morphological features</a>, <a href="https://universaldependencies.org/u/dep/index.html">syntactic annotations</a>, and some other simple text features (e.g., number of words, number of syllables). You will need to install the following packages for the following weeks:</p>
+<p>In the following weeks, we will cover how to generate features from plain text data and whether or not these features can successfully predict the target scores. These features will include <a href="https://universaldependencies.org/u/pos/index.html">universal POS tags</a>, <a href="https://universaldependencies.org/u/feat/index.html">morphological features</a>, <a href="https://universaldependencies.org/u/dep/index.html">syntactic annotations</a>, and some other simple text features (e.g., number of words, number of syllables).</p>
+<p>In addition, we will also be exposed a little bit to the world of Natural Language Processing (NLP) through some pre-trained language models (e.g., <a href="https://arxiv.org/abs/1907.11692">RoBerta</a>). Our coverage of this material will be at the surface level. We will primarily cover how we can derive numerical sentence embedding from a pre-trained language model using Python through R.</p>
+<p>You will need to install the following packages for the following weeks:</p>
 <ul>
 <li><a href="https://github.com/bnosac/udpipe">udpipe</a></li>
 <li><a href="https://github.com/quanteda/quanteda/">quanteda</a></li>
-<li><a href="https://github.com/quanteda/quanteda.textmodels">quanteda.textmodels</a></li>
+<li><a href="https://github.com/quanteda/quanteda.textstats/">quanteda.textstats</a></li>
+<li><a href="https://www.r-text.org/">text</a></li>
 </ul>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">install.packages</span>(<span class="dt">pkgs =</span> <span class="kw">c</span>(<span class="st">&#39;udpipe&#39;</span>,<span class="st">&#39;quanteda&#39;</span>,<span class="st">&#39;quanteda.textmodels&#39;</span>), </span>
-<span id="cb7-2"><a href="#cb7-2"></a>                 <span class="dt">dependencies =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
-<p>In addition, we will also be exposed a little bit to the world of Natural Language Processing (NLP) through some pre-trained language models (e.g., <a href="https://arxiv.org/abs/1907.11692">RoBerta</a>). Our coverage of this material will be at the surface level. We will primarily cover how we can derive numerical sentence embedding from a pre-trained language model using Python through R. If you have time, <a href="https://www.youtube.com/watch?v=zJW57aCBCTk">this series of Youtube videos</a> provide some background and accessible information about these models. In particular, Episode 2 will give a good idea about what these numerical embeddings are. For part of feature generation, we will use <a href="https://rstudio.github.io/reticulate/">reticulate</a>, an R interface to Python, to access a number of Python modules.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">install.packages</span>(<span class="dt">pkgs =</span> <span class="kw">c</span>(<span class="st">&#39;udpipe&#39;</span>,</span>
+<span id="cb7-2"><a href="#cb7-2"></a>                          <span class="st">&#39;quanteda&#39;</span>,</span>
+<span id="cb7-3"><a href="#cb7-3"></a>                          <span class="st">&#39;quanteda.textstats), </span></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="st">                 dependencies = TRUE)</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="st">                 </span></span>
+<span id="cb7-6"><a href="#cb7-6"></a><span class="st"># Make sure to install the developer version of the text package from Github </span></span>
+<span id="cb7-7"><a href="#cb7-7"></a></span>
+<span id="cb7-8"><a href="#cb7-8"></a><span class="st"># install.packages(&quot;devtools&quot;)</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a></span>
+<span id="cb7-10"><a href="#cb7-10"></a><span class="st">devtools::install_github(&quot;oscarkjell/text&quot;)</span></span></code></pre></div>
 <p>You can run the following code in your computer to get prepared for the following weeks. Note that you only have to run the following code once to create a virtual Python environment and install the necessary packages.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># Install and load the reticulate package</span></span>
 <span id="cb8-2"><a href="#cb8-2"></a></span>
@@ -1902,18 +1912,46 @@ University of Oregon | EDLD 654<br><h4 class="date">06/28/2021</h4>
 <p>Once you create a virtual Python environment and install the packages using the code above, you can run the following code. If you are seeing the same output as below, you should be all set to explore some very exciting NLP tools using the Readability dataset.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">require</span>(reticulate)</span></code></pre></div>
 <pre><code>Loading required package: reticulate</code></pre>
-<pre><code>Warning: package &#39;reticulate&#39; was built under R version 4.0.5</code></pre>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="co"># List the available Python environments</span></span>
-<span id="cb12-2"><a href="#cb12-2"></a></span>
-<span id="cb12-3"><a href="#cb12-3"></a><span class="kw">virtualenv_list</span>()</span>
-<span id="cb12-4"><a href="#cb12-4"></a></span>
-<span id="cb12-5"><a href="#cb12-5"></a><span class="co"># Import the modules</span></span>
-<span id="cb12-6"><a href="#cb12-6"></a></span>
-<span id="cb12-7"><a href="#cb12-7"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;torch&#39;</span>)</span>
-<span id="cb12-8"><a href="#cb12-8"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;numpy&#39;</span>)</span>
-<span id="cb12-9"><a href="#cb12-9"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;transformers&#39;</span>)</span>
-<span id="cb12-10"><a href="#cb12-10"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;nltk&#39;</span>)</span>
-<span id="cb12-11"><a href="#cb12-11"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;tokenizers&#39;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="co"># List the available Python environments</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="kw">virtualenv_list</span>()</span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="co"># Import the modules</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a></span>
+<span id="cb11-7"><a href="#cb11-7"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;torch&#39;</span>)</span>
+<span id="cb11-8"><a href="#cb11-8"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;numpy&#39;</span>)</span>
+<span id="cb11-9"><a href="#cb11-9"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;transformers&#39;</span>)</span>
+<span id="cb11-10"><a href="#cb11-10"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;nltk&#39;</span>)</span>
+<span id="cb11-11"><a href="#cb11-11"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;tokenizers&#39;</span>)</span>
+<span id="cb11-12"><a href="#cb11-12"></a></span>
+<span id="cb11-13"><a href="#cb11-13"></a><span class="co"># Load udpipe</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a></span>
+<span id="cb11-15"><a href="#cb11-15"></a><span class="kw">require</span>(udpipe)</span></code></pre></div>
+<pre><code>Loading required package: udpipe</code></pre>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="co"># Load quanteda</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a></span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="kw">require</span>(quanteda)</span></code></pre></div>
+<pre><code>Loading required package: quanteda</code></pre>
+<pre><code>Package version: 3.1.0
+Unicode version: 13.0
+ICU version: 69.1</code></pre>
+<pre><code>Parallel computing: 40 of 40 threads used.</code></pre>
+<pre><code>See https://quanteda.io for tutorials and examples.</code></pre>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a><span class="co"># Load quanteda text stats</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a></span>
+<span id="cb18-3"><a href="#cb18-3"></a><span class="kw">require</span>(quanteda.textstats)</span></code></pre></div>
+<pre><code>Loading required package: quanteda.textstats</code></pre>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="co"># Load the text package</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a><span class="kw">require</span>(text)</span></code></pre></div>
+<pre><code>Loading required package: text</code></pre>
+<pre><code>Registered S3 method overwritten by &#39;tune&#39;:
+  method                   from   
+  required_pkgs.model_spec parsnip</code></pre>
+<pre><code>[0;34mThis is text (version 0.9.12). 
+[0m[0;32mText is new and still rapidly improving. 
+Newer versions may have improved functions and updated defaults to reflect current understandings of the state-of-the-art. 
+Please send us feedback based on your experience.[0m</code></pre>
 <pre><code>[1] &quot;my.python&quot;
 Module(torch)
 Module(numpy)
@@ -1925,9 +1963,9 @@ Module(tokenizers)</code></pre>
 <h1>Recidivism</h1>
 <p>The Recidivism dataset comes from The National Institute of Justice’s (NIJ) <a href="https://nij.ojp.gov/funding/recidivism-forecasting-challenge">Recidivism Forecasting Challenge</a>. The challenge aims to increase public safety and improve the fair administration of justice across the United States. This challenge had three stages of prediction, and all three stages require to model a binary outcome (recidivated vs. not recidivated in Year 1, Year 2, and Year 3). In this class, we will only work on the second stage and develop a model for predicting the probability that an individual will be recidivated in the second year after initial release.</p>
 <p>You can directly download the training dataset from <a href="https://data.ojp.usdoj.gov/Courts/NIJ-s-Recidivism-Challenge-Full-Dataset/ynf5-u8nk">the competition website</a>, or you can import it from the course website. Either way, please make sure you read the <a href="https://data.ojp.usdoj.gov/stories/s/NIJ-s-Recidivism-Challenge-Overview-and-Term-of-Us/gyxv-98b2/">Terms of Use at this link</a> before working with this dataset.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>recidivism &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_full.csv&#39;</span>,<span class="dt">header=</span><span class="ot">TRUE</span>)</span>
-<span id="cb14-2"><a href="#cb14-2"></a></span>
-<span id="cb14-3"><a href="#cb14-3"></a><span class="kw">str</span>(recidivism)</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1"></a>recidivism &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_full.csv&#39;</span>,<span class="dt">header=</span><span class="ot">TRUE</span>)</span>
+<span id="cb25-2"><a href="#cb25-2"></a></span>
+<span id="cb25-3"><a href="#cb25-3"></a><span class="kw">str</span>(recidivism)</span></code></pre></div>
 <pre><code>&#39;data.frame&#39;:   25835 obs. of  54 variables:
  $ ID                                               : int  1 2 3 4 5 6 7 8 9 10 ...
  $ Gender                                           : chr  &quot;M&quot; &quot;M&quot; &quot;M&quot; &quot;M&quot; ...
@@ -1985,173 +2023,173 @@ Module(tokenizers)</code></pre>
  $ Training_Sample                                  : int  1 1 1 1 1 0 1 0 1 1 ...</code></pre>
 <p>There are 25,835 observations in the training set and 54 variables including a unique ID variable, four outcome variables (Recidivism in Year 1, Recidivism in Year 2, and Recidivism in Year 3, Recidivism within 3 years), and a filter variable to indicate whether an observation was included in the training dataset or test dataset. The remaining 48 variables are potential predictive features. A full list of these variables can be found at <a href="https://nij.ojp.gov/funding/recidivism-forecasting-challenge#recidivism-forecasting-challenge-database-fields-defined">this link</a>.</p>
 <p>We will work on developing a model to predict the outcome variable <code>Recidivism_Arrest_Year2</code> using the 48 potential predictive variables. Before moving forward, we have to remove the individuals who had already been recidivated in Year 1. As you can see below, about 29.9% of the individuals were recidivated in Year 1. I am removing these individuals from the original dataset</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">table</span>(recidivism<span class="op">$</span>Recidivism_Arrest_Year1)</span></code></pre></div>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a><span class="kw">table</span>(recidivism<span class="op">$</span>Recidivism_Arrest_Year1)</span></code></pre></div>
 <pre><code>
 FALSE  TRUE 
 18111  7724 </code></pre>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>recidivism2 &lt;-<span class="st"> </span>recidivism[recidivism<span class="op">$</span>Recidivism_Arrest_Year1 <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>,]</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>recidivism2 &lt;-<span class="st"> </span>recidivism[recidivism<span class="op">$</span>Recidivism_Arrest_Year1 <span class="op">==</span><span class="st"> </span><span class="ot">FALSE</span>,]</span></code></pre></div>
 <p>I will also do recoding of some variables before saving the new dataset for later use in class.</p>
 <ul>
 <li>First, some variables in the dataset are coded as TRUE and FALSE. When these variables are imported into R, R automatically recognizes them as logical variables. I will recode all these variables such that FALSE = 0 and TRUE = 1.</li>
 </ul>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a><span class="co"># Find the columns recognized as logical</span></span>
-<span id="cb19-2"><a href="#cb19-2"></a></span>
-<span id="cb19-3"><a href="#cb19-3"></a>  cols &lt;-<span class="st"> </span><span class="kw">sapply</span>(recidivism, is.logical)</span>
-<span id="cb19-4"><a href="#cb19-4"></a></span>
-<span id="cb19-5"><a href="#cb19-5"></a><span class="co"># Convert them to numeric 0s and 1s</span></span>
-<span id="cb19-6"><a href="#cb19-6"></a></span>
-<span id="cb19-7"><a href="#cb19-7"></a>  recidivism2[,cols] &lt;-<span class="st"> </span><span class="kw">lapply</span>(recidivism2[,cols], as.numeric)</span></code></pre></div>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1"></a><span class="co"># Find the columns recognized as logical</span></span>
+<span id="cb30-2"><a href="#cb30-2"></a></span>
+<span id="cb30-3"><a href="#cb30-3"></a>  cols &lt;-<span class="st"> </span><span class="kw">sapply</span>(recidivism, is.logical)</span>
+<span id="cb30-4"><a href="#cb30-4"></a></span>
+<span id="cb30-5"><a href="#cb30-5"></a><span class="co"># Convert them to numeric 0s and 1s</span></span>
+<span id="cb30-6"><a href="#cb30-6"></a></span>
+<span id="cb30-7"><a href="#cb30-7"></a>  recidivism2[,cols] &lt;-<span class="st"> </span><span class="kw">lapply</span>(recidivism2[,cols], as.numeric)</span></code></pre></div>
 <ul>
 <li>Second, the highest value for some variables are coded as <strong>3 or more</strong>, <strong>4 or more</strong>, <strong>10 or more</strong>, etc. These variables can be considered as numeric, but R recognizes them as character vectors due to phrase <strong>or more</strong> for the highest value. We will recode these variables so ‘X or more’ will be equal to X.</li>
 </ul>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">require</span>(dplyr)</span>
-<span id="cb20-2"><a href="#cb20-2"></a></span>
-<span id="cb20-3"><a href="#cb20-3"></a><span class="co"># ?recode for more info</span></span>
-<span id="cb20-4"><a href="#cb20-4"></a></span>
-<span id="cb20-5"><a href="#cb20-5"></a><span class="co"># Dependents</span></span>
-<span id="cb20-6"><a href="#cb20-6"></a></span>
-<span id="cb20-7"><a href="#cb20-7"></a>  recidivism2<span class="op">$</span>Dependents &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Dependents,</span>
-<span id="cb20-8"><a href="#cb20-8"></a>                                   <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-9"><a href="#cb20-9"></a>                                   <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-10"><a href="#cb20-10"></a>                                   <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-11"><a href="#cb20-11"></a>                                   <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)</span>
-<span id="cb20-12"><a href="#cb20-12"></a></span>
-<span id="cb20-13"><a href="#cb20-13"></a><span class="co"># Prior Arrest Episodes Felony</span></span>
-<span id="cb20-14"><a href="#cb20-14"></a></span>
-<span id="cb20-15"><a href="#cb20-15"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Felony &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Felony,</span>
-<span id="cb20-16"><a href="#cb20-16"></a>                                                     <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-17"><a href="#cb20-17"></a>                                                     <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-18"><a href="#cb20-18"></a>                                                     <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-19"><a href="#cb20-19"></a>                                                     <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
-<span id="cb20-20"><a href="#cb20-20"></a>                                                     <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
-<span id="cb20-21"><a href="#cb20-21"></a>                                                     <span class="st">&#39;5&#39;</span>=<span class="dv">5</span>,</span>
-<span id="cb20-22"><a href="#cb20-22"></a>                                                     <span class="st">&#39;6&#39;</span>=<span class="dv">6</span>,</span>
-<span id="cb20-23"><a href="#cb20-23"></a>                                                     <span class="st">&#39;7&#39;</span>=<span class="dv">7</span>,</span>
-<span id="cb20-24"><a href="#cb20-24"></a>                                                     <span class="st">&#39;8&#39;</span>=<span class="dv">8</span>,</span>
-<span id="cb20-25"><a href="#cb20-25"></a>                                                     <span class="st">&#39;9&#39;</span>=<span class="dv">9</span>,</span>
-<span id="cb20-26"><a href="#cb20-26"></a>                                                     <span class="st">&#39;10 or more&#39;</span>=<span class="dv">10</span>)</span>
-<span id="cb20-27"><a href="#cb20-27"></a><span class="co"># Prior Arrest Episods Misd</span></span>
-<span id="cb20-28"><a href="#cb20-28"></a></span>
-<span id="cb20-29"><a href="#cb20-29"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Misd &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Misd,</span>
-<span id="cb20-30"><a href="#cb20-30"></a>                                                   <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-31"><a href="#cb20-31"></a>                                                   <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-32"><a href="#cb20-32"></a>                                                   <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-33"><a href="#cb20-33"></a>                                                   <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
-<span id="cb20-34"><a href="#cb20-34"></a>                                                   <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
-<span id="cb20-35"><a href="#cb20-35"></a>                                                   <span class="st">&#39;5&#39;</span>=<span class="dv">5</span>,</span>
-<span id="cb20-36"><a href="#cb20-36"></a>                                                   <span class="st">&#39;6 or more&#39;</span>=<span class="dv">6</span>)</span>
-<span id="cb20-37"><a href="#cb20-37"></a>  </span>
-<span id="cb20-38"><a href="#cb20-38"></a><span class="co"># Prior Arrest Episodes Violent</span></span>
-<span id="cb20-39"><a href="#cb20-39"></a></span>
-<span id="cb20-40"><a href="#cb20-40"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Violent &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Violent,</span>
-<span id="cb20-41"><a href="#cb20-41"></a>                                                      <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-42"><a href="#cb20-42"></a>                                                      <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-43"><a href="#cb20-43"></a>                                                      <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-44"><a href="#cb20-44"></a>                                                      <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)</span>
-<span id="cb20-45"><a href="#cb20-45"></a></span>
-<span id="cb20-46"><a href="#cb20-46"></a><span class="co"># Prior Arrest Episods Property</span></span>
-<span id="cb20-47"><a href="#cb20-47"></a></span>
-<span id="cb20-48"><a href="#cb20-48"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Property &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Property,</span>
-<span id="cb20-49"><a href="#cb20-49"></a>                                                       <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-50"><a href="#cb20-50"></a>                                                       <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-51"><a href="#cb20-51"></a>                                                       <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-52"><a href="#cb20-52"></a>                                                       <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
-<span id="cb20-53"><a href="#cb20-53"></a>                                                       <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
-<span id="cb20-54"><a href="#cb20-54"></a>                                                       <span class="st">&#39;5 or more&#39;</span>=<span class="dv">5</span>)</span>
-<span id="cb20-55"><a href="#cb20-55"></a>  </span>
-<span id="cb20-56"><a href="#cb20-56"></a><span class="co"># Prior Arrest Episods Drug</span></span>
-<span id="cb20-57"><a href="#cb20-57"></a></span>
-<span id="cb20-58"><a href="#cb20-58"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Drug &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Drug,</span>
-<span id="cb20-59"><a href="#cb20-59"></a>                                                   <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-60"><a href="#cb20-60"></a>                                                   <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-61"><a href="#cb20-61"></a>                                                   <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-62"><a href="#cb20-62"></a>                                                   <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
-<span id="cb20-63"><a href="#cb20-63"></a>                                                   <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
-<span id="cb20-64"><a href="#cb20-64"></a>                                                   <span class="st">&#39;5 or more&#39;</span>=<span class="dv">5</span>) </span>
-<span id="cb20-65"><a href="#cb20-65"></a><span class="co"># Prior Arrest Episods PPViolationCharges</span></span>
-<span id="cb20-66"><a href="#cb20-66"></a></span>
-<span id="cb20-67"><a href="#cb20-67"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_PPViolationCharges &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_PPViolationCharges,</span>
-<span id="cb20-68"><a href="#cb20-68"></a>                                                                 <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-69"><a href="#cb20-69"></a>                                                                 <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-70"><a href="#cb20-70"></a>                                                                 <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-71"><a href="#cb20-71"></a>                                                                 <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
-<span id="cb20-72"><a href="#cb20-72"></a>                                                                 <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
-<span id="cb20-73"><a href="#cb20-73"></a>                                                                 <span class="st">&#39;5 or more&#39;</span>=<span class="dv">5</span>)  </span>
-<span id="cb20-74"><a href="#cb20-74"></a>  </span>
-<span id="cb20-75"><a href="#cb20-75"></a><span class="co"># Prior Conviction Episodes Felony</span></span>
-<span id="cb20-76"><a href="#cb20-76"></a></span>
-<span id="cb20-77"><a href="#cb20-77"></a>  recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Felony &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Felony,</span>
-<span id="cb20-78"><a href="#cb20-78"></a>                                                         <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-79"><a href="#cb20-79"></a>                                                         <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-80"><a href="#cb20-80"></a>                                                         <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-81"><a href="#cb20-81"></a>                                                         <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)</span>
-<span id="cb20-82"><a href="#cb20-82"></a></span>
-<span id="cb20-83"><a href="#cb20-83"></a><span class="co"># Prior Conviction Episodes Misd</span></span>
-<span id="cb20-84"><a href="#cb20-84"></a></span>
-<span id="cb20-85"><a href="#cb20-85"></a>  recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Misd &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Misd,</span>
-<span id="cb20-86"><a href="#cb20-86"></a>                                                       <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-87"><a href="#cb20-87"></a>                                                       <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-88"><a href="#cb20-88"></a>                                                       <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-89"><a href="#cb20-89"></a>                                                       <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
-<span id="cb20-90"><a href="#cb20-90"></a>                                                       <span class="st">&#39;4 or more&#39;</span>=<span class="dv">4</span>)</span>
-<span id="cb20-91"><a href="#cb20-91"></a>  </span>
-<span id="cb20-92"><a href="#cb20-92"></a><span class="co"># Prior Conviction Episodes Prop</span></span>
-<span id="cb20-93"><a href="#cb20-93"></a></span>
-<span id="cb20-94"><a href="#cb20-94"></a>  recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Prop &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Prop,</span>
-<span id="cb20-95"><a href="#cb20-95"></a>                                                       <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-96"><a href="#cb20-96"></a>                                                       <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-97"><a href="#cb20-97"></a>                                                       <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-98"><a href="#cb20-98"></a>                                                       <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)</span>
-<span id="cb20-99"><a href="#cb20-99"></a></span>
-<span id="cb20-100"><a href="#cb20-100"></a><span class="co"># Prior Conviction Episodes Drug</span></span>
-<span id="cb20-101"><a href="#cb20-101"></a></span>
-<span id="cb20-102"><a href="#cb20-102"></a>  recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Drug &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Drug,</span>
-<span id="cb20-103"><a href="#cb20-103"></a>                                                       <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-104"><a href="#cb20-104"></a>                                                       <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-105"><a href="#cb20-105"></a>                                                       <span class="st">&#39;2 or more&#39;</span>=<span class="dv">2</span>)</span>
-<span id="cb20-106"><a href="#cb20-106"></a></span>
-<span id="cb20-107"><a href="#cb20-107"></a><span class="co"># Delinquency Reports</span></span>
-<span id="cb20-108"><a href="#cb20-108"></a></span>
-<span id="cb20-109"><a href="#cb20-109"></a>  recidivism2<span class="op">$</span>Delinquency_Reports &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Delinquency_Reports,</span>
-<span id="cb20-110"><a href="#cb20-110"></a>                                            <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-111"><a href="#cb20-111"></a>                                            <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-112"><a href="#cb20-112"></a>                                            <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-113"><a href="#cb20-113"></a>                                            <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
-<span id="cb20-114"><a href="#cb20-114"></a>                                            <span class="st">&#39;4 or more&#39;</span>=<span class="dv">4</span>)</span>
-<span id="cb20-115"><a href="#cb20-115"></a></span>
-<span id="cb20-116"><a href="#cb20-116"></a><span class="co"># Program Attendances</span></span>
-<span id="cb20-117"><a href="#cb20-117"></a></span>
-<span id="cb20-118"><a href="#cb20-118"></a>  recidivism2<span class="op">$</span>Program_Attendances &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Program_Attendances,</span>
-<span id="cb20-119"><a href="#cb20-119"></a>                                            <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-120"><a href="#cb20-120"></a>                                            <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-121"><a href="#cb20-121"></a>                                            <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-122"><a href="#cb20-122"></a>                                            <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
-<span id="cb20-123"><a href="#cb20-123"></a>                                            <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
-<span id="cb20-124"><a href="#cb20-124"></a>                                            <span class="st">&#39;5&#39;</span>=<span class="dv">5</span>,</span>
-<span id="cb20-125"><a href="#cb20-125"></a>                                            <span class="st">&#39;6&#39;</span>=<span class="dv">6</span>,</span>
-<span id="cb20-126"><a href="#cb20-126"></a>                                            <span class="st">&#39;7&#39;</span>=<span class="dv">7</span>,</span>
-<span id="cb20-127"><a href="#cb20-127"></a>                                            <span class="st">&#39;8&#39;</span>=<span class="dv">8</span>,</span>
-<span id="cb20-128"><a href="#cb20-128"></a>                                            <span class="st">&#39;9&#39;</span>=<span class="dv">9</span>,</span>
-<span id="cb20-129"><a href="#cb20-129"></a>                                            <span class="st">&#39;10 or more&#39;</span>=<span class="dv">10</span>)</span>
-<span id="cb20-130"><a href="#cb20-130"></a></span>
-<span id="cb20-131"><a href="#cb20-131"></a><span class="co"># Program Unexcused Absences</span></span>
-<span id="cb20-132"><a href="#cb20-132"></a></span>
-<span id="cb20-133"><a href="#cb20-133"></a>  recidivism2<span class="op">$</span>Program_UnexcusedAbsences &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Program_UnexcusedAbsences,</span>
-<span id="cb20-134"><a href="#cb20-134"></a>                                                  <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-135"><a href="#cb20-135"></a>                                                  <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-136"><a href="#cb20-136"></a>                                                  <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-137"><a href="#cb20-137"></a>                                                  <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)</span>
-<span id="cb20-138"><a href="#cb20-138"></a></span>
-<span id="cb20-139"><a href="#cb20-139"></a><span class="co"># Residence Changes</span></span>
-<span id="cb20-140"><a href="#cb20-140"></a></span>
-<span id="cb20-141"><a href="#cb20-141"></a>  recidivism2<span class="op">$</span>Residence_Changes &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Residence_Changes,</span>
-<span id="cb20-142"><a href="#cb20-142"></a>                                          <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
-<span id="cb20-143"><a href="#cb20-143"></a>                                          <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
-<span id="cb20-144"><a href="#cb20-144"></a>                                          <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
-<span id="cb20-145"><a href="#cb20-145"></a>                                          <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)  </span>
-<span id="cb20-146"><a href="#cb20-146"></a><span class="co">#############################################################</span></span>
-<span id="cb20-147"><a href="#cb20-147"></a>  </span>
-<span id="cb20-148"><a href="#cb20-148"></a><span class="kw">str</span>(recidivism2)  </span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a><span class="kw">require</span>(dplyr)</span>
+<span id="cb31-2"><a href="#cb31-2"></a></span>
+<span id="cb31-3"><a href="#cb31-3"></a><span class="co"># ?recode for more info</span></span>
+<span id="cb31-4"><a href="#cb31-4"></a></span>
+<span id="cb31-5"><a href="#cb31-5"></a><span class="co"># Dependents</span></span>
+<span id="cb31-6"><a href="#cb31-6"></a></span>
+<span id="cb31-7"><a href="#cb31-7"></a>  recidivism2<span class="op">$</span>Dependents &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Dependents,</span>
+<span id="cb31-8"><a href="#cb31-8"></a>                                   <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-9"><a href="#cb31-9"></a>                                   <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-10"><a href="#cb31-10"></a>                                   <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-11"><a href="#cb31-11"></a>                                   <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)</span>
+<span id="cb31-12"><a href="#cb31-12"></a></span>
+<span id="cb31-13"><a href="#cb31-13"></a><span class="co"># Prior Arrest Episodes Felony</span></span>
+<span id="cb31-14"><a href="#cb31-14"></a></span>
+<span id="cb31-15"><a href="#cb31-15"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Felony &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Felony,</span>
+<span id="cb31-16"><a href="#cb31-16"></a>                                                     <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-17"><a href="#cb31-17"></a>                                                     <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-18"><a href="#cb31-18"></a>                                                     <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-19"><a href="#cb31-19"></a>                                                     <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
+<span id="cb31-20"><a href="#cb31-20"></a>                                                     <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
+<span id="cb31-21"><a href="#cb31-21"></a>                                                     <span class="st">&#39;5&#39;</span>=<span class="dv">5</span>,</span>
+<span id="cb31-22"><a href="#cb31-22"></a>                                                     <span class="st">&#39;6&#39;</span>=<span class="dv">6</span>,</span>
+<span id="cb31-23"><a href="#cb31-23"></a>                                                     <span class="st">&#39;7&#39;</span>=<span class="dv">7</span>,</span>
+<span id="cb31-24"><a href="#cb31-24"></a>                                                     <span class="st">&#39;8&#39;</span>=<span class="dv">8</span>,</span>
+<span id="cb31-25"><a href="#cb31-25"></a>                                                     <span class="st">&#39;9&#39;</span>=<span class="dv">9</span>,</span>
+<span id="cb31-26"><a href="#cb31-26"></a>                                                     <span class="st">&#39;10 or more&#39;</span>=<span class="dv">10</span>)</span>
+<span id="cb31-27"><a href="#cb31-27"></a><span class="co"># Prior Arrest Episods Misd</span></span>
+<span id="cb31-28"><a href="#cb31-28"></a></span>
+<span id="cb31-29"><a href="#cb31-29"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Misd &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Misd,</span>
+<span id="cb31-30"><a href="#cb31-30"></a>                                                   <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-31"><a href="#cb31-31"></a>                                                   <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-32"><a href="#cb31-32"></a>                                                   <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-33"><a href="#cb31-33"></a>                                                   <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
+<span id="cb31-34"><a href="#cb31-34"></a>                                                   <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
+<span id="cb31-35"><a href="#cb31-35"></a>                                                   <span class="st">&#39;5&#39;</span>=<span class="dv">5</span>,</span>
+<span id="cb31-36"><a href="#cb31-36"></a>                                                   <span class="st">&#39;6 or more&#39;</span>=<span class="dv">6</span>)</span>
+<span id="cb31-37"><a href="#cb31-37"></a>  </span>
+<span id="cb31-38"><a href="#cb31-38"></a><span class="co"># Prior Arrest Episodes Violent</span></span>
+<span id="cb31-39"><a href="#cb31-39"></a></span>
+<span id="cb31-40"><a href="#cb31-40"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Violent &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Violent,</span>
+<span id="cb31-41"><a href="#cb31-41"></a>                                                      <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-42"><a href="#cb31-42"></a>                                                      <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-43"><a href="#cb31-43"></a>                                                      <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-44"><a href="#cb31-44"></a>                                                      <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)</span>
+<span id="cb31-45"><a href="#cb31-45"></a></span>
+<span id="cb31-46"><a href="#cb31-46"></a><span class="co"># Prior Arrest Episods Property</span></span>
+<span id="cb31-47"><a href="#cb31-47"></a></span>
+<span id="cb31-48"><a href="#cb31-48"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Property &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Property,</span>
+<span id="cb31-49"><a href="#cb31-49"></a>                                                       <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-50"><a href="#cb31-50"></a>                                                       <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-51"><a href="#cb31-51"></a>                                                       <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-52"><a href="#cb31-52"></a>                                                       <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
+<span id="cb31-53"><a href="#cb31-53"></a>                                                       <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
+<span id="cb31-54"><a href="#cb31-54"></a>                                                       <span class="st">&#39;5 or more&#39;</span>=<span class="dv">5</span>)</span>
+<span id="cb31-55"><a href="#cb31-55"></a>  </span>
+<span id="cb31-56"><a href="#cb31-56"></a><span class="co"># Prior Arrest Episods Drug</span></span>
+<span id="cb31-57"><a href="#cb31-57"></a></span>
+<span id="cb31-58"><a href="#cb31-58"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Drug &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_Drug,</span>
+<span id="cb31-59"><a href="#cb31-59"></a>                                                   <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-60"><a href="#cb31-60"></a>                                                   <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-61"><a href="#cb31-61"></a>                                                   <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-62"><a href="#cb31-62"></a>                                                   <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
+<span id="cb31-63"><a href="#cb31-63"></a>                                                   <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
+<span id="cb31-64"><a href="#cb31-64"></a>                                                   <span class="st">&#39;5 or more&#39;</span>=<span class="dv">5</span>) </span>
+<span id="cb31-65"><a href="#cb31-65"></a><span class="co"># Prior Arrest Episods PPViolationCharges</span></span>
+<span id="cb31-66"><a href="#cb31-66"></a></span>
+<span id="cb31-67"><a href="#cb31-67"></a>  recidivism2<span class="op">$</span>Prior_Arrest_Episodes_PPViolationCharges &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Arrest_Episodes_PPViolationCharges,</span>
+<span id="cb31-68"><a href="#cb31-68"></a>                                                                 <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-69"><a href="#cb31-69"></a>                                                                 <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-70"><a href="#cb31-70"></a>                                                                 <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-71"><a href="#cb31-71"></a>                                                                 <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
+<span id="cb31-72"><a href="#cb31-72"></a>                                                                 <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
+<span id="cb31-73"><a href="#cb31-73"></a>                                                                 <span class="st">&#39;5 or more&#39;</span>=<span class="dv">5</span>)  </span>
+<span id="cb31-74"><a href="#cb31-74"></a>  </span>
+<span id="cb31-75"><a href="#cb31-75"></a><span class="co"># Prior Conviction Episodes Felony</span></span>
+<span id="cb31-76"><a href="#cb31-76"></a></span>
+<span id="cb31-77"><a href="#cb31-77"></a>  recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Felony &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Felony,</span>
+<span id="cb31-78"><a href="#cb31-78"></a>                                                         <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-79"><a href="#cb31-79"></a>                                                         <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-80"><a href="#cb31-80"></a>                                                         <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-81"><a href="#cb31-81"></a>                                                         <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)</span>
+<span id="cb31-82"><a href="#cb31-82"></a></span>
+<span id="cb31-83"><a href="#cb31-83"></a><span class="co"># Prior Conviction Episodes Misd</span></span>
+<span id="cb31-84"><a href="#cb31-84"></a></span>
+<span id="cb31-85"><a href="#cb31-85"></a>  recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Misd &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Misd,</span>
+<span id="cb31-86"><a href="#cb31-86"></a>                                                       <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-87"><a href="#cb31-87"></a>                                                       <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-88"><a href="#cb31-88"></a>                                                       <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-89"><a href="#cb31-89"></a>                                                       <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
+<span id="cb31-90"><a href="#cb31-90"></a>                                                       <span class="st">&#39;4 or more&#39;</span>=<span class="dv">4</span>)</span>
+<span id="cb31-91"><a href="#cb31-91"></a>  </span>
+<span id="cb31-92"><a href="#cb31-92"></a><span class="co"># Prior Conviction Episodes Prop</span></span>
+<span id="cb31-93"><a href="#cb31-93"></a></span>
+<span id="cb31-94"><a href="#cb31-94"></a>  recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Prop &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Prop,</span>
+<span id="cb31-95"><a href="#cb31-95"></a>                                                       <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-96"><a href="#cb31-96"></a>                                                       <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-97"><a href="#cb31-97"></a>                                                       <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-98"><a href="#cb31-98"></a>                                                       <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)</span>
+<span id="cb31-99"><a href="#cb31-99"></a></span>
+<span id="cb31-100"><a href="#cb31-100"></a><span class="co"># Prior Conviction Episodes Drug</span></span>
+<span id="cb31-101"><a href="#cb31-101"></a></span>
+<span id="cb31-102"><a href="#cb31-102"></a>  recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Drug &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Prior_Conviction_Episodes_Drug,</span>
+<span id="cb31-103"><a href="#cb31-103"></a>                                                       <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-104"><a href="#cb31-104"></a>                                                       <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-105"><a href="#cb31-105"></a>                                                       <span class="st">&#39;2 or more&#39;</span>=<span class="dv">2</span>)</span>
+<span id="cb31-106"><a href="#cb31-106"></a></span>
+<span id="cb31-107"><a href="#cb31-107"></a><span class="co"># Delinquency Reports</span></span>
+<span id="cb31-108"><a href="#cb31-108"></a></span>
+<span id="cb31-109"><a href="#cb31-109"></a>  recidivism2<span class="op">$</span>Delinquency_Reports &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Delinquency_Reports,</span>
+<span id="cb31-110"><a href="#cb31-110"></a>                                            <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-111"><a href="#cb31-111"></a>                                            <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-112"><a href="#cb31-112"></a>                                            <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-113"><a href="#cb31-113"></a>                                            <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
+<span id="cb31-114"><a href="#cb31-114"></a>                                            <span class="st">&#39;4 or more&#39;</span>=<span class="dv">4</span>)</span>
+<span id="cb31-115"><a href="#cb31-115"></a></span>
+<span id="cb31-116"><a href="#cb31-116"></a><span class="co"># Program Attendances</span></span>
+<span id="cb31-117"><a href="#cb31-117"></a></span>
+<span id="cb31-118"><a href="#cb31-118"></a>  recidivism2<span class="op">$</span>Program_Attendances &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Program_Attendances,</span>
+<span id="cb31-119"><a href="#cb31-119"></a>                                            <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-120"><a href="#cb31-120"></a>                                            <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-121"><a href="#cb31-121"></a>                                            <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-122"><a href="#cb31-122"></a>                                            <span class="st">&#39;3&#39;</span>=<span class="dv">3</span>,</span>
+<span id="cb31-123"><a href="#cb31-123"></a>                                            <span class="st">&#39;4&#39;</span>=<span class="dv">4</span>,</span>
+<span id="cb31-124"><a href="#cb31-124"></a>                                            <span class="st">&#39;5&#39;</span>=<span class="dv">5</span>,</span>
+<span id="cb31-125"><a href="#cb31-125"></a>                                            <span class="st">&#39;6&#39;</span>=<span class="dv">6</span>,</span>
+<span id="cb31-126"><a href="#cb31-126"></a>                                            <span class="st">&#39;7&#39;</span>=<span class="dv">7</span>,</span>
+<span id="cb31-127"><a href="#cb31-127"></a>                                            <span class="st">&#39;8&#39;</span>=<span class="dv">8</span>,</span>
+<span id="cb31-128"><a href="#cb31-128"></a>                                            <span class="st">&#39;9&#39;</span>=<span class="dv">9</span>,</span>
+<span id="cb31-129"><a href="#cb31-129"></a>                                            <span class="st">&#39;10 or more&#39;</span>=<span class="dv">10</span>)</span>
+<span id="cb31-130"><a href="#cb31-130"></a></span>
+<span id="cb31-131"><a href="#cb31-131"></a><span class="co"># Program Unexcused Absences</span></span>
+<span id="cb31-132"><a href="#cb31-132"></a></span>
+<span id="cb31-133"><a href="#cb31-133"></a>  recidivism2<span class="op">$</span>Program_UnexcusedAbsences &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Program_UnexcusedAbsences,</span>
+<span id="cb31-134"><a href="#cb31-134"></a>                                                  <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-135"><a href="#cb31-135"></a>                                                  <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-136"><a href="#cb31-136"></a>                                                  <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-137"><a href="#cb31-137"></a>                                                  <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)</span>
+<span id="cb31-138"><a href="#cb31-138"></a></span>
+<span id="cb31-139"><a href="#cb31-139"></a><span class="co"># Residence Changes</span></span>
+<span id="cb31-140"><a href="#cb31-140"></a></span>
+<span id="cb31-141"><a href="#cb31-141"></a>  recidivism2<span class="op">$</span>Residence_Changes &lt;-<span class="st"> </span><span class="kw">recode</span>(recidivism2<span class="op">$</span>Residence_Changes,</span>
+<span id="cb31-142"><a href="#cb31-142"></a>                                          <span class="st">&#39;0&#39;</span>=<span class="dv">0</span>,</span>
+<span id="cb31-143"><a href="#cb31-143"></a>                                          <span class="st">&#39;1&#39;</span>=<span class="dv">1</span>,</span>
+<span id="cb31-144"><a href="#cb31-144"></a>                                          <span class="st">&#39;2&#39;</span>=<span class="dv">2</span>,</span>
+<span id="cb31-145"><a href="#cb31-145"></a>                                          <span class="st">&#39;3 or more&#39;</span>=<span class="dv">3</span>)  </span>
+<span id="cb31-146"><a href="#cb31-146"></a><span class="co">#############################################################</span></span>
+<span id="cb31-147"><a href="#cb31-147"></a>  </span>
+<span id="cb31-148"><a href="#cb31-148"></a><span class="kw">str</span>(recidivism2)  </span></code></pre></div>
 <pre><code>&#39;data.frame&#39;:   18111 obs. of  54 variables:
  $ ID                                               : int  1 2 3 4 6 7 8 11 13 15 ...
  $ Gender                                           : chr  &quot;M&quot; &quot;M&quot; &quot;M&quot; &quot;M&quot; ...
@@ -2208,9 +2246,9 @@ FALSE  TRUE
  $ Recidivism_Arrest_Year3                          : num  0 1 0 0 0 1 0 0 0 0 ...
  $ Training_Sample                                  : int  1 1 1 1 0 1 0 1 1 0 ...</code></pre>
 <p>Now, we can write the final version of the dataset for later use.</p>
-<div class="sourceCode" id="cb22"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="kw">write.csv</span>(recidivism2, </span>
-<span id="cb22-2"><a href="#cb22-2"></a>          <span class="kw">here</span>(<span class="st">&#39;data/recidivism_y1 removed.csv&#39;</span>),</span>
-<span id="cb22-3"><a href="#cb22-3"></a>          <span class="dt">row.names =</span> <span class="ot">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">write.csv</span>(recidivism2, </span>
+<span id="cb33-2"><a href="#cb33-2"></a>          <span class="kw">here</span>(<span class="st">&#39;data/recidivism_y1 removed.csv&#39;</span>),</span>
+<span id="cb33-3"><a href="#cb33-3"></a>          <span class="dt">row.names =</span> <span class="ot">FALSE</span>)</span></code></pre></div>
 </div>
 
 

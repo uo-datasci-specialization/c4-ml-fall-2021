@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2021-08-23" />
+<meta name="date" content="2021-09-08" />
 
 <title>Data Pre-processing II (Text Data)</title>
 
@@ -1828,7 +1828,7 @@ div.tocify {
 <h3 class="subtitle">Applied Machine Learning for Educational Data Science</h3>
 <h4 class="author">Cengiz Zopluoglu</h4>
 <address class="author_afil">
-University of Oregon | EDLD 654<br><h4 class="date">08/23/2021</h4>
+University of Oregon | EDLD 654<br><h4 class="date">09/08/2021</h4>
 
 </div>
 
@@ -1837,7 +1837,7 @@ University of Oregon | EDLD 654<br><h4 class="date">08/23/2021</h4>
   addClassKlippyTo("pre.r, pre.markdown");
   addKlippy('right', 'top', 'auto', '1', 'Copy code', 'Copied!');
 </script>
-<p>[Updated: Wed, Sep 08, 2021 - 22:04:35 ]</p>
+<p>[Updated: Mon, Sep 13, 2021 - 21:25:38 ]</p>
 <style>
 
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
@@ -1856,8 +1856,7 @@ University of Oregon | EDLD 654<br><h4 class="date">08/23/2021</h4>
 }
 
 </style>
-<div id="importing-data" class="section level1">
-<h1>1. Importing Data</h1>
+<p>Generating features from text data is very different than dealing with continuous and categorical data. First, let’s remember the dataset we are working with.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>readability &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv&#39;</span>,</span>
 <span id="cb1-2"><a href="#cb1-2"></a>                        <span class="dt">header=</span><span class="ot">TRUE</span>)</span>
 <span id="cb1-3"><a href="#cb1-3"></a></span>
@@ -1869,224 +1868,1068 @@ University of Oregon | EDLD 654<br><h4 class="date">08/23/2021</h4>
  $ excerpt       : chr  &quot;When the young people returned to the ballroom, it presented a decidedly changed appearance. Instead of an inte&quot;| __truncated__ &quot;All through dinner time, Mrs. Fayre was somewhat silent, her eyes resting on Dolly with a wistful, uncertain ex&quot;| __truncated__ &quot;As Roger had predicted, the snow departed as quickly as it came, and two days after their sleigh ride there was&quot;| __truncated__ &quot;And outside before the palace a great garden was walled round, filled full of stately fruit-trees, gray olives &quot;| __truncated__ ...
  $ target        : num  -0.34 -0.315 -0.58 -1.054 0.247 ...
  $ standard_error: num  0.464 0.481 0.477 0.45 0.511 ...</code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>readability[<span class="dv">1</span>,]<span class="op">$</span>excerpt</span></code></pre></div>
+<pre><code>[1] &quot;When the young people returned to the ballroom, it presented a decidedly changed appearance. Instead of an interior scene, it was a winter landscape.\nThe floor was covered with snow-white canvas, not laid on smoothly, but rumpled over bumps and hillocks, like a real snow field. The numerous palms and evergreens that had decorated the room, were powdered with flour and strewn with tufts of cotton, like snow. Also diamond dust had been lightly sprinkled on them, and glittering crystal icicles hung from the branches.\nAt each end of the room, on the wall, hung a beautiful bear-skin rug.\nThese rugs were for prizes, one for the girls and one for the boys. And this was the game.\nThe girls were gathered at one end of the room and the boys at the other, and one end was called the North Pole, and the other the South Pole. Each player was given a small flag which they were to plant on reaching the Pole.\nThis would have been an easy matter, but each traveller was obliged to wear snowshoes.&quot;</code></pre>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>readability[<span class="dv">1</span>,]<span class="op">$</span>target</span></code></pre></div>
+<pre><code>[1] -0.3402591</code></pre>
+<p>The excerpt column includes a plain text data and the target column includes a corresponding measure of readability for each excerpt. A higher target value indicates a more difficult text to read. What kind of features we can generate from the plain text to predict its readability?</p>
+<p>In the following sections, we will demonstrate how to derive these features for a single observation. At the end, we will finish with some code to compile all these information in a useful tabular format to be able to use in predictive modeling later.</p>
+<div id="textual-statistics-via-quanteda" class="section level1">
+<h1>1. Textual statistics via <code>quanteda</code></h1>
+<p>For this section, we will rely on two packages: <code>quanteda</code>, <code>quanteda.textmodels</code>.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">require</span>(quanteda)</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="kw">require</span>(quanteda.textstats)</span></code></pre></div>
+<div id="tokenization" class="section level2">
+<h2>1.1. Tokenization</h2>
+<p>The first thing to do is tokenization of the plain text using the <code>tokens()</code> function from the <code>quanteda</code> package. This will create an object that contains every word, punctuations, symbols, numbers, etc.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>text &lt;-<span class="st"> </span><span class="kw">as.character</span>(readability[<span class="dv">1</span>,]<span class="op">$</span>excerpt)</span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a>text</span></code></pre></div>
+<pre><code>[1] &quot;When the young people returned to the ballroom, it presented a decidedly changed appearance. Instead of an interior scene, it was a winter landscape.\nThe floor was covered with snow-white canvas, not laid on smoothly, but rumpled over bumps and hillocks, like a real snow field. The numerous palms and evergreens that had decorated the room, were powdered with flour and strewn with tufts of cotton, like snow. Also diamond dust had been lightly sprinkled on them, and glittering crystal icicles hung from the branches.\nAt each end of the room, on the wall, hung a beautiful bear-skin rug.\nThese rugs were for prizes, one for the girls and one for the boys. And this was the game.\nThe girls were gathered at one end of the room and the boys at the other, and one end was called the North Pole, and the other the South Pole. Each player was given a small flag which they were to plant on reaching the Pole.\nThis would have been an easy matter, but each traveller was obliged to wear snowshoes.&quot;</code></pre>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>tokenized &lt;-<span class="st"> </span><span class="kw">tokens</span>(text)</span>
+<span id="cb10-2"><a href="#cb10-2"></a></span>
+<span id="cb10-3"><a href="#cb10-3"></a>tokenized[[<span class="dv">1</span>]]</span></code></pre></div>
+<pre><code>  [1] &quot;When&quot;       &quot;the&quot;        &quot;young&quot;      &quot;people&quot;     &quot;returned&quot;  
+  [6] &quot;to&quot;         &quot;the&quot;        &quot;ballroom&quot;   &quot;,&quot;          &quot;it&quot;        
+ [11] &quot;presented&quot;  &quot;a&quot;          &quot;decidedly&quot;  &quot;changed&quot;    &quot;appearance&quot;
+ [16] &quot;.&quot;          &quot;Instead&quot;    &quot;of&quot;         &quot;an&quot;         &quot;interior&quot;  
+ [21] &quot;scene&quot;      &quot;,&quot;          &quot;it&quot;         &quot;was&quot;        &quot;a&quot;         
+ [26] &quot;winter&quot;     &quot;landscape&quot;  &quot;.&quot;          &quot;The&quot;        &quot;floor&quot;     
+ [31] &quot;was&quot;        &quot;covered&quot;    &quot;with&quot;       &quot;snow-white&quot; &quot;canvas&quot;    
+ [36] &quot;,&quot;          &quot;not&quot;        &quot;laid&quot;       &quot;on&quot;         &quot;smoothly&quot;  
+ [41] &quot;,&quot;          &quot;but&quot;        &quot;rumpled&quot;    &quot;over&quot;       &quot;bumps&quot;     
+ [46] &quot;and&quot;        &quot;hillocks&quot;   &quot;,&quot;          &quot;like&quot;       &quot;a&quot;         
+ [51] &quot;real&quot;       &quot;snow&quot;       &quot;field&quot;      &quot;.&quot;          &quot;The&quot;       
+ [56] &quot;numerous&quot;   &quot;palms&quot;      &quot;and&quot;        &quot;evergreens&quot; &quot;that&quot;      
+ [61] &quot;had&quot;        &quot;decorated&quot;  &quot;the&quot;        &quot;room&quot;       &quot;,&quot;         
+ [66] &quot;were&quot;       &quot;powdered&quot;   &quot;with&quot;       &quot;flour&quot;      &quot;and&quot;       
+ [71] &quot;strewn&quot;     &quot;with&quot;       &quot;tufts&quot;      &quot;of&quot;         &quot;cotton&quot;    
+ [76] &quot;,&quot;          &quot;like&quot;       &quot;snow&quot;       &quot;.&quot;          &quot;Also&quot;      
+ [81] &quot;diamond&quot;    &quot;dust&quot;       &quot;had&quot;        &quot;been&quot;       &quot;lightly&quot;   
+ [86] &quot;sprinkled&quot;  &quot;on&quot;         &quot;them&quot;       &quot;,&quot;          &quot;and&quot;       
+ [91] &quot;glittering&quot; &quot;crystal&quot;    &quot;icicles&quot;    &quot;hung&quot;       &quot;from&quot;      
+ [96] &quot;the&quot;        &quot;branches&quot;   &quot;.&quot;          &quot;At&quot;         &quot;each&quot;      
+[101] &quot;end&quot;        &quot;of&quot;         &quot;the&quot;        &quot;room&quot;       &quot;,&quot;         
+[106] &quot;on&quot;         &quot;the&quot;        &quot;wall&quot;       &quot;,&quot;          &quot;hung&quot;      
+[111] &quot;a&quot;          &quot;beautiful&quot;  &quot;bear-skin&quot;  &quot;rug&quot;        &quot;.&quot;         
+[116] &quot;These&quot;      &quot;rugs&quot;       &quot;were&quot;       &quot;for&quot;        &quot;prizes&quot;    
+[121] &quot;,&quot;          &quot;one&quot;        &quot;for&quot;        &quot;the&quot;        &quot;girls&quot;     
+[126] &quot;and&quot;        &quot;one&quot;        &quot;for&quot;        &quot;the&quot;        &quot;boys&quot;      
+[131] &quot;.&quot;          &quot;And&quot;        &quot;this&quot;       &quot;was&quot;        &quot;the&quot;       
+[136] &quot;game&quot;       &quot;.&quot;          &quot;The&quot;        &quot;girls&quot;      &quot;were&quot;      
+[141] &quot;gathered&quot;   &quot;at&quot;         &quot;one&quot;        &quot;end&quot;        &quot;of&quot;        
+[146] &quot;the&quot;        &quot;room&quot;       &quot;and&quot;        &quot;the&quot;        &quot;boys&quot;      
+[151] &quot;at&quot;         &quot;the&quot;        &quot;other&quot;      &quot;,&quot;          &quot;and&quot;       
+[156] &quot;one&quot;        &quot;end&quot;        &quot;was&quot;        &quot;called&quot;     &quot;the&quot;       
+[161] &quot;North&quot;      &quot;Pole&quot;       &quot;,&quot;          &quot;and&quot;        &quot;the&quot;       
+[166] &quot;other&quot;      &quot;the&quot;        &quot;South&quot;      &quot;Pole&quot;       &quot;.&quot;         
+[171] &quot;Each&quot;       &quot;player&quot;     &quot;was&quot;        &quot;given&quot;      &quot;a&quot;         
+[176] &quot;small&quot;      &quot;flag&quot;       &quot;which&quot;      &quot;they&quot;       &quot;were&quot;      
+[181] &quot;to&quot;         &quot;plant&quot;      &quot;on&quot;         &quot;reaching&quot;   &quot;the&quot;       
+[186] &quot;Pole&quot;       &quot;.&quot;          &quot;This&quot;       &quot;would&quot;      &quot;have&quot;      
+[191] &quot;been&quot;       &quot;an&quot;         &quot;easy&quot;       &quot;matter&quot;     &quot;,&quot;         
+[196] &quot;but&quot;        &quot;each&quot;       &quot;traveller&quot;  &quot;was&quot;        &quot;obliged&quot;   
+[201] &quot;to&quot;         &quot;wear&quot;       &quot;snowshoes&quot;  &quot;.&quot;         </code></pre>
+<p>We can also create a separate tokenization that includes only words.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>tokenized.words &lt;-<span class="st"> </span><span class="kw">tokens</span>(text,</span>
+<span id="cb12-2"><a href="#cb12-2"></a>                          <span class="dt">remove_punct =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb12-3"><a href="#cb12-3"></a>                          <span class="dt">remove_numbers =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb12-4"><a href="#cb12-4"></a>                          <span class="dt">remove_symbols =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb12-5"><a href="#cb12-5"></a>                          <span class="dt">remove_separators =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb12-6"><a href="#cb12-6"></a></span>
+<span id="cb12-7"><a href="#cb12-7"></a>tokenized.words[[<span class="dv">1</span>]]</span></code></pre></div>
+<pre><code>  [1] &quot;When&quot;       &quot;the&quot;        &quot;young&quot;      &quot;people&quot;     &quot;returned&quot;  
+  [6] &quot;to&quot;         &quot;the&quot;        &quot;ballroom&quot;   &quot;it&quot;         &quot;presented&quot; 
+ [11] &quot;a&quot;          &quot;decidedly&quot;  &quot;changed&quot;    &quot;appearance&quot; &quot;Instead&quot;   
+ [16] &quot;of&quot;         &quot;an&quot;         &quot;interior&quot;   &quot;scene&quot;      &quot;it&quot;        
+ [21] &quot;was&quot;        &quot;a&quot;          &quot;winter&quot;     &quot;landscape&quot;  &quot;The&quot;       
+ [26] &quot;floor&quot;      &quot;was&quot;        &quot;covered&quot;    &quot;with&quot;       &quot;snow-white&quot;
+ [31] &quot;canvas&quot;     &quot;not&quot;        &quot;laid&quot;       &quot;on&quot;         &quot;smoothly&quot;  
+ [36] &quot;but&quot;        &quot;rumpled&quot;    &quot;over&quot;       &quot;bumps&quot;      &quot;and&quot;       
+ [41] &quot;hillocks&quot;   &quot;like&quot;       &quot;a&quot;          &quot;real&quot;       &quot;snow&quot;      
+ [46] &quot;field&quot;      &quot;The&quot;        &quot;numerous&quot;   &quot;palms&quot;      &quot;and&quot;       
+ [51] &quot;evergreens&quot; &quot;that&quot;       &quot;had&quot;        &quot;decorated&quot;  &quot;the&quot;       
+ [56] &quot;room&quot;       &quot;were&quot;       &quot;powdered&quot;   &quot;with&quot;       &quot;flour&quot;     
+ [61] &quot;and&quot;        &quot;strewn&quot;     &quot;with&quot;       &quot;tufts&quot;      &quot;of&quot;        
+ [66] &quot;cotton&quot;     &quot;like&quot;       &quot;snow&quot;       &quot;Also&quot;       &quot;diamond&quot;   
+ [71] &quot;dust&quot;       &quot;had&quot;        &quot;been&quot;       &quot;lightly&quot;    &quot;sprinkled&quot; 
+ [76] &quot;on&quot;         &quot;them&quot;       &quot;and&quot;        &quot;glittering&quot; &quot;crystal&quot;   
+ [81] &quot;icicles&quot;    &quot;hung&quot;       &quot;from&quot;       &quot;the&quot;        &quot;branches&quot;  
+ [86] &quot;At&quot;         &quot;each&quot;       &quot;end&quot;        &quot;of&quot;         &quot;the&quot;       
+ [91] &quot;room&quot;       &quot;on&quot;         &quot;the&quot;        &quot;wall&quot;       &quot;hung&quot;      
+ [96] &quot;a&quot;          &quot;beautiful&quot;  &quot;bear-skin&quot;  &quot;rug&quot;        &quot;These&quot;     
+[101] &quot;rugs&quot;       &quot;were&quot;       &quot;for&quot;        &quot;prizes&quot;     &quot;one&quot;       
+[106] &quot;for&quot;        &quot;the&quot;        &quot;girls&quot;      &quot;and&quot;        &quot;one&quot;       
+[111] &quot;for&quot;        &quot;the&quot;        &quot;boys&quot;       &quot;And&quot;        &quot;this&quot;      
+[116] &quot;was&quot;        &quot;the&quot;        &quot;game&quot;       &quot;The&quot;        &quot;girls&quot;     
+[121] &quot;were&quot;       &quot;gathered&quot;   &quot;at&quot;         &quot;one&quot;        &quot;end&quot;       
+[126] &quot;of&quot;         &quot;the&quot;        &quot;room&quot;       &quot;and&quot;        &quot;the&quot;       
+[131] &quot;boys&quot;       &quot;at&quot;         &quot;the&quot;        &quot;other&quot;      &quot;and&quot;       
+[136] &quot;one&quot;        &quot;end&quot;        &quot;was&quot;        &quot;called&quot;     &quot;the&quot;       
+[141] &quot;North&quot;      &quot;Pole&quot;       &quot;and&quot;        &quot;the&quot;        &quot;other&quot;     
+[146] &quot;the&quot;        &quot;South&quot;      &quot;Pole&quot;       &quot;Each&quot;       &quot;player&quot;    
+[151] &quot;was&quot;        &quot;given&quot;      &quot;a&quot;          &quot;small&quot;      &quot;flag&quot;      
+[156] &quot;which&quot;      &quot;they&quot;       &quot;were&quot;       &quot;to&quot;         &quot;plant&quot;     
+[161] &quot;on&quot;         &quot;reaching&quot;   &quot;the&quot;        &quot;Pole&quot;       &quot;This&quot;      
+[166] &quot;would&quot;      &quot;have&quot;       &quot;been&quot;       &quot;an&quot;         &quot;easy&quot;      
+[171] &quot;matter&quot;     &quot;but&quot;        &quot;each&quot;       &quot;traveller&quot;  &quot;was&quot;       
+[176] &quot;obliged&quot;    &quot;to&quot;         &quot;wear&quot;       &quot;snowshoes&quot; </code></pre>
+<p>Then, we will also create a document-feature matrix using the <code>dfm()</code> function from the <code>quanteda</code> package. This is simply an object that contains the information about the frequency of each single token in the text.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>dm &lt;-<span class="st"> </span><span class="kw">dfm</span>(tokenized)</span>
+<span id="cb14-2"><a href="#cb14-2"></a></span>
+<span id="cb14-3"><a href="#cb14-3"></a>dm</span></code></pre></div>
+<pre><code>Document-feature matrix of: 1 document, 106 features (0.00% sparse) and 0 docvars.
+       features
+docs    when the young people returned to ballroom  , it presented
+  text1    1  19     1      1        1  3        1 14  2         1
+[ reached max_nfeat ... 96 more features ]</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a><span class="kw">featfreq</span>(dm)</span></code></pre></div>
+<pre><code>      when        the      young     people   returned         to   ballroom 
+         1         19          1          1          1          3          1 
+         ,         it  presented          a  decidedly    changed appearance 
+        14          2          1          5          1          1          1 
+         .    instead         of         an   interior      scene        was 
+        11          1          4          2          1          1          6 
+    winter  landscape      floor    covered       with snow-white     canvas 
+         1          1          1          1          3          1          1 
+       not       laid         on   smoothly        but    rumpled       over 
+         1          1          4          1          2          1          1 
+     bumps        and   hillocks       like       real       snow      field 
+         1          9          1          2          1          2          1 
+  numerous      palms evergreens       that        had  decorated       room 
+         1          1          1          1          2          1          3 
+      were   powdered      flour     strewn      tufts     cotton       also 
+         4          1          1          1          1          1          1 
+   diamond       dust       been    lightly  sprinkled       them glittering 
+         1          1          2          1          1          1          1 
+   crystal    icicles       hung       from   branches         at       each 
+         1          1          2          1          1          3          3 
+       end       wall  beautiful  bear-skin        rug      these       rugs 
+         3          1          1          1          1          1          1 
+       for     prizes        one      girls       boys       this       game 
+         3          1          4          2          2          2          1 
+  gathered      other     called      north       pole      south     player 
+         1          2          1          1          3          1          1 
+     given      small       flag      which       they      plant   reaching 
+         1          1          1          1          1          1          1 
+     would       have       easy     matter  traveller    obliged       wear 
+         1          1          1          1          1          1          1 
+ snowshoes 
+         1 </code></pre>
 </div>
-<div id="tokenization-parts-of-speech-tagging-lemmatization-and-dependency-parsing-with-the-udpipe-and-quanteda" class="section level1">
-<h1>Tokenization, Parts of Speech Tagging, Lemmatization and Dependency Parsing with the <code>udpipe</code> and <code>quanteda</code></h1>
-<div id="morphological-annotation" class="section level2">
-<h2>Morphological annotation</h2>
+<div id="basic-statistics" class="section level2">
+<h2>1.2. Basic statistics</h2>
+<p>We can use the <code>texstat_summary()</code> function to obtain some basic information about any reading passage in this dataset such as number of characters, number of sentences, number of tokens, number of unique tokens, number of numbers, number of punctuation marks, number of symbols, number of tags, and number of emojis.</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>text_sm &lt;-<span class="st"> </span><span class="kw">textstat_summary</span>(dm)</span>
+<span id="cb18-2"><a href="#cb18-2"></a></span>
+<span id="cb18-3"><a href="#cb18-3"></a>text_sm</span></code></pre></div>
+<pre><code>  document chars sents tokens types puncts numbers symbols urls tags emojis
+1    text1    NA    NA    204   106     25       0       0    0    0      0</code></pre>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="co"># for some reason it returns NAs for number of characters and number of sentences</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a></span>
+<span id="cb20-3"><a href="#cb20-3"></a>text_sm<span class="op">$</span>sents &lt;-<span class="st"> </span><span class="kw">nsentence</span>(text)</span>
+<span id="cb20-4"><a href="#cb20-4"></a>text_sm<span class="op">$</span>chars &lt;-<span class="st"> </span><span class="kw">nchar</span>(text)</span>
+<span id="cb20-5"><a href="#cb20-5"></a></span>
+<span id="cb20-6"><a href="#cb20-6"></a>text_sm</span></code></pre></div>
+<pre><code>  document chars sents tokens types puncts numbers symbols urls tags emojis
+1    text1   992    11    204   106     25       0       0    0    0      0</code></pre>
 </div>
-<div id="morphological-features" class="section level2">
-<h2>Morphological features</h2>
+<div id="word-length-statistics" class="section level2">
+<h2>1.3. Word length statistics</h2>
+<p>We can derive the distribution of word lengths in a passage. The number of words with length 1, 2, 3, …, 20 can be defined as predictive features. Summary statistics of this distribution (minimum word length, maximum word length, average word length, variability of word length) may also predict readability. Below is a code to extract these features and combine them in a vector.</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="co"># Word lengths</span></span>
+<span id="cb22-2"><a href="#cb22-2"></a></span>
+<span id="cb22-3"><a href="#cb22-3"></a>  wl &lt;-<span class="st"> </span><span class="kw">nchar</span>(tokenized.words[[<span class="dv">1</span>]])</span>
+<span id="cb22-4"><a href="#cb22-4"></a>  </span>
+<span id="cb22-5"><a href="#cb22-5"></a>  wl</span></code></pre></div>
+<pre><code>  [1]  4  3  5  6  8  2  3  8  2  9  1  9  7 10  7  2  2  8  5  2  3  1  6  9  3
+ [26]  5  3  7  4 10  6  3  4  2  8  3  7  4  5  3  8  4  1  4  4  5  3  8  5  3
+ [51] 10  4  3  9  3  4  4  8  4  5  3  6  4  5  2  6  4  4  4  7  4  3  4  7  9
+ [76]  2  4  3 10  7  7  4  4  3  8  2  4  3  2  3  4  2  3  4  4  1  9  9  3  5
+[101]  4  4  3  6  3  3  3  5  3  3  3  3  4  3  4  3  3  4  3  5  4  8  2  3  3
+[126]  2  3  4  3  3  4  2  3  5  3  3  3  3  6  3  5  4  3  3  5  3  5  4  4  6
+[151]  3  5  1  5  4  5  4  4  2  5  2  8  3  4  4  5  4  4  2  4  6  3  4  9  3
+[176]  7  2  4  9</code></pre>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a><span class="co"># Summary stat. of word length</span></span>
+<span id="cb24-2"><a href="#cb24-2"></a></span>
+<span id="cb24-3"><a href="#cb24-3"></a>  <span class="kw">min</span>(wl)</span></code></pre></div>
+<pre><code>[1] 1</code></pre>
+<div class="sourceCode" id="cb26"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a>  <span class="kw">max</span>(wl)</span></code></pre></div>
+<pre><code>[1] 10</code></pre>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1"></a>  <span class="kw">mean</span>(wl)</span></code></pre></div>
+<pre><code>[1] 4.407821</code></pre>
+<div class="sourceCode" id="cb30"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1"></a>  <span class="kw">sd</span>(wl)</span></code></pre></div>
+<pre><code>[1] 2.12427</code></pre>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1"></a><span class="co"># Distribution of word lengths</span></span>
+<span id="cb32-2"><a href="#cb32-2"></a>  </span>
+<span id="cb32-3"><a href="#cb32-3"></a>  wl.tab &lt;-<span class="st"> </span><span class="kw">table</span>(wl)</span>
+<span id="cb32-4"><a href="#cb32-4"></a>  </span>
+<span id="cb32-5"><a href="#cb32-5"></a>  wl.tab</span></code></pre></div>
+<pre><code>wl
+ 1  2  3  4  5  6  7  8  9 10 
+ 5 18 50 45 20  9  9 10  9  4 </code></pre>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1"></a><span class="co"># Word Length features combined</span></span>
+<span id="cb34-2"><a href="#cb34-2"></a>  </span>
+<span id="cb34-3"><a href="#cb34-3"></a>  wl.features &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="kw">matrix</span>(<span class="dv">0</span>,<span class="dt">nrow=</span><span class="dv">1</span>,<span class="dt">nco=</span><span class="dv">30</span>))</span>
+<span id="cb34-4"><a href="#cb34-4"></a>  <span class="kw">colnames</span>(wl.features) &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&#39;wl.&#39;</span>,<span class="dv">1</span><span class="op">:</span><span class="dv">30</span>)</span>
+<span id="cb34-5"><a href="#cb34-5"></a>  </span>
+<span id="cb34-6"><a href="#cb34-6"></a>  ind &lt;-<span class="st"> </span><span class="kw">colnames</span>(wl.features)<span class="op">%in%</span><span class="kw">paste0</span>(<span class="st">&#39;wl.&#39;</span>,<span class="kw">names</span>(wl.tab))</span>
+<span id="cb34-7"><a href="#cb34-7"></a>  </span>
+<span id="cb34-8"><a href="#cb34-8"></a>  wl.features[,ind] &lt;-<span class="st"> </span>wl.tab</span>
+<span id="cb34-9"><a href="#cb34-9"></a>  </span>
+<span id="cb34-10"><a href="#cb34-10"></a>  wl.features<span class="op">$</span>mean.wl  &lt;-<span class="st">   </span><span class="kw">mean</span>(wl)</span>
+<span id="cb34-11"><a href="#cb34-11"></a>  wl.features<span class="op">$</span>sd.wl    &lt;-<span class="st">   </span><span class="kw">sd</span>(wl)</span>
+<span id="cb34-12"><a href="#cb34-12"></a>  wl.features<span class="op">$</span>min.wl   &lt;-<span class="st">   </span><span class="kw">min</span>(wl)</span>
+<span id="cb34-13"><a href="#cb34-13"></a>  wl.features<span class="op">$</span>max.wl   &lt;-<span class="st">   </span><span class="kw">max</span>(wl)</span>
+<span id="cb34-14"><a href="#cb34-14"></a>  </span>
+<span id="cb34-15"><a href="#cb34-15"></a>  wl.features</span></code></pre></div>
+<pre><code>  wl.1 wl.2 wl.3 wl.4 wl.5 wl.6 wl.7 wl.8 wl.9 wl.10 wl.11 wl.12 wl.13 wl.14
+1    5   18   50   45   20    9    9   10    9     4     0     0     0     0
+  wl.15 wl.16 wl.17 wl.18 wl.19 wl.20 wl.21 wl.22 wl.23 wl.24 wl.25 wl.26 wl.27
+1     0     0     0     0     0     0     0     0     0     0     0     0     0
+  wl.28 wl.29 wl.30  mean.wl   sd.wl min.wl max.wl
+1     0     0     0 4.407821 2.12427      1     10</code></pre>
 </div>
-<div id="syntactic-annotation" class="section level2">
-<h2>Syntactic annotation</h2>
+<div id="text-entropy" class="section level2">
+<h2>1.4. Text Entropy</h2>
+<p>In the <code>quanteda.textstats</code> package, <code>textstat_entropy()</code> provides a numerical measure of <strong>text entropy</strong>. The entropy is first computed by computing the proportion of each token, and then the entropy is computed using the following formula.</p>
+<p><span class="math display">\[
+-\sum_{i}p_i*log_2(p_i),
+\]</span> where <span class="math inline">\(p_i\)</span> is the proportion of <span class="math inline">\(i^th\)</span> token.</p>
+<div class="sourceCode" id="cb36"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1"></a><span class="co"># Do it yourself</span></span>
+<span id="cb36-2"><a href="#cb36-2"></a></span>
+<span id="cb36-3"><a href="#cb36-3"></a>y &lt;-<span class="st"> </span><span class="kw">featfreq</span>(dm)</span>
+<span id="cb36-4"><a href="#cb36-4"></a>p &lt;-<span class="st"> </span>y<span class="op">/</span><span class="kw">sum</span>(y)</span>
+<span id="cb36-5"><a href="#cb36-5"></a><span class="op">-</span><span class="kw">sum</span>(p<span class="op">*</span><span class="kw">log</span>(p,<span class="dt">base=</span><span class="dv">2</span>))</span></code></pre></div>
+<pre><code>[1] 6.095194</code></pre>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1"></a><span class="co"># use the built-in function</span></span>
+<span id="cb38-2"><a href="#cb38-2"></a><span class="co"># ?textstat_entropy</span></span>
+<span id="cb38-3"><a href="#cb38-3"></a></span>
+<span id="cb38-4"><a href="#cb38-4"></a><span class="kw">textstat_entropy</span>(dm)</span></code></pre></div>
+<pre><code>  document  entropy
+1    text1 6.095194</code></pre>
+<p>Based on this definition of entropy, note that there is a maximum entropy for any text when each token appears only once in the text. We can find these for hypothetical texts with 1 to 500 tokens.</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1"></a>n =<span class="st"> </span><span class="dv">1</span><span class="op">:</span><span class="dv">500</span></span>
+<span id="cb40-2"><a href="#cb40-2"></a>ent &lt;-<span class="st"> </span><span class="kw">c</span>()</span>
+<span id="cb40-3"><a href="#cb40-3"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">500</span>){</span>
+<span id="cb40-4"><a href="#cb40-4"></a> p &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">1</span><span class="op">/</span>i,i)</span>
+<span id="cb40-5"><a href="#cb40-5"></a> ent[i] &lt;-<span class="st"> </span><span class="op">-</span><span class="kw">sum</span>(p<span class="op">*</span><span class="kw">log</span>(p,<span class="dt">base=</span><span class="dv">2</span>))</span>
+<span id="cb40-6"><a href="#cb40-6"></a>}</span>
+<span id="cb40-7"><a href="#cb40-7"></a></span>
+<span id="cb40-8"><a href="#cb40-8"></a> <span class="kw">ggplot</span>()<span class="op">+</span></span>
+<span id="cb40-9"><a href="#cb40-9"></a><span class="st">  </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">x=</span>n,<span class="dt">y=</span>ent),<span class="dt">cex=</span><span class="dv">1</span>)<span class="op">+</span></span>
+<span id="cb40-10"><a href="#cb40-10"></a><span class="st">  </span><span class="kw">geom_line</span>(<span class="kw">aes</span>(<span class="dt">x=</span>n,<span class="dt">y=</span>ent),<span class="dt">lty=</span><span class="dv">2</span>)<span class="op">+</span></span>
+<span id="cb40-11"><a href="#cb40-11"></a><span class="st">  </span><span class="kw">theme_bw</span>()<span class="op">+</span></span>
+<span id="cb40-12"><a href="#cb40-12"></a><span class="st">  </span><span class="kw">xlab</span>(<span class="st">&#39;Number of Tokens&#39;</span>)<span class="op">+</span></span>
+<span id="cb40-13"><a href="#cb40-13"></a><span class="st">  </span><span class="kw">ylab</span>(<span class="st">&#39;Maximum Entropy&#39;</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABIAAAASACAMAAACwdsZoAAABWVBMVEUAAAAAADoAAGYAOjoAOmYAOpAAZpAAZrYzMzM6AAA6AGY6OgA6Ojo6OmY6OpA6ZmY6ZpA6ZrY6kJA6kLY6kNtNTU1NTW5NTY5Nbo5NbqtNjshmAABmADpmOgBmOjpmOpBmZjpmZmZmZpBmkJBmkLZmkNtmtrZmtttmtv9uTU1ubm5ubo5ujqtujshuq+SOTU2Obk2Obm6Oq6uOq8iOq+SOyOSOyP+QOgCQZjqQZmaQZraQkGaQtraQttuQ2/+rbk2rbm6rjm6ryOSr5P+2ZgC2Zjq2Zma2kDq2kGa2kJC2tma2tpC2tra2ttu229u22/+2///Ijk3Ijm7IyKvI5P/I///bkDrbkGbbkJDbtmbbtpDbtrbbttvb27bb29vb2//b///kq27kyI7kyKvk///r6+v/tmb/yI7/25D/27b/29v/5Kv/5Mj/5OT//7b//8j//9v//+T///8Zk2MLAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO3d/ZscZ5nl+RTYAxrMYKZdBuOBNd30grYxpnd3sJkZ2uvBTLO7NCDaqLc9A1jTtmUjtS3l///DVr5V5VudvO/I51v5RN7nvi5sq5T1yaOIpw4RkZGpydTj8XhONJNTB/B4PHXHBeTxeE42LiCPx3OycQF5PJ6TjQvI4/GcbFxAHo/nZOMC8ng8JxsXkMfjOdm4gDwez8nGBeTxeE42LiCPx3OycQF5PJ6TjQvI4/GcbOgC+rLH4/Fczy0XUOKxH32ExVj4rO70ymd1p1c+q+d4FxCmO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvms7gIK+6zu9MpndadXPqu7gMI+qzu98lnd6ZXP6i6gsM/qTq98Vnd65bO6Cyjss7rTK5/VnV75rO4CCvus7vTKZ3WnVz6ru4DCPqs7vfJZ3emVz+ouoLDP6k6vfFZ3euWzugso7LO60yuf1Z1e+azuAgr7rO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvms7gIK+6zu9MpndadXPqu7gMI+qzu98lnd6ZXP6i6gsM/qTq98Vnd65bO6Cyjss7rTK5/VnV75rO4CCvus7vTKZ3WnVz6ru4DCPqs7vfJZ3emVz+ouoLDP6k6vfFZ3euWzugso7LO60yuf1Z1e+azuAgr7rO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvms7gIK+6zu9MpndadXPqu7gMI+qzu98lnd6ZXP6i6gsM/qTq98Vnd65bO6Cyjss7rTK5/VnV75rO4CCvus7vTKZ3WnVz6ru4DCPqs7vfJZ3emVz+ouoLDP6k6vfFZ3euWzugso7LO60yuf1Z1e+azuAgr7rO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvms7gIK+6zu9MpndadXPqu7gMI+qzu98lnd6ZXP6i6gsM/qTq98Vnd65bO6Cyjss7rTK5/VnV75oD25nNQ3uIAw3emVz+pOr3zAnGxM4htdQJju9MpndadXflNtsmcS3+4CwnSnVz6rO73yW0H7uifbQC4gTHd65bO60yv/eOLm6nEBJXxWd3rls7rTK/+Ybz5UPT4FS/is7vTKZ3WnV/6g7wo1jwsoMxWXUVh3euWzemfpM9WTrB8XEKg7vfJZ3emVH35ktnpm5eMbEeM+qzu98lnd6ZUfedDgox4XUNxndadXPqs7vfL1bw+unqXuAgr7rO70ymd1p1f+Tb+RrJ79XeECivus7vTKZ3WnV/7ul5pUz1J3AYV9Vnd65bO60yt/41ftqmepu4DCPqs7vfJZ3emVv/x34+ZZ6S6gsM/qTq98Vnd65UPVs9RdQGGf1Z1e+azu9DcNWD2LcQHFfVZ3euWzutPvDnnYszYuoLjP6k6vfFZ3+s25lepZjAso7rO60yuf1Z1+NbdYPYtxAcV9Vnd65bO6009P0D3zcQHFfVZ3euWzevH0p6mexbiA4j6rO73yWb1s+lNWz2JcQHGf1Z1e+axeMf3Jq2cxLqC4z+pOr3xWr5Y+1T1dpXcBYbrTK5/V66QfcNjTUXoXEKg7vfJZvUL6xCnX5k91F+lXc+sF9JHH4zluMt1z6qwHxkdAmO70ymf1M04/8LBn3W8feV3v/Ago8dhzXkYNfFZ3euWz+g388dWz9NtHXtddQGGf1Z1e+ax+bukbVc/Sb554Q3cBhX1Wd3rls/o5pW/ZPQu/deBN3QUU9lnd6ZXP6ueRvtU517bfPvK67gIK+6zu9Mpn9bGnh6pn6TdPvKG7gMI+qzu98ll91OnB7plPV9veBYTpTq98Vh9perp6FtPVtncBYbrTK5/VR5j+dspnNl1texcQpju98ll9VOlvr3oW09W2dwFhutMrn9XHk/52u2c+XW17FxCmO73yWX0M6W/7wOdqutr2LiBMd3rls3rf6U9WPYvpatu7gDDd6ZXP6v2mP233zKerbe8CwnSnVz6rd5o+Vj69pg/qLqCwz+pOr3xW7y595rinv/Qp3QUU9lnd6ZXP6l2lz5509ZU+rbuAwj6rO73yWb2T9LHq2f6Z6yX9QN0FFPZZ3emVz+o9pB9UPnO9h/TDdRdQ2Gd1p1c+q582/eDqWeqVtr0LCNOdXvmsfrr0R1XPUq+07V1AmO70ymf106Q/7sDnWq+07V1AmO70ymf1W09/5FnXpl5p27uAMN3plc/qt5q+XfUs9Urb3gWE6U6vfFa/tfSty2euV9r2LiBMd3rls/otpG94zrWtV9r2LiBMd3rlszqdHiufuV5p27uAMN3plc/qJA9Wz2JKbXsXEKY7vfJZneLx8plNqW3vAsJ0p1c+q7fn0ZOuzSm17V1AmO70ymf1tvztdc98Sm17FxCmO73yWb0hf7vlM5tS294FhOlOr3xWb8TffvnMptS2dwFhutMrn9WP5k9TPYspte1dQJju9Mpn9aP4w+XD/pSU2vYuIEx3euWz+nA+VD7dpo/5rO4CCvus7vTKZ/VhfPjIp8v0cZ/VXUBhn9WdXvmsnudTJ13dpc/5rO4CCvus7vTKZ/Ucn77k01X6vM/qLqCwz+pOr3xWj/Pp8pn7zZLu1ats+9m4gDDd6ZXP6kF+SPnM/VZB9+sltv1yXECY7vTKZ/WD/NDqWfqtgu7Xz3zbb4wLCNOdXvmsLvnjymfutwq6Xz/jbb8zLiBMd3rls/qN/KBLPrt+s6R79TPd9nvHBYTpTq98Vt/PNymfud8q6H79HLf9TeMCwnSnVz6r7/LNymfutwq6Xz+3ba/GBYTpTq98Vt/km5bP3G8VdL9+Ttv+0LiAMN3plc/q13ybiz7bfrOke/Vz2faRcQFhutMrn9UXPFI+c79Z0r36OWz76LiAMN3plc/qHx1qnyP9NjFv0ke/7RPjAsJ0p1c+qpPlMxtve6G7gMI+qzu98jGZLp/ZeNsL3QUU9lnd6ZUPubfQPlNve6m7gMI+qzu98gHzdspnNt72QncBhX1Wd3rlN/Zur3xm420vdBdQ2Gd1p1d+S+xWy2c23vZCdwGFfVZ3euW3gm69fGbjbS90F1DYZ3WnV34L5HbPu9bG217oLqCwz+pOr/xjAVk+3afXeqX0LiBMd3rlH/PNB498uk5/WK+U3gWE6U6v/OHfGjjx6jh9RK+U3gWE6U6v/IHfF7vq02v6oF4pvQsI051e+QO+J3Dos9I7TJ/QK6V3AWG60ys/+fh4+cz1ztIn9UrpXUCY7vTKTzw2Vz5zvaP0A/RK6V1AmO70yg8/Mls+c72b9IP0SuldQJju9MqPPWxA+cz1PtIP1SuldwFhutMr//BDhhz6rPTTpz9Gr5TeBYTpTq98/dv5yz6bure98lndBRT2Wd3pla9+86jymeve9spndRdQ2Gd1p1f+Tb9xdPnMdW975bO6Cyjss7rTK3/vV1uUz1z3tlc+q7uAwj6rO73yd77S5NBnpXvbK5/VXUBhn9WdXvlbv25ZP972B3xWdwGFfVZ3euWv/Xfb8pnr3vbKZ3UXUNhndadX/vLf7ctnrnvbK5/VXUBhn9WdXvnzfxLlM9e97ZXP6i6gsM/qTq/8di957dO97ZXP6i6gsM/qTn/zgOUzG2976bO6Cyjss7rT3zRs+0y97Q/4rO4CCvus7vT7Bi+f2XjbS5/VXUBhn9WdfndupX687Q/4rO4CCvus7vSbc0vlMxtve+mzugso7LO606/N7ZXPbLztpc/qLqCwz+pOfzW3Wz/e9gd8VncBhX1Wd/r53OKZ19V420uf1V1AYZ/VnX56Y/2MJP2NPqtXSu8CwvTy6dWxT//ppc/qldK7gDC9eHp94tV7+gM+q1dK7wLC9MLpD1/36Tl9wGf1SuldQJheNn3konO/6UM+q1dK7wLC9JrpI+0z7TZ91Gf1SuldQJheMX2wfjpNH/dZvVJ6FxCmV0sfLp+5f2Q+PeW2fc5ndRdQ2Gf1WulT9dNd+qzP6pXSu4AwvU76ZPnM/SPz6Sm07Yf4rO4CCvusXiX9gPrpKP0wn9UrpXcBYXqJ9IPaZ9pL+sE+q1dK7wLC9ALph9ZPH+mP8Fm9UnoXEKafffqh5TP3j0p3UD/7bX+Uz+ouoLDP6medfvixz9I/Mt8B/ay3/dE+q7uAwj6rn3H648pn7h+V7qB+xtu+gc/qLqCwz+pnmv7YY5+lf2S+A/qZbvtGPqu7gMI+q59l+ibtM/W2l3ql9C4gTD/H9I3qx9te6pXSu4Aw/dzSNyufuX9UuoP6uW37tj6ru4DCPqufV/qm9eNtL/VK6V1AmH5O6RvXj7e91CuldwFh+rmkb14+c/9YQOvnsu0Zn9VdQGGf1c8jPVI/3vZSr5TeBYTp55CeaZ+pt73UK6V3AWH66NNDBz8Lv5Fzgz76bY/6rO4CCvusPvL0ZP1420u9UnoXEKaPOj1ZPrPxthd6pfQuIEwfbXr22Gcx3vZCr5TeBYTpI01/G/XjbS/1SuldQJg+yvS3UT6z8bYXeqX0LiBMH136vcc+0ILwthd6pfQuIEwfWfrbrB9ve6lXSu8CwvRxpb/F8pmNt73QK6V3AWH6mNLfcv1420u9UnoXEKaPJ/2e+hlR+n260yuf1V1AYZ/Vx5H+hmOfkaS/SXd65bO6Cyjss/oY0t946jWK9DfrTq98VncBhX1W7z+9uPIzgvRKd3rls/ptF9Czty9W843fr774+RvbX1k9X0IutSPy/rGAvO7cfXqtO73yWb2LAnp8zwXUdfpDL3v1nf6g7vTKZ/VTnYI9vvfyz69+8ejiWzc8X0IstSPy/hHfe/hV957TB3SnVz6rn6iALg+EfnT9q/vrv9h4vgRZakfk/cHfebh+ek4f0p1e+ax+ogJ6ePHKh1e/ePb22tHQ5vMlyFI7Iu8P/L5I/fSbPqg7vfJZ/TQF9PkbFz9Z/9Ur//jji4u/eW/3+RJmqR2R9wd9V6R85nqX6cO60yuf1U9TQA83LvqsrkFfl9KXV/OR53SzUz+nDuSpPo0K6PM3Ns65Hl1cvP7h9F/fubj6qgvo1LPn1OvUkTyeRgX0aP0K0PXx0O61aJ+CNfNTj45d+VnTu0qf1p1e+ax+ilOwZ2+vXwG6nq1emrqAGvqJxybbZ9pX+gG60yuf1U9RQI/v7dxxeMPXXUDN/PAj8/XTU/pButMrn9VPUUA33Xf4+J6PgDA/+sAB9dNR+mG60yuf1U9RQFvXeq7OyHaLyQXUzI89bFD9dJN+qO70ymf1ExTQzn2H9xfFs+fSkAuomR950MD66ST9cN3plc/qJyigz9/YutTz+N7sZfgnP965Bu0Caucffsjg+uki/TG60yuf1U9QQGuXepZvSX24fDP8zq3QLqBm/qEHDC6fuX7q9MfpTq98Vj9BAa292r56T/yTv724ePn17eMfF1BDX/3mkBe+NnVve+WzeqX0/kRETD9d+qPrx9v+gM/qldK7gDD9VOkb1I+3/QGf1SuldwFh+mnSN6kfb/sDPqtXSu8CwvSTpG9TP972B3xWr5TeBYTpJ0jfqn687Q/4rF4pvQsI0289fbv68bY/4LN6pfQuIEy/5fQt68fb/oDP6pXSu4Aw/VbTtyyfue5tr3xWr5TeBYTpt5i+6cHPQve2Vz6rV0rvAsL0W0vfvn687Q/4rF4pvQsI028pPVE/3vYHfFavlN4FhOm3kp6pH2/7Az6rV0rvAsL0W0hP1Y+3/QGf1SuldwFhOp8eqx9v+wM+q1dK7wLCdDo9WD/e9gd8Vq+U3gWE6SyP1o+3/QGf1SuldwFhOsnD9eNtf8Bn9UrpXUCYzvF4/XjbH/BZvVJ6FxCmUzz30tfaeNtLn9UrpXcBYTrD30r9eNsf8Fm9UnoXEKYT/C3Vj7f9AZ/VK6V3AWF6e/7W6sfb/oDP6pXSu4AwvTV/i/XjbX/AZ/VK6V1AmN6Y366fcaXf8Vnd6ZXP6i6gsM/qTfndo58xpd/js7rTK5/VXUBhn9W5Alr4Lfmd8baXPqtXSu8CwvSG/L5rP+NJv9dndadXPqu7gMI+qzfj9196Hkv6G3xWd3rls7oLKOyzeiP+ppe+xpH+Rp/VnV75rO4CCvus3oS/+ZX3MaQXPqs7vfJZ3QUU9lm9Aa9u/Ok/vfRZ3emVz+ouoLDP6kfz+s7D3tMf8Fnd6ZXP6i6gsM/qR/KHbnzuO/1Bn9WdXvms7gIK+6x+HH+gfjpPf9hndadXPqu7gMI+qzcsoL3+UfyhKb3tD/usXim9CwjTj+EP1k/X6SM+qzu98lndBRT2WX04H6ifjtPHfFZ3euWzugso7LP6UD5UP92mj/qs7vTKZ3UXUNhn9WH8oWvP1/6wWMEpue3jPqtXSu8CwvQhfLh+ukyf8Vnd6ZXP6i6gsM/qef7QrT+b/tBgoSm37XM+q1dK7wLC9GML6JA/LFZwym37nM/qldK7gDA9y6fqp7v0WZ/VnV75rO4CCvusnuOT9dNZ+rzP6k6vfFZ3AYV9Vs/w6frpKv0Qn9WdXvms7gIK+6ye4PP101P6QT6rO73yWd0FFPZZfVgBxf0BmeJTZ9sP8lm9UnoXEKaH+SHHP/2kH+izutMrn9VdQGGf1YP8sPrpJf1gn9WdXvms7gIK+6we4ofWTx/pj/BZ3emVz+ouoLDP6gF+wItf1/6wWFH97Lf9UT6rV0rvAsL0ZAGl/SGh4vrZb/ujfFavlN4FhOkH+WOOf06f/kif1Z1e+azuAgr7rH6AP65+Tp3+aJ/VnV75rO4CCvusLvlj66ezZZT3Wd3plc/qLqCwz+rhAhroD/u2qH7G276Bz+qV0ruAMF3wx9dPZ8so77O60yuf1V1AYZ/Vb+SPP/2a+0O/Maaf6bZv5LN6pfQuIEy/iW9SP50to7zP6k6vfFZ3AYV9Vg8U0FH+Md98WD/Pbd/KZ/VK6V1AmL6fb1Q/nS2jvM/qTq98VncBhX1W38c3Ov2a+8d9+yH9/LZ9S5/VK6V3AWH6Lt+wfjpbRnmf1Z1e+azuAgr7rK4L6Hj/aEHq57bt2/qsXim9CwjTt/mm9dPZMsr7rO70ymd1F1DYZ/VNvs3NP+t+A0Po57Tt2/usXim9CwjTby6gNn4T5Ub9nLZ9e5/VK6V3AWH6Ot+8fjpbRnmf1Z1e+azuAgr7rH7NA/XT2TLK+6zu9MpndRdQ2Gf1Fd/86s/Sbybt1c9j21M+q1dK7wLC9H0F1NJvaO3Rz2PbUz6rV0rvAsL0BQ/VT2fLKO+zutMrn9VdQGGf1ec8c/o195tqO/oZbHvQZ/VK6V1AmL5dQK39xt6WfgbbHvRZvVJ6FxCmf0TWT2fLKO+zutMrn9VdQGGf1T8i66ezZZT3Wd3plc/qLqCwz+ouIOWzutMrn9VdQGEf1bGrz8vpahnlfVZ3euWzugso7IM2XT+dLaO8z+pOr3xWdwGFfdB2AR3wWd3plc/qLqCwj8l8/XS2jPI+qzu98lndBRT2MZmvn86WUd5ndadXPqu7gMI+5N7G8U9nyyjvs7rTK5/VXUBhH1Fvp346W0Z5n9WdXvms7gIK+4h6O/XT2TLK+6zu9MpndRdQ2AfM2zr+6WwZ5X1Wd3rls7oLKOw3F9frZ3zpN3SnVz6rV0rvAmo5LqCwz+pOr3xWdwGF/dbgxunX6NJv6k6vfFavlN4F1HA2rv6MLv2m7vTKZ/VK6V1AzWbr8vPI0m/rTq98Vq+U3gXUaHZe/RpV+l3d6ZXP6pXSu4Aazc6r76NKv6s7vfJZvVJ6F1CT2XP7z4jS79OdXvmsXim9C6jJ7Ln7cETp9+lOr3xWr5TeBdRg9t7+PJr0+3WnVz6rV0rvAjp6bnj3xUjS36Q7vfJZvVJ6F9DRc8Obv0aS/ibd6ZXP6pXSu4COnBvffTqK9DfrTq98Vq+U3gV05Nz45vdRpL9Zd3rls3ql9C6go+bG459RpFe60yuf1SuldwEdNTfWzyjSK93plc/qldK7gI4YUT8jSK91p1c+q1dK7wIaPOL0a673nf6Q7vTKZ/VK6V1Ag0fWT/fpD+lOr3xWr5TeBTR09PFP7+kP6k6vfFavlN4FNHR0/fSe/qDu9Mpn9UrpXUDD5tDxT9/pA7rTK5/VK6V3AQ2bQ/XTd/qA7vTKZ/VK6V1AQ+bg4c+05/Qh3emVz+qV0ruAhowL6Gif1Z1e+azuAgr7A78vUj/9pg/qTq98Vq+U3gWUHxdQA5/VnV75rO4CCvuDvitWP72mD+tOr3xWr5TeBZQdF1ATn9WdXvms7gIK+wO+J1o/faZP6E6vfFavlN4FlBsXUCOf1Z1e+azuAgr76e+I10+P6VO60yuf1SuldwFlxgXUzGd1p1c+q7uAwn7y8Zn66S99Und65bN6pfQuoPi4gBr6rO70ymd1F1DYTz06Vz+9pU/rTq98Vq+U3gUUHRdQU5/VnV75rN55AX00zrmun1Mn8XjOaHwEFJvs8U9f6QfoTq98Vq+U3gUUmnT9dJV+iO70ymf1SuldQKFxAbX2Wd3plc/qLqCwH33ggPrpKP0w3emVz+qV0ruAAuMCau+zutMrn9VdQGE/9rD89eeF3kf6obrTK5/VK6V3AR0cFxDhs7rTK5/VXUBhP/KggfXTSfrhutMrn9UrpXcBHRgXEOOzutMrn9VdQGH/8EMG108X6Y/RnV75rF4pvQtIjguI8lnd6ZXP6i6gsH/oAUfUTwfpj9OdXvmsXim9C0iMC4jzWd3plc/qLqCwf+D3j6mf06c/Und65bN6pfQuoBvnqOOfk6c/Vnd65bN6pfQuoBvnqPo5efpjdadXPqtXSu8CumGOPP4ptozyPqs7vfJZ3QUU9tVvHts/tZZR3md1p1c+q7uAwv7Nv3X08U+xZZT3Wd3plc/qLqCwf/NvuYCcXvmsXim9C2jfHF8/xZZR3md1p1c+q7uAwv5Nv9Hg+KfYMsr7rO70ymd1F1DYv+k3GtRPsWWU91nd6ZXP6i6gsH/D11sc/xRbRnmf1Z1e+azuAgr7N3y9Sf/UWkZ5n9WdXvms7gIK+3u/2ub4p9gyyvus7vTKZ3UXUNjf+1UX0Fx3euWzeqX0LqCtadU/tZZR3md1p1c+q7uAwv6erzV5BX6hV1pGeZ/VnV75rO4CCvt7vtaqfooto7zP6k6vfFZ3AYX9na+0O/4ptozyPqs7vfJZ3QUU9ne+0rB/ai2jvM/qTq98VncBhf3tL7Tsn1rLKO+zutMrn9VdQGF/69ctT8CKLaO8z+pOr3xWdwGF/a1ft6yfYsso77O60yuf1V1AYX/zl02Pf4oto7zP6k6vfFZ3AYX9jV817p9ayyjvs7rTK5/VXUBhf+NXjfun1jLK+6zu9MpndRdQ2F/777YXoOd6pWWU91nd6ZXP6i6gsL/23837p9Yyyvus7vTKZ3UXUNi//s/2/VNrGeV9Vnd65bO6CyjsX/1X+xOwYsso77O60yuf1V1AYf/qv9rXT7FllPdZ3emVz+ouoLC/+g/g+KfYMsr7rO70ymd1F1DYX/4b6Z9ayyjvs7rTK5/VXUBhf/lvpH9qLaO8z+pOr3xWdwGF/fk/iQvQc73SMsr7rO70ymd1F1DYn/8T6p9ayyjvs7rTK5/VXUBhf/YPqn9qLaO8z+pOr3xWdwGF/dk/XED7dadXPqtXSu8CYuqn2DLK+6zu9MpndRdQ2J9Sr4DN9UrLKO+zutMrn9VdQGEfPAErtozyPqs7vfJZ3QUU9skDoFrLKO+zutMrn9VdQGGfPACqtYzyPqs7vfJZ3QUU9sn+qbWM8j6rO73yWd0FFPbJ/qm1jPI+qzu98lndBRQd9ACo1jLK+6zu9MpndRdQcNj+qbWM8j6rO73yWd0FFBy2f2oto7zP6k6vfFZ3AcUGPgCqtYzyPqs7vfJZ3QUUGrp/ai2jvM/qTq98VncBhYbun1rLKO+zutMrn9VdQJHBD4BqLaO8z+pOr3xWdwEFhu+fWsso77O60yuf1V1AgeH7p9Yyyvus7vTKZ3UX0OG5hQOgWsso77O60yuf1V1AB+c2+qfWMsr7rO70ymd1F9DBuY3+qbWM8j6rO73yWd0FdGhu5QCo1jLK+6zu9MpndRfQoVn1T1c7Iu+zutMrn9UrpS9YQFfHP13tiLzP6k6vfFavlN4FRE2pZZT3Wd3plc/qRAF99h++/qehgbaeL/FYZkdcXwDqakfkfVZ3euWzeqX0wQJ6dTL54vc+GJpp/fkSj0V2xMQFFNKdXvmsXil9rICe/mL+M/vcz47uoG4KaNrZjsj7rO70ymf1SunD14D+8J35z+1XfzYo1fXzJR5L7IiJCyimO73yWb1S+sxF6PcXHfTib/Kprp8v8VhgR2zcAtTVjsj7rO70ymf1Sulzr4I9ff/bs5/eO98bfEm6kwJa+M359Sm1jPI+qzu98lkdfhn+z2/dnZ+KDTwMOm0BTVxAUd3plc/qldInj4B++ZWrn+GvZ5Mtni/xWK6Aln5rfmNKLaO8z+pOr3xWxwpo1T6z18L+/IvJ5KUB6foooJXfmt+YUsso77O60yuf1ZkCWl79ub4b6OPJ80Nek3cBNfNZ3emVz+qV0gfvA3pzsn3x+bNXv/DbdLgTF9DEBRTWnV75rF4pffxO6DubL79/9urojoC2P4ajqx2R91nd6ZXP6pXSRwvoxV9vfenpPwx6Kb6HArry2/JbU2oZ5X1Wd3rlszr8MvyRc8IC2j4A6mtH5H1Wd3rls3ql9LkC+mM2ze7zJR4LFdC135TfnlLLKO+zutMrn9WpAlq8EePOUW/EOGUB7fRPXzsi77O60yuf1SulD78M/+b1HYjHvCXeBdTMZ3WnVz6rV0ofLKBZ/9z52n/51f/92t3J5EsDo82fL/HYpjtit3/62hF5n9WdXvmsXil9sIAeTAeFscIAACAASURBVCZ/sTjwefr3k8kPhgRbPl/isS4g6bO60yuf1SulD9+IeP3Gi3ePOQQ6VQHt6Z++dkTeZ3WnVz6rV0ofvQ/ozt9d/eKTu4PugV4+X+KxLiDps7rTK5/VK6WPFtBa5wx8E8by+RKPbbgj9vVPXzsi77O60yuf1Sulj56CbRwBDXoTxvL5Eo9ttyN27kFc+K34vVNqGeV9Vnd65bM6dBH6S3v/Oz2nLaAtvxW/d0oto7zP6k6vfFanXoZf3f7zYHLEGdhpCmj/AVBfOyLvs7rTK5/VK6UPnoL9dHb/z9e+96v/d/bvr353Pn85mnfD7++fvnZE3md1p1c+q1dKH/84jp0ZzecB3dA/fe2IvM/qTq98Vq+U3gVETalllPdZ3emVz+rINaBmc4ICuql/+toReZ/VnV75rF4pvQuImlLLKO+zutMrn9VdQJtzY//0tSPyPqs7vfJZvVL6eAH9+ZcvTCZ3Xhj+l6Iuni/xWBeQ9Fnd6ZXP6pXShwvowdXF50F/H9jV8yUe22RH3Nw/fe2IvM/qTq98Vq+UPlpAs/754te++9pXjmwgF1Azn9WdXvmsXil9sIA+uTt5fvFZrJ++OVl7X1h6bruARP/0tSPyPqs7vfJZvVL6YAG9e/33oD59c0zvBXMBDdSdXvmsXin9mb8bXvVPXzsi77O60yuf1SulP/PPA3IBDdWdXvmsXin9mRfQVPRPXzsi77O60yuf1SulD38m9PUH0X88Gc0pmDwA6mtH5H1Wd3rls3ql9Od9EVrVT2c7Iu+zutMrn9UrpY+/DP/cr+f/9Ydvj+dleH0A1NeOyPus7vTKZ/VK6TM3Ik5eeOGFY2+FdgE181nd6ZXP6pXSh9+K8c93lz/Nd74/KNfq+RKPbVVAN/pH8npKLaO8z+pOr3xWhwpo+vT91y6PgL72s2P+ZngXUEOf1Z1e+axeKf05fxzHgTOwvnZE3md1p1c+q1dKH30V7MXfDMyz/XyJx7qApM/qTq98Vq+UPvyZ0D/Y+xvpucUCOtQ/fe2IvM/qTq98Vq+UfsCd0EeNC6iZz+pOr3xWr5R+wJtRj5rbK6CD/dPXjsj7rO70ymf1SunDfzXz820uArmAmvms7vTKZ/VK6YMF9Oe/n38g4neP+DtRl8+XeGyTUzDlH8UfmlLLKO+zutMrn9Whi9DrM4Z3wx8+AOprR+R9Vnd65bN6pfQtCujzNy7m843fX3/t2Tv3Li5++N7u8yWyNSgg7R/BH55Syyjvs7rTK5/Vb/9GxMf3dgpo2UnrlbR8voR7zI4IHAD1tSPyPqs7vfJZvVL6FgX06OJb21+6f/HKe9Mnb1+88uH28yVcF5D0Wd3plc/qldIHX4b/6dp1509e+3ebF6HvX/xo6/GP782PfT5/4+Wfbz9fIptPwaTP6k6vfFavlL7BR7I+e3unZh4uj4ke7lTTLRVQ5ACorx2R91nd6ZXP6pXSDyigT+5uFtDnb7zyjz++uPibtSvO9y9+Mv/37snZrRbQIX8wH5lSyyjvs7rTK5/VGxfQ1gtg89n8TOjVNehl6UzXjoke31tdBPryaj66jVkFvZUn83g8Q+fwEdDHuwW0+cbURxcXr384/dd3Lq7OxFxAHo8nMocL6Ol/++53X7t75+o26O/+1a83H7C64HN9LXqtgLZfiPcpWDOf1Z1e+axeKX3Dd8M/unrRfc8R0NXzJbIN3hGhS9Cd7Yi8z+pOr3xWr5R+wMvwN8314U4fBXTYH8jHptQyyvus7vTKZ/XbvxFxOWttc9pXwYIHQH3tiLzP6k6vfFavlD5TQH9czZ/Wv/rs7d22Wd3/c5r7gFxADXSnVz6rV0ofLaBP37rxzaj3F8VzVUTTk98J7VOw43WnVz6rV0ofLKDNu4E2C+jxvdnL8E9+vPbGr8sy+ubJ3gsWPQDqa0fkfVZ3euWzeqX04U9EnDz3V79azT9sXpF+uHwz/OxW6Mf35gc9T074bvhg/XS2I/I+qzu98lm9UvroZ0JPviSQJ397cfHy6/ODnWUBTZ+8c9k/P9w+/rmNAgofAPW1I/I+qzu98lm9UvrofUDj+VB6F1AT3emVz+qV0p/hX8vjU7AWutMrn9UrpT+7v5YnfgDU147I+6zu9Mpn9UrpwxehXxqYZ/v5Eo89ooBi/gA+PqWWUd5ndadXPqsjBXR5CPT9gYG2ni/x2CE7InEA1NeOyPus7vTKZ/VK6aPvBXttMrkzhr8XzAXUSHd65bN6pfRn9/eC+RSsje70ymf1SunPrIAyB0B97Yi8z+pOr3xWr5S+4bvhY8+XeOzgAor6aT4zpZZR3md1p1c+q1cuoNQBUF87Iu+zutMrn9UrpXcBUVNqGeV9Vnd65bN62wJ6+t+333r62Xde+Grn14CifprPTKlllPdZ3emVz+ptC+izVxeXnJ/+dPXi++orw8YF1MxndadXPqtXSh8toOva6biAUvXT2Y7I+6zu9Mpn9UrpXUDUlFpGeZ/VnV75rF63gHKXoDvbEXmf1Z1e+axeKb0LiJpSyyjvs7rTK5/V6xaQT8Ea6k6vfFavlN4FRE2pZZT3Wd3plc/qZQsoWT+d7Yi8z+pOr3xWr5TeBURNqWWU91nd6ZXP6lULKHsJurMdkfdZ3emVz+qV0ruAqCm1jPI+qzu98lm9agH5FKyp7vTKZ/VK6QMFtDsuoIheaRnlfVZ3euWzetUCSvdPXzsi77O60yuf1SulP/hxHD/97u50+aH0LqCmutMrn9UrpT+bDyTLX4Pua0fkfVZ3euWzeqX0LiBqSi2jvM/qTq98Vi9aQD4Fa6s7vfJZvVJ6FxA1pZZR3md1p1c+q9csoHz9dLYj8j6rO73yWb1SehcQNaWWUd5ndadXPquXLKABl6A72xF5n9WdXvmsXim9C4iaUsso77O60yuf1UsWkE/BWutOr3xWr5TeBURNqWWU91nd6ZXP6hULaEj9dLYj8j6rO73yWb1S+ngB/fdfXc0/9PZeMBdQc93plc/qldJHC+if7nb8bvhBl6A72xF5n9WdXvmsXil9sIA+7vrjOFxA7XWnVz6rV0ofK6Cnb07u/OyPV/OnoeF8CtbQZ3WnVz6rV0ofK6DPXp38YGigredLPNYFJH1Wd3rls3ql9NECOuKsa/P5Eo/NFVA+S1c7Iu+zutMrn9UrpY+egvVcQMOOfzrbEXmf1Z1e+axeKX3wIvSDnk/BXECA7vTKZ/VK6YMF9Nmrd/5uYKCt50s8NvhHGfgaWGc7Iu+zutMrn9UrpY/eB/Tpq5PnOv1QehcQoTu98lm9UvpoAf2i4/uAfAoG6E6vfFavlD58DcgFlNUrLaO8z+pOr3xWx25EHH7etf58icdmCmhIlq52RN5ndadXPqtXSh+9D6jRNWiggIYe/3S2I/I+qzu98lm9Uvrx34joAkJ0p1c+q1dKP/obEQe/BtbZjsj7rO70ymf1SunDF6FfGphn+/kSj3UBSZ/VnV75rF4pfbCAnr555/sDA209X+KxPgWTPqs7vfJZvVL64CnYT1+bTO58rcsbEV1AiO70ymf1SunDH8fR9X1Ag6L0tSPyPqs7vfJZvVL68RfQ0OOfznZE3md1p1c+q1dKP/a/FWP4CVhnOyLvs7rTK5/VK6V3AVFTahnlfVZ3euWzeqkCOuJF+M52RN5ndadXPqtXSh8soD//cX36+VB6FxClO73yWb1S+rFfhPYpGKQ7vfJZvVJ6FxA1pZZR3md1p1c+qyM3Il79vcz/+duTO/+lq7+aeWj9dLYj8j6rO73yWb1S+vxF6E/uPn/EJwO1PwIaHKWvHZH3Wd3plc/qldIPeBXsqDemti2gY07AOtsReZ/VnV75rF4p/YACOuoQyAXUzGd1p1c+q1dKP6CAjvp0sqYFdNSL8J3tiLzP6k6vfFavlH7QEZALKKJXWkZ5n9WdXvmsThfQ03cnPgWL6JWWUd5ndadXPqsjL8P/9OovJXzt7sQXoUN6pWWU91nd6ZXP6vyNiH4ZPqRXWkZ5n9WdXvmsThfQF793zF8Q1v4IaHiWrnZE3md1p1c+q1dKP+Z3wx93AtbZjsj7rO70ymf1SuldQNSUWkZ5n9WdXvmsXqaAjnwRvrMdkfdZ3emVz+qV0scL6Or9qL/6VR9vRnUBkbrTK5/VK6WPFtA/3e3v4zh8CgbqTq98Vq+UPlhAH/f4eUAuIFB3euWzeqX00b8bfnLnZx1+JOsx9dPZjsj7rO70ymf1SunD9wH9YGigredLPLbUjsj7rO70ymf1SumjBXTEWdfm8yUee/gU7Kgofe2IvM/qTq98Vq+UPnoK1l8BHXsFqLMdkfdZ3emVz+qV0gcvQj/o7xTMBYTqTq98Vq+UPlhAn7165+8GBtp6vsRj5R/l6LuAOtsReZ/VnV75rF4pffQ+oE9fnTx39ZEcf9nBjYguIFZ3euWzeqX00QL6RXf3AfkUDNWdXvmsXil9+BqQCyirV1pGeZ/VnV75rI7diHjMxwBdP1/isX4ZXvqs7vTKZ/VK6aP3ATW6Bu0CauezutMrn9UrpR/vjYjHnoB1tiPyPqs7vfJZvVL6sd6IePwVoM52RN5ndadXPqtXSh++CH3E34Sx8XyJx7qApM/qTq98Vq+UPlhAT9+88/2BgbaeL/FY8UdpcBdQZzsi77O60yuf1Sulj/69YK9NJne+1s+NiC4gp1e60yuf1ZmL0L3dB+RTMKcXutMrn9VdQGH/uG8/pFdaRnmf1Z1e+azOvBWj1bR8Gf7IKH3tiLzP6k6vfFavlH68BXT8dLUj8j6rO73yWb1S+tEW0PEHQH3tiLzP6k6vfFavlP5QAT396ew1r8t/rs/pXwVzATm90p1e+azetoA+e3V2ybm7i9AtrkH3tSPyPqs7vfJZvVJ6FxA1pZZR3md1p1c+q1e4BtTkPsS+dkTeZ3WnVz6rV0rvAqKm1DLK+6zu9Mpn9QoF5FMwp5e60yuf1ZE7of/T+ute7/9bXwMK6JWWUd5ndadXPqszb8V47uoTEZ/+ooOL0H4Z3umV7vTKZ3WmgCarDwT69Ns9vArWZLraEXmf1Z1e+axeKX3wGtA/351MnvvN5X/80+V/PP+bYdHmz5d4bKkdkfdZ3emVz+qV0of/YsLLA58733/65uU//3pYsOXzJR5bakfkfVZ3euWzeqX04VfBni7/asLnjjj8mTa8CH1UiqXfwBB6pWWU91nd6ZXP6tjL8O9fnn1Nvj4g0sbzJR574x+lyWtgne2IvM/qTq98Vq+UPl5An741+6k/7gTMBdTQZ3WnVz6rV0ofLqD5Zehfzi5BH/U3pLYooDb3QXe2I/I+qzu98lm9Uvro34oxO/z5iw+W16IHRps/X+KxLiDps7rTK5/VK6WP3we0uBVxfi366yf+PCCfgk2dXupOr3xWhwroqnTev3vyGxFdQFOnl7rTK5/VkQL6D2unXUf9Pc1+Gb6Zz+pOr3xWr5Q+eA3oTxu/+v9cQAG90jLK+6zu9Mpndew+oCbjAmrms7rTK5/VK6VPFNDTPy7n/f/liCOgj5rMZNLG8Xg8p5zwe8He6ugzoZsc/3T2/wR5n9WdXvmsXil9sIA2P5X++ZMWUKPXwDrbEXmf1Z1e+axeKX2wgB5MJne+9trd2f9OfiOiC2jhs7rTK5/VK6WPFdDTN2fvwLj85w9mXXTMmzGOL6BW90F3tiPyPqs7vfJZvVL66I2Id2b3QT+Yfyziu7MaGjouoGY+qzu98lm9UvpoAc2vO388+dLVPweOT8Ga+azu9Mpn9UrpkwU0O/v67NUjzsFcQM18Vnd65bN6pfTRa0DzU7BP7s56aNlGw8YvwzfzWd3plc/qldIHXwV7d371Z3EpaFFDA6fNx3EMfvpNvw1zk15pGeV9Vnd65bM6UkCf3J28+JvZy2AvzcrotKdgLqCFz+pOr3xWr5Q+eif0u/P7nz+eTO7cvforwoaMC6iZz+pOr3xWr5Q+/F6wf5qdeD19d34j9EnvA3IBLX1Wd3rls3ql9Ik3o/6Py955+s8vvPC9Yz4Uus2rYEcEWPfbMDfplZZR3md1p1c+q2MF1GSOLqBmL8J3tiPyPqs7vfJZvVJ6FxA1pZZR3md1p1c+q593AbV7I0ZnOyLvs7rTK5/VK6U/VEBP/9t3d+cvT/cyvAvoymd1p1c+q1dKf7CA3pzszilvRPQp2MpndadXPqtXSn/wFOzdyeSLL2zNV11AAb3SMsr7rO70ymf1xgX04PLH/cVfHxVp4/kSj73xZfg2UfraEXmf1Z1e+axeKf3hi9B/+M6kYQc1+lsxmkxXOyLvs7rTK5/VK6UPvQr2/rcvK+jOi78ZHGrt+RKPLbUj8j6rO73yWb1S+uDL8E9/+ZU2HeQCauazutMrn9UrpY/fB/TnX95t0EEtPpL1qADrfitov15pGeV9Vnd65bM6eCPip2/NO+ivjuggF1Azn9WdXvmsXil99k7oP7x16r+Y0AW09Fnd6ZXP6pXSZwvo0/989+Q3Ig5+8m2/FbRfr7SM8j6rO73yWR0soMVloMmdr5/srRgNb0PsbEfkfVZ3euWzeqX08QJavBB27FVoF1Azn9WdXvmsXil99GX4+a1ADV6HP66AWr4VtbMdkfdZ3emVz+qV0sduRPxOm/aZuoAa+qzu9Mpn9UrpA2/FeKtZ+0x9CtbQZ3WnVz6rV0ofejNqq/aZuoAa+qzu9Mpn9UrpIx/H8VxHH0jW8DagvnZE3md1p1c+q1dKP7oPJGs4Xe2IvM/qTq98Vq+U/lABffaqC2ig7vTKZ3WnVz6rs3dCHzsuoGY+qzu98lm9UnoXEKY7vfJZ3emVz+ouoLDP6k6vfFZ3euWz+nkXUMMXwfraEXmf1Z1e+axeKb0LiJpSyyjvs7rTK5/Vz7qAGn4YR2c7Iu+zutMrn9UrpR9VATW9D7qzHZH3Wd3plc/qldK7gKgptYzyPqs7vfJZ/XwLqO174TvbEXmf1Z1e+axeKb0LiJpSyyjvs7rTK5/Vz7eAfAq24bO60yuf1SuldwFRU2oZ5X1Wd3rls/oZF1Db24D62hF5n9WdXvmsXin9yAqo6XS1I/I+qzu98lm9UnoXEKY7vfJZ3emVz+ouoLDP6k6vfFZ3euWzugso7LO60yuf1Z1e+azuAgr7rO70ymd1p1c+q7uAwj6rO73yWd3plc/q51xATV+F72tH5H1Wd3rls3ql9C4gakoto7zP6k6vfFY/4wJq+mlAne2IvM/qTq98Vq+UfkQF1PiNGJ3tiLzP6k6vfFavlN4FRE2pZZT3Wd3plc/q51pArT+Mo7MdkfdZ3emVz+qV0ruAqCm1jPI+qzu98ln9XAvIp2BbPqs7vfJZvVJ6FxA1pZZR3md1p1c+q59tAbW+DaivHZH3Wd3plc/qldKPqoAaT1c7Iu+zutMrn9UrpXcBYbrTK5/VnV75rO4CCvus7vTKZ3WnVz6ru4DCPqs7vfJZ3emVz+ouoLDP6k6vfFZ3euWzugso7LO60yuf1Z1e+ax+vgXU+FX4vnZE3md1p1c+q1dK7wKiptQyyvus7vTKZ3UXUNhvy23rlZZR3md1p1c+q7uAwn5bbluvtIzyPqs7vfJZ/WwLqPHnIXa2I/I+qzu98lm9UvrRFFDzt6J2tiPyPqs7vfJZvVJ6FxA1pZZR3md1p1c+q59nAbX/OLLOdkTeZ3WnVz6rV0rvAqKm1DLK+6zu9Mpn9fMsIJ+C7fis7vTKZ/VK6V1A1JRaRnmf1Z1e+ax+pgXU/jagvnZE3md1p1c+q1dKP6ICaj5d7Yi8z+pOr3xWr5TeBYTpTq98Vnd65bO6Cyjss7rTK5/VnV75rO4CCvus7vTKZ3WnVz6rn2sBNb8G3deOyPus7vTKZ/VK6V1A1JRaRnmf1Z1e+azuAgr7rcFNvdIyyvus7vTKZ3UXUNhvDW7qlZZR3md1p1c+q7uAwn5rcFOvtIzyPqs7vfJZ3QUU9luDm3qlZZT3Wd3plc/qLqCw3xrc1Csto7zP6k6vfFZ3AYX91uCmXmkZ5X1Wd3rls/qZFlD7/ulrR+R9Vnd65bN6pfQjKSDgwzg62xF5n9WdXvmsXim9C4iaUsso77O60yuf1c+xgIgPZO1sR+R9Vnd65bN6pfQuIGpKLaO8z+pOr3xWP8cC8inYHp/VnV75rF4pvQuImlLLKO+zutMrn9XPsoD8Mvyuz+pOr3xWr5TeBURNqWWU91nd6ZXP6i6gsN9c3NArLaO8z+pOr3xWdwGF/ebihl5pGeV9Vnd65bO6CyjsNxc39ErLKO+zutMrn9VdQGG/ubihV1pGeZ/VnV75rO4CCvvNxQ290jLK+6zu9MpndRdQ2G8ubuiVllHeZ3WnVz6ru4DCfnNxQ6+0jPI+qzu98ln9TAsImK52RN5ndadXPqtXSu8CwnSnVz6rO73yWd0FFPZZ3emVz+pOr3xWdwGFfVZ3euWzutMrn9VdQGGf1Z1e+azu9MpndRdQ2Gd1p1c+qzu98lndBRT2Wd3plc/qTq98VncBhX1Wd3rls7rTK5/Vz7KAgNsQO9sReZ/VnV75rF4p/SgKCPlA1s52RN5ndadXPqtXSu8CoqbUMsr7rO70ymf18ysg5i/l6WxH5H1Wd3rls3ql9C4gakoto7zP6k6vfFY/vwLyKdhen9WdXvmsXil9kwL6l7+9uHj5h++tfeXzNy7m843fbz9fgnUBSZ/VnV75rF4pfYsC+t2ibF7++fWXHt9rWUB+GX6fz+pOr3xWr5S+QQE9unj5P06nT95eb5tHF9+64fkScKkdkfdZ3emVz+qV0h9fQM/evvjJ7N+XZ10/ufri/Ysf3fB8CbnUjsj7rO70ymf1SumPL6DP31ge+ayVzrO318/HNp4vIZfaEXmf1Z1e+axeKX3DV8HWCujzN175xx9fXPzNezsPcgE181nd6ZXP6pXStyugz9+4PupZXYO+Pin78mo+8ng8nuW0K6CHa9edH11cvP7h9F/fuX5lzAXk8Xh2plkBPVp/GX5VRrvXon0K1sxndadXPqtXSt+qgB7de/kne7568cqHW8+XMEvtiLzP6k6vfFavlL5RAT282Puy1+N723ci+kbEZj6rO73yWb1S+jYF9Lv9/XNZQI2OgFxAuz6rO73yWb1S+hYF9Oz+xTc3DnRW9ybuuSHaBdTMZ3WnVz6rV0rfooDu71zpub8onqsiWnu+hOsCkj6rO73yWb1S+gYF9HCnf2b3Ab3+4fTJj3d/xwXUzGd1p1c+q1dK3+KtGBer+daseuZXgx4u3wy/cyu0C6iZz+pOr3xWr5T++AJ6dLGngKZPZh8R9Pr28Y8LqKHP6k6vfFavlH4Un4joAtrns7rTK5/VK6UfSQEh09WOyPus7vTKZ/VK6V1AmO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls/o5FhByDbqvHZH3Wd3plc/qldKPoYCgv5Wnrx2R91nd6ZXP6pXSu4CoKbWM8j6rO73yWf3sCoj6m5n72hF5n9WdXvmsXim9C4iaUsso77O60yuf1c+ugHwKtt9ndadXPqtXSu8CoqbUMsr7rO70ymf18ysgvwy/12d1p1c+q1dK7wKiptQyyvus7vTKZ3UXUNgn0Gu90jLK+6zu9MpndRdQ2CfQa73SMsr7rO70ymd1F1DYJ9BrvdIyyvus7vTKZ/VzLCBmutoReZ/VnV75rF4pvQsI051e+azu9MpndRdQ2Gd1p1c+qzu98lndBRT2Wd3plc/qTq98VncBhX1Wd3rls7rTK5/VXUBhn9WdXvms7vTKZ3UXUNhndadXPqs7vfJZ3QUU9lnd6ZXP6k6vfFY/wwJi7kPsa0fkfVZ3euWzeqX0LiBqSi2jvM/qTq98VncBhX1EvdIrLaO8z+pOr3xWdwGFfUS90isto7zP6k6vfFZ3AYV9RL3SKy2jvM/qTq98VncBhX1EvdIrLaO8z+pOr3xWdwGFfUS90isto7zP6k6vfFZ3AYV9RL3SKy2jvM/qTq98Vj/DAoKmqx2R91nd6ZXP6pXSu4Aw3emVz+pOr3xWdwGFfVZ3euWzutMrn9VdQGGf1Z1e+azu9MpndRdQ2Gd1p1c+qzu98lndBRT2Wd3plc/qTq98Vj+/AoJehe9rR+R9Vnd65bN6pfT9F9BkPkSWrnZE3md1p1c+q1dK7wKiptQyyvus7vTKZ/UzK6DJBGugrnZE3md1p1c+q1dK7wKiptQyyvus7vTKZ/UzKyCfgt3ks7rTK5/VK6V3AVFTahnlfVZ3euWz+rkVkF+Gv8FndadXPqtXSu8CoqbUMsr7rO70ymd1F1DYZ9iVXmkZ5X1Wd3rls/r5FRA1Xe2IvM/qTq98Vq+U3gWE6U6vfFZ3euWzugso7LO60yuf1Z1e+azuAgr7rO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvms7gIK+6zu9MpndadXPqufXQFR9yH2tSPyPqs7vfJZvVJ6FxA1pZZR3md1p1c+q7uAwj7kLvVKyyjvs7rTK5/VXUBhH3KXeqVllPdZ3emVz+ouoLAPuUu90jLK+6zu9MpndRdQ2IfcpV5pGeV9Vnd65bO6CyjsQ+5Sr7SM8j6rO73yWd0FFPYhd6lXWkZ5n9WdXvmsfnYFhE1XOyLvs7rTK5/VK6V3AWG60yuf1Z1e+azuAgr7rO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvms7gIK+6zu9MpndadXPqu7gMI+qzu98lnd6ZXP6mdXQL4Rcb/P6k6vfFavlN4FRE2pZZT3Wd3plc/qLqCwD7lLvdIyyvus7vTKZ3UXUNiH3KVeaRnlfVZ3euWzugso7EPuUq+0jPI+qzu98lndBRT2IXepV1pGeZ/VhBqjdQAAF1dJREFUnV75rO4CCvuQu9QrLaO8z+pOr3xWdwGFfchd6pWWUd5ndadXPqufXQFh09WOyPus7vTKZ/VK6V1AmO70ymd1p1c+q7uAwj6rO73yWd3plc/q51ZA2CWgvnZE3md1p1c+q1dK33sBTebDZOlqR+R9Vnd65bN6pfQuIGpKLaO8z+pOr3xWP6sCmkzABupqR+R9Vnd65bN6pfQuIGpKLaO8z+pOr3xWP6sC8inYzT6rO73yWb1SehcQNaWWUd5ndadXPqufVwH5ZfgbfVZ3euWzeqX0LiBMr7SM8j6rO73yWd0FFPYpeKFXWkZ5n9WdXvms7gIK+xS80Csto7zP6k6vfFZ3AYV9Cl7olZZR3md1p1c+q7uAwj4FL/RKyyjvs7rTK5/Vz62AuOlqR+R9Vnd65bN6pfQuIEx3euWzutMrn9VdQGGf1Z1e+azu9MpndRdQ2Gd1p1c+qzu98lndBRT2Wd3plc/qTq98VncBhX1Wd3rls7rTK5/VXUBhn9WdXvms7vTKZ3UXUNhndadXPqs7vfJZ/cwKiLsPsa8dkfdZ3emVz+qV0ruAML3SMsr7rO70ymd1F1DYx+S5XmkZ5X1Wd3rls7oLKOxj8lyvtIzyPqs7vfJZ3QUU9jF5rldaRnmf1Z1e+azuAgr7mDzXKy2jvM/qTq98VncBhX1MnuuVllHeZ3WnVz6ru4DCPibP9UrLKO+zutMrn9XPrIDA6WpH5H1Wd3rls3ql9C4gTHd65bO60yuf1V1AYZ/VnV75rO70ymd1F1DYZ3WnVz6rO73yWd0FFPZZ3emVz+pOr3xWdwGFfVZ3euWzutMrn9VdQGGf1Z1e+azu9MpndRdQ2Gd1p1c+qzu98ln9zArINyLe5LO60yuf1SuldwFheqVllPdZ3emVz+qdF9BHyZlMst/h8XjGMj4CwvRK/z+W91nd6ZXP6p0fASUe6wKSPqs7vfJZvVJ6FxCmV1pGeZ/VnV75rO4CCvuYPNcrLaO8z+pOr3xWdwGFfUye65WWUd5ndadXPqufWQGB09WOyPus7vTKZ/VK6V1AmO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvms7gIK+6zu9MpndadXPqu7gMI+qzu98lnd6ZXP6i6gsM/qTq98Vnd65bP6eRUQeB9iXzsi77O60yuf1SuldwFheqVllPdZ3emVz+ouoLDP0dNiyyjvs7rTK5/VXUBhn6OnxZZR3md1p1c+q7uAwj5HT4sto7zP6k6vfFZ3AYV9jp4WW0Z5n9WdXvms7gIK+xw9LbaM8j6rO73yWd0FFPY5elpsGeV9Vnd65bP6eRUQOV3tiLzP6k6vfFavlL73AvIR0I0+qzu98lm9Uvq+C2gyHypLVzsi77O60yuf1SuldwFheqVllPdZ3emVz+pnVECTCdpAXe2IvM/qTq98Vq+U3gVETalllPdZ3emVz+pnVEA+BVM+qzu98lm9UnoXEKZXWkZ5n9WdXvmsfk4F5Jfhhc/qTq98Vq+U3gWE6ZWWUd5ndadXPqu7gMI+R0+LLaO8z+pOr3xWdwGFfY6eFltGeZ/VnV75rO4CCvscPS22jPI+qzu98lndBRT2OXpabBnlfVZ3euWzugso7HP0tNgyyvus7vTKZ3UXUNjn6GmxZZT3Wd3plc/q51VA5HS1I/I+qzu98lm9UnoXEKY7vfJZ3emVz+ouoLDP6k6vfFZ3euWzugso7LO60yuf1Z1e+azuAgr7rO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvmsfl4F5BsRb/RZ3emVz+qV0ruAML3SMsr7rO70ymd1F1DY5+hpsWWU91nd6ZXP6i6gsM/R02LLKO+zutMrn9VdQGGfo6fFllHeZ3WnVz6ru4DCPkdPiy2jvM/qTq98VncBhX2OnhZbRnmf1Z1e+azuAgr7HD0ttozyPqs7vfJZ/bwKiJyudkTeZ3WnVz6rV0rvAsJ0p1c+qzu98lndBRT2Wd3plc/qTq98VncBhX1Wd3rls7rTK5/VXUBhn9WdXvms7vTKZ3UXUNhndadXPqs7vfJZ3QUU9lnd6ZXP6k6vfFZ3AYV9Vnd65bO60yuf1c+qgMj7EPvaEXmf1Z1e+axeKb0LCNMrLaO8z+pOr3xWdwGFfdAutozyPqs7vfJZ3QUU9kG72DLK+6zu9MpndRdQ2AftYsso77O60yuf1V1AYR+0iy2jvM/qTq98VncBhX3QLraM8j6rO73yWd0FFPZBu9gyyvus7vTKZ/WzKiB0utoReZ/VnV75rF4pvQsI051e+azu9MpndRdQ2Gd1p1c+qzu98lndBRT2Wd3plc/qTq98VncBhX1Wd3rls7rTK5/VXUBhn9WdXvms7vTKZ3UXUNhndadXPqs7vfJZ3QUU9lnd6ZXP6k6vfFY/qwLyjYg3+6zu9Mpn9UrpXUCYXmkZ5X1Wd3rls7oLKOyDdrFllPdZ3emVz+ouoLAP2sWWUd5ndadXPqu7gMI+aBdbRnmf1Z1e+azuAgr7oF1sGeV9Vnd65bO6Cyjsg3axZZT3Wd3plc/qLqCwD9rFllHeZ3WnVz6rn1UBodPVjsj7rO70ymf1SuldQJju9MpndadXPqu7gMI+qzu98lnd6ZXP6i6gsM/qTq98Vnd65bO6Cyjss7rTK5/VnV75rO4CCvus7vTKZ3WnVz6ru4DCPqs7vfJZ3emVz+ouoLDP6k6vfFZ3euWz+lkVkG9EvNlndadXPqtXSu8CwvRKyyjvs7rTK5/VXUBhH7SLLaO8z+pOr3xWdwGFfdAutozyPqs7vfJZ3QUU9kG72DLK+6zu9MpndRdQ2AftYsso77O60yuf1V1AYR+0iy2jvM/qTq98VncBhX3QLraM8j6rO73yWf2sCgidrnZE3md1p1c+q1dK7wLCdKdXPqs7vfJZ3QUU9lnd6ZXP6k6vfFZ3AYV9Vnd65bO60yuf1V1AYZ/VnV75rO70ymd1F1DYZ3WnVz6rO73yWd0FFPZZ3emVz+pOr3xWdwGFfVZ3euWzutMrn9XPqYDQ+xD72hF5n9WdXvmsXim9CwjTKy2jvM/qTq98VncBhX0Sr7WM8j6rO73yWd0FFPZJvNYyyvus7vTKZ3UXUNgn8VrLKO+zutMrn9VdQGGfxGsto7zP6k6vfFZ3AYV9Eq+1jPI+qzu98lndBRT2SbzWMsr7rO70ymf1cyogLMbCZ3WnVz6rO73yWd0FFPZZ3emVz+pOr3xWdwGFfVZ3euWzutMrn9VdQGGf1Z1e+azu9MpndRdQ2Gd1p1c+qzu98lndBRT2Wd3plc/qTq98VncBhX1Wd3rls7rTK5/VXUBhn9WdXvms7vTKZ/VzKiDfiCh8Vnd65bN6pfRNCujZO/cuLn743oEvLZ4vwbqApM/qTq98Vq+UvkUBff7GxWy+8Xv5peXzJVwXkPRZ3emVz+qV0rcooPsXr7w3ffL2xSsfqi8tny/huoCkz+pOr3xWr5S+QQE9vjc/0Pn8jZd/Lr60er4E7AKSPqs7vfJZvVL6BgX08OJby3//SHxp9XwJeDKffKDodLUj8j6rO73yWb1S+gYFdP/iJ/N/P1q2zv4vrZ4vAbuApM/qTq98Vq+U/vgCevb28jzr8b3VFZ89X/ryaj4Kz2Q58e/weDzjGheQx+M52TQtoNWr7nu+tBqfgjXzWd3plc/qldLf1hHQ1fMlZBeQ9Fnd6ZXP6pXS91xAfhle+qzu9Mpn9Urpe34VrNSOyPus7vTKZ/VK6ZvcB/SjjX/v/9Lq+RJwqR2R91nd6ZXP6pXS930ndD5MZrraEXmf1Z1e+axeKX2DAnr29sU3t974tedLq+dLwKV2RN5ndadXPqtXSt/izahP1t76/vje/KDnSZt3ww8Ik/FZ3emVz+pOr3xWv/0Cmj5557Jsfjg/2FkW0PqXNp8vwZbaEXmf1Z1e+axeKX3fn4iIxVj4rO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvms7gIK+6zu9MpndadXPqu7gMI+qzu98lnd6ZXP6i6gsM/qTq98Vnd65bO6Cyjss7rTK5/VnV75rO4CCvus7vTKZ3WnVz6ru4DCPqs7vfJZ3emVz+ouoLDP6k6vfFZ3euWzugso7LO60yuf1Z1e+azuAgr7rO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvms7gIK+6zu9MpndadXPqu7gMI+qzu98lnd6ZXP6i6gsM/qTq98Vnd65bO6Cyjss7rTK5/VnV75rO4CCvus7vTKZ3WnVz6ru4DCPqs7vfJZ3emVz+ouoLDP6k6vfFZ3euWzugso7LO60yuf1Z1e+azuAgr7rO70ymd1p1c+q7uAwj6rO73yWd3plc/qLqCwz+pOr3xWd3rls7oLKOyzutMrn9WdXvms7gIK+6zu9MpndadXPqu7gMI+qzu98lnd6ZXP6i6gsM/qTq98Vnd65bO6Cyjss7rTK5/VnV75rO4CCvus7vTKZ3WnVz6ru4DCPqs7vfJZ3emVz+ouoLDP6k6vfFZ3euWzugso7LO60yuf1Z1e+azeeQF5PB7P9biAPB7PyeZ2Cygz29nGNU5/unH6082R6V1ArcbpTzdOf7pxAXUyTn+6cfrTjQuok3H6043Tn25cQJ2M059unP504wLqZJz+dOP0pxsXUCfj9Kcbpz/dnFEBeTyeYuMC8ng8JxsXkMfjOdm4gDwez8nGBeTxeE42LiCPx3OycQF5PJ6TjQvI4/GcbLopoGfv3Lu4+OF7p46Rms/f+NbyvzbSj+GP8i9/e3Hx8t7Ao0j/48v0/8eHi1+MLv1sHt97ZRF/bOk/f+NiPt/4/exXx6fvpYCWf67FH2ssc/9iWUAb6cfwR/ndYhW9/PPZL0aX/uEi/Td3A48h/WyevX2xKKDRpX98b62AGqTvpYDuX7zy3vTJareMYp7dv1gV0Eb6EfxRHl28/B+ns4zz1TK29I/vzdP/eLH1x5Z+PpcVuog4uvSPVmt+Ng3Sd1JAj+8tG3Xx/8ljmNlpwHJnbKQfwR/l8v9/fzL79+X/Z/1kfOkvV/qPZv9aRB1d+tnMDiPmP6fjS7/c+PNpkb6TAnq4/FF+uPbH63su/z/s9f95lXot/Qj+KJ+/sTxOvr8TeATpV7P4U4wx/eX/Afzvi2tAo0v/7O21fmmRvpMCur/4v+TNA7yu5+E3/+tV2o30Y/qjzAtorOkX13HHmP7+xbeWF6FHl/7zN175x8tD/7+ZX2pukb6PArrq1asXB0Yxy229kX5Mf5T54fJY0//Pe7MVP8b0jy5PvxYJx5d+dQ262bZ3AR0xYy+g+VHzONPfv7h4+b9OR5l+XvtjLaBHFxevfzj913cuWv1fV3cF1PVrkFuzW0Df+P2I/iiP5i/DjzL9s//rf7t38fL/Ocr08/PenQIaSfqHV1cdftQmfXcF1G/57864j4Ae3Xt5dtY+0vTT6b/MzsHGl/7h/PWvsR4BrWZ2GnmeR0D9b/vrGXUBPVzehjjO9LNp9kNwm/P43jzj2Ato66Bn7AU0ihcAdmfMr4L97mL1euoY089nvtTHln55F/fynuGxpb+aZtu+kwJa3TzQ8y0Qu/No69aH5f0QI/ijPLu/fCPDdHzpV7dRLn4IxpZ+s4DGlv5q28+Xfov0nRTQKG4C3ZlVAY3xftbr4+TRpb9/deD5rRGmX8zyRGV06e+vrjq0uoe+kwK6/AN9s/u3wezMqoA20o/hj/JwPdzo0j++N3sp+Nnvli/ijSz9YpYFNLr0i23/5Me7gQem76SApk9G8Ebgnbk63d1I3/8fZfWRCss3s40s/fxmlPl7+ednA6NLP5/VpdrRpV+eQn5jfit0g/S9FND0yTuX4X/Yb/Xvm+vrbRvpu/+jPLq+DjH/A4wr/eU8Wf80o9Gln83Va0WjSz/f9q/vCzwofTcF5PF46o0LyOPxnGxcQB6P52TjAvJ4PCcbF5DH4znZuIA8Hs/JxgXk8XhONi4gj8dzsnEBeTyek40LyOPxnGxcQB6P52TjAvJ4PCcbF5DH4znZuIDKzbuTyUtXv/js1cmXMt98+fiXDj9Kz9Nf3p1MvvB313E2Zg//yd3jn9TT57iAys3lT/yd1U//SQpoXjlf+O36r1xAVccFVG5mP/HPf7D8xQkK6LJO/s0H1790AZUeF1C5eXf9x/wEBfTxZPKDnS8+fVPkcAGd77iAys28gFYnYScpoOszwKtxARUdF1C5eXfyhf/n6iTMBeQ56biAys1lAf326pWwZQFd98qD+eXheR+8/+3LI6WvXxbV+9+5PGZ68TfLx7/09Bd3J5Ov/mzlffrW5S/vLH579o0/mH3fF9c7Zv0RDxZXerY7aLuANtBVAV2evD33253fnUf65Vcun/N7H6x981pCT7/jAio3swK6/KFdVMDNBfRvlleHv/DbX6x1xuUDX3x18evlMdSD1dXjr89+dfmN3914kWvtEXf+ehotoI1vWRXQx3eX/bP5lJeR/v23F79e/PY/r377ud9OPZ2PC6jczApodjAxL5CbC+jyx/uD6dPL8vni5MU/TZ/+/eIbPnv1+je+tHj8/Njoz79Y1MHsGy/L5dO1o4/LRzz36+n0D99eXnwOnIJtfcuigD5Z65/1p5xFuvPXH0w/fXNxWHf5uOcvf3uWOHV26TnFuIDKzbyAZpeiZz/booDmX5j9dH9p7dtmv35p+cBZj1z+tH9puvbr2TduvsZ1+R2LY6XL35ofFx0uoO1vmRfQVf9sP+Us0g+Wj55924PV4de7G8dhni7HBVRu3l39UC8L5YYCuvopXtbF1U/78jcW33n1076skOtvXM2Dq75ZnUkdLKDtb5n986p/dp7yqq6Wf7IH+3xPp+MCKjfLA4MHk+VP7w0FtPFDPV31xtqrZu9ePmS9N2a/XvvGraebXn3v4QLa/pbL8nnxqvh2nvI60iL7x7Pr078esmU8tz8uoHKz/PFenCypV8HWH71WQC+tOZ+9un4T8+Ujd15OX2uk5X8eLKCdb/nk7to90jtPuZ19urho/sXv/enYLeXhxwVUblaVMj8JG1BAq0s8D6IFtHnAEiqgzW+ZFdBzd5dBDhfQ4raB2atgfiG++3EBlZurSpmdhB1/BHRz36y+0OII6PkPHiyvhu885W4BXc4ffvqVWQXtvufD09e4gMrNu2tXUyb/63YBvZsooPk1oM1LPrt3NLe5BvTS1etrO0+5t4Cm06s7Bzw9jwuo3Fz/eC+urSwLaPHzv3wVSxXQ9Zs4Xlp7kWxZDLsF9ODqOOTjSfhVsM1vuXotbB5l+ym3CmhN8uvw/Y8LqNys/Vg+WBXQ1WHFx5ODBbQsh3dX9wEtC2nxJvfdAmp1H9Dqdbudp9w+Arp6GX73FTlPd+MCKjdrBTS/4Xl1Q/Pzv1l+VuGhApr8xQfTT99avir1YHGtd3W+s+dNpWu3Nb90DW3NjXdCL+9tfmnxmPl3bj3ldgHN3mby/cuvf7pzT6Snv3EBlZv1E5PZSdj8B39eRbM3eP39wQL696+uvRFr7Y1Z86ONfe9q33xjV+jd8HvfC3b1/pHNp9y5BrR81X6y98PNPH2NC6jcbFwZWb22NF28n/z7kVfBFu+Gv7rV79O3Zi84Ld97vvdjNRZvXv/68r6c0MdxbHzL1cdxrN7Ev/GUuxehn/7yhdmNQF/3jUD9jwvI4/GcbFxAHo/nZOMC8ng8JxsXkMfjOdm4gDwez8nGBeTxeE42LiCPx3OycQF5PJ6TjQvI4/GcbFxAHo/nZOMC8ng8JxsXkMfjOdm4gDwez8nGBeTxeE42LiCPx3OycQF5PJ6TjQvI4/GcbFxAHo/nZOMC8ng8JxsXkMfjOdn8/wwmoLYjf+MRAAAAAElFTkSuQmCC" width="576" style="display: block; margin: auto;" /></p>
+<p>The more tokens appear more than once, the entropy starts decreasing. See below for an hypothetical example</p>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1"></a><span class="co"># maximum entropy</span></span>
+<span id="cb41-2"><a href="#cb41-2"></a></span>
+<span id="cb41-3"><a href="#cb41-3"></a>p &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">1</span><span class="op">/</span><span class="dv">50</span>,<span class="dv">50</span>)</span>
+<span id="cb41-4"><a href="#cb41-4"></a>p</span></code></pre></div>
+<pre><code> [1] 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02
+[16] 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02
+[31] 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02
+[46] 0.02 0.02 0.02 0.02 0.02</code></pre>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1"></a><span class="op">-</span><span class="kw">sum</span>(p<span class="op">*</span><span class="kw">log</span>(p,<span class="dt">base=</span><span class="dv">2</span>))</span></code></pre></div>
+<pre><code>[1] 5.643856</code></pre>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1"></a><span class="co"># One of the tokens appears twice</span></span>
+<span id="cb45-2"><a href="#cb45-2"></a></span>
+<span id="cb45-3"><a href="#cb45-3"></a>p &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span><span class="op">/</span><span class="dv">50</span>,<span class="dv">48</span>),<span class="dv">2</span><span class="op">/</span><span class="dv">50</span>)</span>
+<span id="cb45-4"><a href="#cb45-4"></a>p</span></code></pre></div>
+<pre><code> [1] 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02
+[16] 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02
+[31] 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02
+[46] 0.02 0.02 0.02 0.04</code></pre>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1"></a><span class="op">-</span><span class="kw">sum</span>(p<span class="op">*</span><span class="kw">log</span>(p,<span class="dt">base=</span><span class="dv">2</span>))</span></code></pre></div>
+<pre><code>[1] 5.603856</code></pre>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1"></a><span class="co"># Two of the tokens appear twice</span></span>
+<span id="cb49-2"><a href="#cb49-2"></a></span>
+<span id="cb49-3"><a href="#cb49-3"></a>p &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">rep</span>(<span class="dv">1</span><span class="op">/</span><span class="dv">50</span>,<span class="dv">46</span>),<span class="dv">2</span><span class="op">/</span><span class="dv">50</span>,<span class="dv">2</span><span class="op">/</span><span class="dv">50</span>)</span>
+<span id="cb49-4"><a href="#cb49-4"></a>p</span></code></pre></div>
+<pre><code> [1] 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02
+[16] 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02
+[31] 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02 0.02
+[46] 0.02 0.04 0.04</code></pre>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1"></a><span class="op">-</span><span class="kw">sum</span>(p<span class="op">*</span><span class="kw">log</span>(p,<span class="dt">base=</span><span class="dv">2</span>))</span></code></pre></div>
+<pre><code>[1] 5.563856</code></pre>
 </div>
-<div id="word-length" class="section level2">
-<h2>Word length</h2>
-</div>
-<div id="measures-of-lexical-variety" class="section level2">
-<h2>Measures of lexical variety</h2>
+<div id="lexical-diversity" class="section level2">
+<h2>1.5. Lexical diversity</h2>
+<p>We can calculate a variety of indices regarding the lexical diversity by using the <code>textstat_lexdiv()</code> function. All these indices have two primary inputs: number of unique tokens (V), total number of tokens (N). The help page (<code>?textstat_lexdiv</code>) provides the formula for a total of 13 indices all a function of total number of tokens and number of unique tokens.</p>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1"></a><span class="kw">textstat_lexdiv</span>(tokenized,</span>
+<span id="cb53-2"><a href="#cb53-2"></a>                <span class="dt">remove_numbers =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb53-3"><a href="#cb53-3"></a>                <span class="dt">remove_punct   =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb53-4"><a href="#cb53-4"></a>                <span class="dt">remove_symbols =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb53-5"><a href="#cb53-5"></a>                <span class="dt">measure        =</span> <span class="st">&#39;all&#39;</span>)</span></code></pre></div>
+<pre><code>  document       TTR        C        R     CTTR        U         S        K
+1    text1 0.5810056 0.895324 7.773325 5.496571 21.52215 0.8638636 238.1324
+         I          D        Vm      Maas   MATTR MSTTR     lgV0   lgeV0
+1 16.41275 0.01832904 0.1191548 0.2155545 0.61725  0.74 4.528431 10.4271</code></pre>
 </div>
 <div id="measures-of-readability" class="section level2">
-<h2>Measures of readability</h2>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">require</span>(udpipe)</span>
-<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">require</span>(quanteda)</span>
-<span id="cb3-3"><a href="#cb3-3"></a><span class="kw">require</span>(nsyllable)</span>
-<span id="cb3-4"><a href="#cb3-4"></a></span>
-<span id="cb3-5"><a href="#cb3-5"></a>model  &lt;-<span class="st"> </span><span class="kw">udpipe_download_model</span>(<span class="dt">language =</span> <span class="st">&quot;english&quot;</span>)</span>
-<span id="cb3-6"><a href="#cb3-6"></a></span>
-<span id="cb3-7"><a href="#cb3-7"></a>text &lt;-<span class="st"> </span><span class="kw">as.character</span>(train_df[i,]<span class="op">$</span>excerpt)</span>
-<span id="cb3-8"><a href="#cb3-8"></a>  </span>
-<span id="cb3-9"><a href="#cb3-9"></a>  </span>
-<span id="cb3-10"><a href="#cb3-10"></a>  tokenized &lt;-<span class="st"> </span><span class="kw">tokens</span>(text)</span>
-<span id="cb3-11"><a href="#cb3-11"></a>  dm &lt;-<span class="st"> </span><span class="kw">dfm</span>(tokenized)</span>
-<span id="cb3-12"><a href="#cb3-12"></a>  </span>
-<span id="cb3-13"><a href="#cb3-13"></a>  </span>
-<span id="cb3-14"><a href="#cb3-14"></a>  annotated &lt;-<span class="st"> </span><span class="kw">udpipe_annotate</span>(ud_eng, <span class="dt">x =</span> text)</span>
-<span id="cb3-15"><a href="#cb3-15"></a>  annotated &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(annotated)</span>
-<span id="cb3-16"><a href="#cb3-16"></a>  </span>
-<span id="cb3-17"><a href="#cb3-17"></a>  <span class="co"># cbind_morphological(annotated, term = &quot;feats&quot;, which = &quot;lexical&quot;)</span></span>
-<span id="cb3-18"><a href="#cb3-18"></a>    </span>
-<span id="cb3-19"><a href="#cb3-19"></a>  <span class="co"># Morphological annotation (universal POS tags, https://universaldependencies.org/u/pos/index.html)</span></span>
-<span id="cb3-20"><a href="#cb3-20"></a>  </span>
-<span id="cb3-21"><a href="#cb3-21"></a>  temp     &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="kw">table</span>(annotated<span class="op">$</span>upos))</span>
-<span id="cb3-22"><a href="#cb3-22"></a>  temp[,<span class="dv">2</span>] &lt;-<span class="st"> </span>temp[,<span class="dv">2</span>]</span>
-<span id="cb3-23"><a href="#cb3-23"></a>  </span>
-<span id="cb3-24"><a href="#cb3-24"></a>  words &lt;-<span class="st"> </span>annotated[<span class="op">!</span>annotated<span class="op">$</span>upos<span class="op">%in%</span><span class="kw">c</span>(<span class="st">&#39;PUNCT&#39;</span>,<span class="st">&#39;SYS&#39;</span>,<span class="st">&#39;X&#39;</span>),]<span class="op">$</span>token</span>
-<span id="cb3-25"><a href="#cb3-25"></a>  </span>
-<span id="cb3-26"><a href="#cb3-26"></a>  temp[,<span class="dv">1</span>] &lt;-<span class="st"> </span><span class="kw">as.character</span>(temp[,<span class="dv">1</span>])</span>
-<span id="cb3-27"><a href="#cb3-27"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="kw">table</span>(annotated<span class="op">$</span>xpos)))</span>
-<span id="cb3-28"><a href="#cb3-28"></a>  </span>
-<span id="cb3-29"><a href="#cb3-29"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;nwords&#39;</span>,<span class="dt">Freq=</span><span class="kw">length</span>(words)))</span>
-<span id="cb3-30"><a href="#cb3-30"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;nchars&#39;</span>,<span class="dt">Freq=</span><span class="kw">sum</span>(<span class="kw">nchar</span>(annotated<span class="op">$</span>token))))</span>
-<span id="cb3-31"><a href="#cb3-31"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;nchars&#39;</span>,<span class="dt">Freq=</span><span class="kw">sum</span>(<span class="kw">nchar</span>(annotated<span class="op">$</span>token))<span class="op">/</span><span class="kw">length</span>(words)))</span>
-<span id="cb3-32"><a href="#cb3-32"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;wdiv&#39;</span>,<span class="dt">Freq=</span><span class="kw">length</span>(<span class="kw">unique</span>(words))<span class="op">/</span><span class="kw">length</span>(words)))</span>
-<span id="cb3-33"><a href="#cb3-33"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;nsent&#39;</span>,<span class="dt">Freq=</span><span class="kw">length</span>(<span class="kw">unique</span>(annotated<span class="op">$</span>sentence_id))))</span>
-<span id="cb3-34"><a href="#cb3-34"></a>  </span>
-<span id="cb3-35"><a href="#cb3-35"></a></span>
-<span id="cb3-36"><a href="#cb3-36"></a>  <span class="co"># Morphologicla features (https://universaldependencies.org/u/feat/index.html)</span></span>
-<span id="cb3-37"><a href="#cb3-37"></a>  </span>
-<span id="cb3-38"><a href="#cb3-38"></a>  feats  &lt;-<span class="st"> </span><span class="kw">na.omit</span>(annotated<span class="op">$</span>feats)</span>
-<span id="cb3-39"><a href="#cb3-39"></a>  feats1 &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw">strsplit</span>(feats,<span class="dt">split=</span><span class="st">&#39;</span><span class="ch">\\</span><span class="st">|&#39;</span>))</span>
-<span id="cb3-40"><a href="#cb3-40"></a>  feats2 &lt;-<span class="st">  </span><span class="kw">unlist</span>(<span class="kw">strsplit</span>(feats1,<span class="dt">split=</span><span class="st">&#39;=&#39;</span>))[<span class="kw">c</span>(<span class="ot">TRUE</span>,<span class="ot">FALSE</span>)]</span>
-<span id="cb3-41"><a href="#cb3-41"></a>  </span>
-<span id="cb3-42"><a href="#cb3-42"></a>  feats1        &lt;-<span class="st"> </span><span class="kw">table</span>(feats1)</span>
-<span id="cb3-43"><a href="#cb3-43"></a>  <span class="kw">names</span>(feats1) &lt;-<span class="st"> </span><span class="kw">gsub</span>(<span class="st">&#39;=&#39;</span>,<span class="st">&#39;.&#39;</span>,<span class="kw">names</span>(feats1))</span>
-<span id="cb3-44"><a href="#cb3-44"></a>  </span>
-<span id="cb3-45"><a href="#cb3-45"></a>  feats2        &lt;-<span class="st"> </span><span class="kw">table</span>(feats2)</span>
-<span id="cb3-46"><a href="#cb3-46"></a>  <span class="kw">names</span>(feats2) &lt;-<span class="st"> </span><span class="kw">names</span>(feats2)</span>
-<span id="cb3-47"><a href="#cb3-47"></a>  </span>
-<span id="cb3-48"><a href="#cb3-48"></a></span>
-<span id="cb3-49"><a href="#cb3-49"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(feats1))</span>
-<span id="cb3-50"><a href="#cb3-50"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(feats2))</span>
-<span id="cb3-51"><a href="#cb3-51"></a>  </span>
-<span id="cb3-52"><a href="#cb3-52"></a></span>
-<span id="cb3-53"><a href="#cb3-53"></a>  <span class="co"># Syntactic Annotation (https://universaldependencies.org/u/dep/index.html)</span></span>
-<span id="cb3-54"><a href="#cb3-54"></a>  </span>
-<span id="cb3-55"><a href="#cb3-55"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="kw">table</span>(annotated<span class="op">$</span>dep_rel)))</span>
-<span id="cb3-56"><a href="#cb3-56"></a>  </span>
-<span id="cb3-57"><a href="#cb3-57"></a>  <span class="co"># Word Length distribution</span></span>
-<span id="cb3-58"><a href="#cb3-58"></a>  </span>
-<span id="cb3-59"><a href="#cb3-59"></a>  wl &lt;-<span class="st"> </span><span class="kw">table</span>(<span class="kw">nchar</span>(<span class="kw">tokens</span>(text,</span>
-<span id="cb3-60"><a href="#cb3-60"></a>                           <span class="dt">remove_punct =</span> <span class="ot">TRUE</span>,</span>
-<span id="cb3-61"><a href="#cb3-61"></a>                           <span class="dt">remove_numbers =</span> <span class="ot">TRUE</span>,</span>
-<span id="cb3-62"><a href="#cb3-62"></a>                           <span class="dt">remove_symbols =</span> <span class="ot">TRUE</span>,</span>
-<span id="cb3-63"><a href="#cb3-63"></a>                           <span class="dt">remove_separators =</span> <span class="ot">TRUE</span>)[[<span class="dv">1</span>]])</span>
-<span id="cb3-64"><a href="#cb3-64"></a>  )</span>
-<span id="cb3-65"><a href="#cb3-65"></a>  </span>
-<span id="cb3-66"><a href="#cb3-66"></a>  <span class="kw">names</span>(wl) &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&#39;l&#39;</span>,<span class="kw">names</span>(wl))</span>
-<span id="cb3-67"><a href="#cb3-67"></a>  </span>
-<span id="cb3-68"><a href="#cb3-68"></a> </span>
-<span id="cb3-69"><a href="#cb3-69"></a>  label_let &lt;-<span class="st"> </span><span class="kw">names</span>(wl)</span>
-<span id="cb3-70"><a href="#cb3-70"></a>  </span>
-<span id="cb3-71"><a href="#cb3-71"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l1&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-72"><a href="#cb3-72"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l1&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l1&#39;</span>])),</span>
-<span id="cb3-73"><a href="#cb3-73"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l1&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-74"><a href="#cb3-74"></a>  </span>
-<span id="cb3-75"><a href="#cb3-75"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l2&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-76"><a href="#cb3-76"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l2&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l2&#39;</span>])),</span>
-<span id="cb3-77"><a href="#cb3-77"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l2&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-78"><a href="#cb3-78"></a>  </span>
-<span id="cb3-79"><a href="#cb3-79"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l3&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-80"><a href="#cb3-80"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l3&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l3&#39;</span>])),</span>
-<span id="cb3-81"><a href="#cb3-81"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l3&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-82"><a href="#cb3-82"></a>  </span>
-<span id="cb3-83"><a href="#cb3-83"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l4&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-84"><a href="#cb3-84"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l4&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l4&#39;</span>])),</span>
-<span id="cb3-85"><a href="#cb3-85"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l4&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-86"><a href="#cb3-86"></a>  </span>
-<span id="cb3-87"><a href="#cb3-87"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l5&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-88"><a href="#cb3-88"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l5&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l5&#39;</span>])),</span>
-<span id="cb3-89"><a href="#cb3-89"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l5&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-90"><a href="#cb3-90"></a>  </span>
-<span id="cb3-91"><a href="#cb3-91"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l6&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-92"><a href="#cb3-92"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l6&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l6&#39;</span>])),</span>
-<span id="cb3-93"><a href="#cb3-93"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l6&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-94"><a href="#cb3-94"></a>  </span>
-<span id="cb3-95"><a href="#cb3-95"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l7&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-96"><a href="#cb3-96"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l7&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l7&#39;</span>])),</span>
-<span id="cb3-97"><a href="#cb3-97"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l7&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-98"><a href="#cb3-98"></a>  </span>
-<span id="cb3-99"><a href="#cb3-99"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l8&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-100"><a href="#cb3-100"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l8&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l8&#39;</span>])),</span>
-<span id="cb3-101"><a href="#cb3-101"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l8&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-102"><a href="#cb3-102"></a>  </span>
-<span id="cb3-103"><a href="#cb3-103"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l9&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-104"><a href="#cb3-104"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l9&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l9&#39;</span>])),</span>
-<span id="cb3-105"><a href="#cb3-105"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l9&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-106"><a href="#cb3-106"></a>  </span>
-<span id="cb3-107"><a href="#cb3-107"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l10&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-108"><a href="#cb3-108"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l10&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l10&#39;</span>])),</span>
-<span id="cb3-109"><a href="#cb3-109"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l10&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-110"><a href="#cb3-110"></a>  </span>
-<span id="cb3-111"><a href="#cb3-111"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l11&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-112"><a href="#cb3-112"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l11&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l11&#39;</span>])),</span>
-<span id="cb3-113"><a href="#cb3-113"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l11&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-114"><a href="#cb3-114"></a>  </span>
-<span id="cb3-115"><a href="#cb3-115"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l12&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-116"><a href="#cb3-116"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l12&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l12&#39;</span>])),</span>
-<span id="cb3-117"><a href="#cb3-117"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l12&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-118"><a href="#cb3-118"></a>  </span>
-<span id="cb3-119"><a href="#cb3-119"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l13&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-120"><a href="#cb3-120"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l13&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l13&#39;</span>])),</span>
-<span id="cb3-121"><a href="#cb3-121"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l13&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-122"><a href="#cb3-122"></a>  </span>
-<span id="cb3-123"><a href="#cb3-123"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l14&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-124"><a href="#cb3-124"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l14&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l14&#39;</span>])),</span>
-<span id="cb3-125"><a href="#cb3-125"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l14&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-126"><a href="#cb3-126"></a>  </span>
-<span id="cb3-127"><a href="#cb3-127"></a>  <span class="kw">ifelse</span>(<span class="st">&#39;l15&#39;</span><span class="op">%in%</span>label_let,</span>
-<span id="cb3-128"><a href="#cb3-128"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l15&#39;</span>,<span class="dt">Freq=</span>wl[<span class="st">&#39;l15&#39;</span>])),</span>
-<span id="cb3-129"><a href="#cb3-129"></a>         temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span><span class="st">&#39;l15&#39;</span>,<span class="dt">Freq=</span><span class="dv">0</span>)))</span>
-<span id="cb3-130"><a href="#cb3-130"></a>  </span>
-<span id="cb3-131"><a href="#cb3-131"></a>  <span class="co"># Measures of Lexical variety)</span></span>
-<span id="cb3-132"><a href="#cb3-132"></a>  </span>
-<span id="cb3-133"><a href="#cb3-133"></a>  lexical &lt;-<span class="st"> </span><span class="kw">textstat_lexdiv</span>(tokenized,<span class="dt">measure =</span> <span class="st">&#39;all&#39;</span>)[<span class="dv">1</span>,<span class="dv">2</span><span class="op">:</span><span class="dv">16</span>]</span>
-<span id="cb3-134"><a href="#cb3-134"></a>    </span>
-<span id="cb3-135"><a href="#cb3-135"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span> <span class="kw">colnames</span>(lexical),<span class="dt">Freq =</span> <span class="kw">as.numeric</span>(lexical[<span class="dv">1</span>,])))</span>
-<span id="cb3-136"><a href="#cb3-136"></a>    </span>
-<span id="cb3-137"><a href="#cb3-137"></a>  <span class="co"># Measures of Readability</span></span>
-<span id="cb3-138"><a href="#cb3-138"></a>  </span>
-<span id="cb3-139"><a href="#cb3-139"></a>  readable &lt;-<span class="st"> </span><span class="kw">textstat_readability</span>(text, <span class="dt">measure =</span> <span class="st">&#39;all&#39;</span>)[<span class="dv">1</span>,<span class="dv">2</span><span class="op">:</span><span class="dv">49</span>]</span>
-<span id="cb3-140"><a href="#cb3-140"></a>  temp &lt;-<span class="st"> </span><span class="kw">rbind</span>(temp,<span class="kw">data.frame</span>(<span class="dt">Var1 =</span> <span class="kw">colnames</span>(readable),<span class="dt">Freq =</span> <span class="kw">as.numeric</span>(readable[<span class="dv">1</span>,])))</span>
-<span id="cb3-141"><a href="#cb3-141"></a></span>
-<span id="cb3-142"><a href="#cb3-142"></a>  </span>
-<span id="cb3-143"><a href="#cb3-143"></a>  list1[[i]] &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="kw">t</span>(temp[,<span class="dv">2</span>]))</span>
-<span id="cb3-144"><a href="#cb3-144"></a>  <span class="kw">colnames</span>(list1[[i]]) &lt;-<span class="st"> </span>temp[,<span class="dv">1</span>]</span>
-<span id="cb3-145"><a href="#cb3-145"></a>  </span>
-<span id="cb3-146"><a href="#cb3-146"></a><span class="kw">print</span>(i)  </span>
-<span id="cb3-147"><a href="#cb3-147"></a><span class="er">}</span></span></code></pre></div>
+<h2>1.6. Measures of readability</h2>
+<p>We can calculate a variety of indices for readability. These indices exist for a long time and functions of variables such as number of words, number of characters, number of sentences, number of syllables, number of words matching the <a href="https://www.readabilityformulas.com/articles/dale-chall-readability-word-list.php">Dale-Chall List of 3000 “familiar words”</a>, average sentence length, average word length, ratio of number of words matching the Dale-Chall list of 3000 “familiar words” to the total number of all words, and number of “difficult” words not matching the Dale-Chall list of “familiar” words.</p>
+<p>The <code>textstat_readability()</code> function provides about 46 different indices as functions of these variables, see <code>?textstat_readability</code> for all the formulas and references.</p>
+<div class="sourceCode" id="cb55"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1"></a><span class="kw">textstat_readability</span>(text,</span>
+<span id="cb55-2"><a href="#cb55-2"></a>                     <span class="dt">measure=</span><span class="st">&#39;all&#39;</span>)</span></code></pre></div>
+<pre><code>  document      ARI ARI.simple  ARI.NRI Bormuth.MC Bormuth.GP  Coleman
+1    text1 7.276665   55.58714 5.270216  -2.864315   60485854 59.90359
+  Coleman.C2 Coleman.Liau.ECP Coleman.Liau.grade Coleman.Liau.short Dale.Chall
+1   59.48646         55.09734           7.967059           7.967735   41.62426
+  Dale.Chall.old Dale.Chall.PSK Danielson.Bryan Danielson.Bryan.2
+1       6.284634       5.587946        5.313453          87.13327
+  Dickes.Steiwer      DRP      ELF Farr.Jenkins.Paterson   Flesch Flesch.PSK
+1      -317.3508 386.4315 3.909091             -46.99924 78.89165   5.060137
+  Flesch.Kincaid      FOG FOG.PSK  FOG.NRI  FORCAST FORCAST.RGL    Fucks
+1       6.343295 9.012757 5.02533 15.20136 8.563536     7.84989 71.54545
+  Linsear.Write      LIW      nWS    nWS.2    nWS.3    nWS.4      RIX Scrabble
+1             4 33.02913 3.353659 4.166776 3.820909 4.344952 2.727273  1.68615
+      SMOG   SMOG.C SMOG.simple  SMOG.de   Spache Spache.old   Strain
+1 8.841846 8.787297    8.477226 3.477226 4.280939   4.869588 6.490909
+  Traenkle.Bailer Traenkle.Bailer.2 Wheeler.Smith meanSentenceLength
+1       -348.1211         -230.3328      39.09091           16.45455
+  meanWordSyllables
+1          1.314917</code></pre>
 </div>
 </div>
-<div id="word-embeddings" class="section level1">
-<h1>Word Embeddings</h1>
-<p>Text package installation and info</p>
-<p><a href="https://www.r-text.org/" class="uri">https://www.r-text.org/</a></p>
-<p><a href="https://www.r-text.org/articles/Word%20embeddings.html" class="uri">https://www.r-text.org/articles/Word%20embeddings.html</a></p>
-<div id="preparing-environment" class="section level2">
-<h2>Preparing Environment</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">require</span>(reticulate)</span>
-<span id="cb4-2"><a href="#cb4-2"></a></span>
-<span id="cb4-3"><a href="#cb4-3"></a><span class="co"># List the available Python environments</span></span>
-<span id="cb4-4"><a href="#cb4-4"></a></span>
-<span id="cb4-5"><a href="#cb4-5"></a><span class="kw">virtualenv_list</span>()</span>
-<span id="cb4-6"><a href="#cb4-6"></a></span>
-<span id="cb4-7"><a href="#cb4-7"></a><span class="co"># Import the modules</span></span>
-<span id="cb4-8"><a href="#cb4-8"></a></span>
-<span id="cb4-9"><a href="#cb4-9"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;torch&#39;</span>)</span>
-<span id="cb4-10"><a href="#cb4-10"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;numpy&#39;</span>)</span>
-<span id="cb4-11"><a href="#cb4-11"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;transformers&#39;</span>)</span>
-<span id="cb4-12"><a href="#cb4-12"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;nltk&#39;</span>)</span>
-<span id="cb4-13"><a href="#cb4-13"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;tokenizers&#39;</span>)</span>
-<span id="cb4-14"><a href="#cb4-14"></a></span>
-<span id="cb4-15"><a href="#cb4-15"></a><span class="co"># Load the text package</span></span>
-<span id="cb4-16"><a href="#cb4-16"></a></span>
-<span id="cb4-17"><a href="#cb4-17"></a><span class="kw">require</span>(text)</span></code></pre></div>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>txt1 &lt;-<span class="st"> </span><span class="kw">as.character</span>(<span class="st">&#39;This is a great class! The lectures are very well organized. Grading is fair. I learned a lot&#39;</span>)</span>
-<span id="cb5-2"><a href="#cb5-2"></a>txt1</span>
-<span id="cb5-3"><a href="#cb5-3"></a></span>
-<span id="cb5-4"><a href="#cb5-4"></a>txt2 &lt;-<span class="st"> </span><span class="kw">as.character</span>(<span class="st">&#39;I hate this class. There is no organization and lectures are too boring. The assignments are difficult.&#39;</span>)</span>
-<span id="cb5-5"><a href="#cb5-5"></a>txt2</span>
-<span id="cb5-6"><a href="#cb5-6"></a></span>
-<span id="cb5-7"><a href="#cb5-7"></a><span class="co"># first hidden layer</span></span>
-<span id="cb5-8"><a href="#cb5-8"></a></span>
-<span id="cb5-9"><a href="#cb5-9"></a>tmp1 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x =</span> txt1,<span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,<span class="dt">layers =</span> <span class="dv">1</span>,<span class="dt">contexts=</span><span class="ot">TRUE</span>)</span>
-<span id="cb5-10"><a href="#cb5-10"></a>tmp2 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x =</span> txt2,<span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,<span class="dt">layers =</span> <span class="dv">1</span>,<span class="dt">contexts=</span><span class="ot">TRUE</span>)</span>
-<span id="cb5-11"><a href="#cb5-11"></a></span>
-<span id="cb5-12"><a href="#cb5-12"></a>tmp1<span class="op">$</span>x</span>
-<span id="cb5-13"><a href="#cb5-13"></a>tmp2<span class="op">$</span>x</span>
-<span id="cb5-14"><a href="#cb5-14"></a></span>
-<span id="cb5-15"><a href="#cb5-15"></a><span class="co"># Concatenating the last four hidden layer</span></span>
-<span id="cb5-16"><a href="#cb5-16"></a></span>
-<span id="cb5-17"><a href="#cb5-17"></a>tmp1 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x =</span> txt1,<span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,<span class="dt">layers =</span> <span class="dv">9</span><span class="op">:</span><span class="dv">12</span>,<span class="dt">contexts=</span><span class="ot">TRUE</span>)</span>
-<span id="cb5-18"><a href="#cb5-18"></a>tmp2 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x =</span> txt2,<span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,<span class="dt">layers =</span> <span class="dv">9</span><span class="op">:</span><span class="dv">12</span>,<span class="dt">contexts=</span><span class="ot">TRUE</span>)</span>
-<span id="cb5-19"><a href="#cb5-19"></a>tmp1<span class="op">$</span>x</span>
-<span id="cb5-20"><a href="#cb5-20"></a>tmp2<span class="op">$</span>x</span>
-<span id="cb5-21"><a href="#cb5-21"></a></span>
-<span id="cb5-22"><a href="#cb5-22"></a>txt1 &lt;-<span class="st"> </span><span class="kw">as.character</span>(<span class="st">&#39;phone&#39;</span>)</span>
-<span id="cb5-23"><a href="#cb5-23"></a>tmp1 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x =</span> txt,<span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,<span class="dt">layers =</span> <span class="dv">9</span><span class="op">:</span><span class="dv">12</span>,<span class="dt">contexts=</span><span class="ot">TRUE</span>)</span>
-<span id="cb5-24"><a href="#cb5-24"></a>tmp1<span class="op">$</span>x</span></code></pre></div>
+<div id="lemmatization-parts-of-speech-tagging-and-dependency-parsing-via-udpipe" class="section level1">
+<h1>2. Lemmatization, Parts of Speech Tagging, and Dependency Parsing via <code>udpipe</code></h1>
+<p>For this section, we will rely on the <code>udpipe</code> package.</p>
+<div class="sourceCode" id="cb57"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1"></a><span class="kw">require</span>(udpipe)</span></code></pre></div>
+<p>We first need to download a pre-made language model. <code>udpipe</code> provides models for 65 different languages. We will download the model for English. When you run the code below, this will download a model file in your working directory.</p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1"></a><span class="kw">udpipe_download_model</span>(<span class="dt">language =</span> <span class="st">&quot;english&quot;</span>)</span></code></pre></div>
+<p>Note that, you have to download a model file only once. Once you download it, you can reload it to your R environment using the following code.</p>
+<div class="sourceCode" id="cb59"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb59-1"><a href="#cb59-1"></a>ud_eng &lt;-<span class="st"> </span><span class="kw">udpipe_load_model</span>(<span class="kw">here</span>(<span class="st">&#39;english-ewt-ud-2.5-191206.udpipe&#39;</span>))</span>
+<span id="cb59-2"><a href="#cb59-2"></a></span>
+<span id="cb59-3"><a href="#cb59-3"></a>ud_eng</span></code></pre></div>
+<pre><code>$file
+[1] &quot;B:/UO Teaching/EDLD 654/c4-ml-fall-2021/english-ewt-ud-2.5-191206.udpipe&quot;
+
+$model
+&lt;pointer: 0x0000000018533720&gt;
+
+attr(,&quot;class&quot;)
+[1] &quot;udpipe_model&quot;</code></pre>
+<div id="morphological-annotation" class="section level2">
+<h2>2.1. Morphological annotation</h2>
+<p>For a given plain text, we first run <code>udpipe_annotate()</code> function. This function returns a detailed analysis of the given text.</p>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1"></a>annotated &lt;-<span class="st"> </span><span class="kw">udpipe_annotate</span>(ud_eng, <span class="dt">x =</span> text)</span>
+<span id="cb61-2"><a href="#cb61-2"></a>annotated &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(annotated)</span>
+<span id="cb61-3"><a href="#cb61-3"></a>annotated &lt;-<span class="st"> </span><span class="kw">cbind_morphological</span>(annotated)</span>
+<span id="cb61-4"><a href="#cb61-4"></a></span>
+<span id="cb61-5"><a href="#cb61-5"></a><span class="kw">str</span>(annotated)</span></code></pre></div>
+<pre><code>&#39;data.frame&#39;:   208 obs. of  27 variables:
+ $ doc_id        : chr  &quot;doc1&quot; &quot;doc1&quot; &quot;doc1&quot; &quot;doc1&quot; ...
+ $ paragraph_id  : int  1 1 1 1 1 1 1 1 1 1 ...
+ $ sentence_id   : int  1 1 1 1 1 1 1 1 1 1 ...
+ $ sentence      : chr  &quot;When the young people returned to the ballroom, it presented a decidedly changed appearance.&quot; &quot;When the young people returned to the ballroom, it presented a decidedly changed appearance.&quot; &quot;When the young people returned to the ballroom, it presented a decidedly changed appearance.&quot; &quot;When the young people returned to the ballroom, it presented a decidedly changed appearance.&quot; ...
+ $ token_id      : chr  &quot;1&quot; &quot;2&quot; &quot;3&quot; &quot;4&quot; ...
+ $ token         : chr  &quot;When&quot; &quot;the&quot; &quot;young&quot; &quot;people&quot; ...
+ $ lemma         : chr  &quot;when&quot; &quot;the&quot; &quot;young&quot; &quot;people&quot; ...
+ $ upos          : chr  &quot;ADV&quot; &quot;DET&quot; &quot;ADJ&quot; &quot;NOUN&quot; ...
+ $ xpos          : chr  &quot;WRB&quot; &quot;DT&quot; &quot;JJ&quot; &quot;NNS&quot; ...
+ $ feats         : chr  &quot;PronType=Int&quot; &quot;Definite=Def|PronType=Art&quot; &quot;Degree=Pos&quot; &quot;Number=Plur&quot; ...
+ $ head_token_id : chr  &quot;5&quot; &quot;4&quot; &quot;4&quot; &quot;5&quot; ...
+ $ dep_rel       : chr  &quot;mark&quot; &quot;det&quot; &quot;amod&quot; &quot;nsubj&quot; ...
+ $ deps          : chr  NA NA NA NA ...
+ $ misc          : chr  NA NA NA NA ...
+ $ has_morph     : logi  TRUE TRUE TRUE TRUE TRUE FALSE ...
+ $ morph_case    : chr  NA NA NA NA ...
+ $ morph_definite: chr  NA &quot;Def&quot; NA NA ...
+ $ morph_degree  : chr  NA NA &quot;Pos&quot; NA ...
+ $ morph_gender  : chr  NA NA NA NA ...
+ $ morph_mood    : chr  NA NA NA NA ...
+ $ morph_number  : chr  NA NA NA &quot;Plur&quot; ...
+ $ morph_numtype : chr  NA NA NA NA ...
+ $ morph_person  : chr  NA NA NA NA ...
+ $ morph_prontype: chr  &quot;Int&quot; &quot;Art&quot; NA NA ...
+ $ morph_tense   : chr  NA NA NA NA ...
+ $ morph_verbform: chr  NA NA NA NA ...
+ $ morph_voice   : chr  NA NA NA NA ...</code></pre>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1"></a><span class="kw">head</span>(annotated)</span></code></pre></div>
+<pre><code>  doc_id paragraph_id sentence_id
+1   doc1            1           1
+2   doc1            1           1
+3   doc1            1           1
+4   doc1            1           1
+5   doc1            1           1
+6   doc1            1           1
+                                                                                      sentence
+1 When the young people returned to the ballroom, it presented a decidedly changed appearance.
+2 When the young people returned to the ballroom, it presented a decidedly changed appearance.
+3 When the young people returned to the ballroom, it presented a decidedly changed appearance.
+4 When the young people returned to the ballroom, it presented a decidedly changed appearance.
+5 When the young people returned to the ballroom, it presented a decidedly changed appearance.
+6 When the young people returned to the ballroom, it presented a decidedly changed appearance.
+  token_id    token  lemma upos xpos                            feats
+1        1     When   when  ADV  WRB                     PronType=Int
+2        2      the    the  DET   DT        Definite=Def|PronType=Art
+3        3    young  young  ADJ   JJ                       Degree=Pos
+4        4   people people NOUN  NNS                      Number=Plur
+5        5 returned return VERB  VBD Mood=Ind|Tense=Past|VerbForm=Fin
+6        6       to     to  ADP   IN                             &lt;NA&gt;
+  head_token_id dep_rel deps misc has_morph morph_case morph_definite
+1             5    mark &lt;NA&gt; &lt;NA&gt;      TRUE       &lt;NA&gt;           &lt;NA&gt;
+2             4     det &lt;NA&gt; &lt;NA&gt;      TRUE       &lt;NA&gt;            Def
+3             4    amod &lt;NA&gt; &lt;NA&gt;      TRUE       &lt;NA&gt;           &lt;NA&gt;
+4             5   nsubj &lt;NA&gt; &lt;NA&gt;      TRUE       &lt;NA&gt;           &lt;NA&gt;
+5            11   advcl &lt;NA&gt; &lt;NA&gt;      TRUE       &lt;NA&gt;           &lt;NA&gt;
+6             8    case &lt;NA&gt; &lt;NA&gt;     FALSE       &lt;NA&gt;           &lt;NA&gt;
+  morph_degree morph_gender morph_mood morph_number morph_numtype morph_person
+1         &lt;NA&gt;         &lt;NA&gt;       &lt;NA&gt;         &lt;NA&gt;          &lt;NA&gt;         &lt;NA&gt;
+2         &lt;NA&gt;         &lt;NA&gt;       &lt;NA&gt;         &lt;NA&gt;          &lt;NA&gt;         &lt;NA&gt;
+3          Pos         &lt;NA&gt;       &lt;NA&gt;         &lt;NA&gt;          &lt;NA&gt;         &lt;NA&gt;
+4         &lt;NA&gt;         &lt;NA&gt;       &lt;NA&gt;         Plur          &lt;NA&gt;         &lt;NA&gt;
+5         &lt;NA&gt;         &lt;NA&gt;        Ind         &lt;NA&gt;          &lt;NA&gt;         &lt;NA&gt;
+6         &lt;NA&gt;         &lt;NA&gt;       &lt;NA&gt;         &lt;NA&gt;          &lt;NA&gt;         &lt;NA&gt;
+  morph_prontype morph_tense morph_verbform morph_voice
+1            Int        &lt;NA&gt;           &lt;NA&gt;        &lt;NA&gt;
+2            Art        &lt;NA&gt;           &lt;NA&gt;        &lt;NA&gt;
+3           &lt;NA&gt;        &lt;NA&gt;           &lt;NA&gt;        &lt;NA&gt;
+4           &lt;NA&gt;        &lt;NA&gt;           &lt;NA&gt;        &lt;NA&gt;
+5           &lt;NA&gt;        Past            Fin        &lt;NA&gt;
+6           &lt;NA&gt;        &lt;NA&gt;           &lt;NA&gt;        &lt;NA&gt;</code></pre>
 </div>
+<div id="part-of-speech-tags-pos" class="section level2">
+<h2>2.2. Part of Speech Tags (POS)</h2>
+<p>Two columns in this data frame provides POS tags. the column <code>upos</code> indicates <a href="https://universaldependencies.org/u/pos/index.html">Universal POS Tags</a>. This is a list of values you will see in this column.</p>
+<ul>
+<li>ADJ: adjective</li>
+<li>ADP: adposition</li>
+<li>ADV: adverb</li>
+<li>AUX: auxiliary</li>
+<li>CCONJ: coordinating conjunction</li>
+<li>DET: determiner</li>
+<li>INTJ: interjection</li>
+<li>NOUN: noun</li>
+<li>NUM: numeral</li>
+<li>PART: particle</li>
+<li>PRON: pronoun</li>
+<li>PROPN: proper noun</li>
+<li>PUNCT: punctuation</li>
+<li>SCONJ: subordinating conjunction</li>
+<li>SYM: symbol</li>
+<li>VERB: verb</li>
+<li>X: other</li>
+</ul>
+<p>We can simply count the number of times these tags appear in a text and use them as predictive features of how readable the text is.</p>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>upos)</span></code></pre></div>
+<pre><code>
+  ADJ   ADP   ADV   AUX CCONJ   DET  NOUN   NUM  PART  PRON PROPN PUNCT SCONJ 
+   13    21     6    15    11    30    45     4     3     8     4    27     1 
+ VERB 
+   20 </code></pre>
+<p>The column <code>xpos</code> also provide similar information; however, these are language specific POS tags.</p>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>xpos)</span></code></pre></div>
+<pre><code>
+   ,    .   CC   CD   DT HYPH   IN   JJ   MD   NN  NNP  NNS  PRP   RB   TO   VB 
+  14   11   11    4   32    2   22   13    1   29    4   16    4    6    2    3 
+ VBD  VBG  VBN  WDT  WRB 
+  16    2   13    2    1 </code></pre>
+<p>While I couldn’t find any reference to what these abbreviations mean, below is my best guess based on the information <a href="https://www.sketchengine.eu/oxford-english-corpus-tagset/">at this link (Oxford English part-of-speech Tagset)</a> and <a href="https://en.wikipedia.org/wiki/Brown_Corpus#Part-of-speech_tags_used">this link (Brown Corpus)</a>.</p>
+<ul>
+<li>CC: coordinating conjunction (and, or)</li>
+<li>CD: cardinal numeral (one, two, 2, etc.)</li>
+<li>DT: singular determiner/quantifier (this, that)</li>
+<li>HYPH: hyphenation</li>
+<li>IN: preposition</li>
+<li>JJ: adjective</li>
+<li>MD: modal auxiliary (can, should, will)</li>
+<li>NN: singular or mass noun</li>
+<li>NNP: plural noun</li>
+<li>NNS: possessive plural noun</li>
+<li>PRP: ???</li>
+<li>RB: adverb</li>
+<li>TO: infinitive marker to</li>
+<li>VB: verb, base form</li>
+<li>VBD: verb, past tense</li>
+<li>VBG: verb, present participle/gerund</li>
+<li>VBN: verb, past participle</li>
+<li>WDT: wh- determiner (what, which)</li>
+<li>WRB: wh- adverb (how, where, when)</li>
+</ul>
+</div>
+<div id="features" class="section level2">
+<h2>2.3. Features</h2>
+<p>The morphological features returned under the column <code>feats</code> distinguish additional lexical and grammatical properties of words, not covered by the POS tags. You will see these features independently appended to the data frame at the end with columns having a <code>morph_</code> prefix.Below is a list of these columns with links for more information.</p>
+<ul>
+<li>morph_case: <a href="https://universaldependencies.org/u/feat/Case.html" class="uri">https://universaldependencies.org/u/feat/Case.html</a></li>
+</ul>
+<div class="sourceCode" id="cb69"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb69-1"><a href="#cb69-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_case)</span></code></pre></div>
+<pre><code>
+Acc Nom 
+  1   3 </code></pre>
+<ul>
+<li>morph_definite: <a href="https://universaldependencies.org/u/feat/Definite.html" class="uri">https://universaldependencies.org/u/feat/Definite.html</a></li>
+</ul>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb71-1"><a href="#cb71-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_definite)</span></code></pre></div>
+<pre><code>
+Def Ind 
+ 19   7 </code></pre>
+<ul>
+<li>morph_degree: <a href="https://universaldependencies.org/u/feat/Degree.html" class="uri">https://universaldependencies.org/u/feat/Degree.html</a></li>
+</ul>
+<div class="sourceCode" id="cb73"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb73-1"><a href="#cb73-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_degree)</span></code></pre></div>
+<pre><code>
+Pos 
+ 13 </code></pre>
+<ul>
+<li>morph_gender: <a href="https://universaldependencies.org/u/feat/Gender.html" class="uri">https://universaldependencies.org/u/feat/Gender.html</a></li>
+</ul>
+<div class="sourceCode" id="cb75"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb75-1"><a href="#cb75-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_gender)</span></code></pre></div>
+<pre><code>
+Neut 
+   2 </code></pre>
+<ul>
+<li>morph_mood: <a href="https://universaldependencies.org/u/feat/Mood.html" class="uri">https://universaldependencies.org/u/feat/Mood.html</a></li>
+</ul>
+<div class="sourceCode" id="cb77"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb77-1"><a href="#cb77-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_mood)</span></code></pre></div>
+<pre><code>
+Ind 
+ 16 </code></pre>
+<ul>
+<li>morp_number: <a href="https://universaldependencies.org/u/feat/Number.html" class="uri">https://universaldependencies.org/u/feat/Number.html</a></li>
+</ul>
+<div class="sourceCode" id="cb79"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb79-1"><a href="#cb79-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_number)</span></code></pre></div>
+<pre><code>
+Plur Sing 
+  19   43 </code></pre>
+<ul>
+<li>morph_numtype: <a href="https://universaldependencies.org/u/feat/NumType.html" class="uri">https://universaldependencies.org/u/feat/NumType.html</a></li>
+</ul>
+<div class="sourceCode" id="cb81"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb81-1"><a href="#cb81-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_numtype)</span></code></pre></div>
+<pre><code>
+Card  Ord 
+   4    1 </code></pre>
+<ul>
+<li>morph_person: <a href="https://universaldependencies.org/u/feat/Person.html" class="uri">https://universaldependencies.org/u/feat/Person.html</a></li>
+</ul>
+<div class="sourceCode" id="cb83"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb83-1"><a href="#cb83-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_person)</span></code></pre></div>
+<pre><code>
+ 3 
+10 </code></pre>
+<ul>
+<li>morph_prontype: <a href="https://universaldependencies.org/u/feat/PronType.html" class="uri">https://universaldependencies.org/u/feat/PronType.html</a></li>
+</ul>
+<div class="sourceCode" id="cb85"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb85-1"><a href="#cb85-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_prontype)</span></code></pre></div>
+<pre><code>
+Art Dem Int Prs Rel 
+ 26   3   1   4   2 </code></pre>
+<ul>
+<li>morph_tense: <a href="https://universaldependencies.org/u/feat/Tense.html" class="uri">https://universaldependencies.org/u/feat/Tense.html</a></li>
+</ul>
+<div class="sourceCode" id="cb87"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_tense)</span></code></pre></div>
+<pre><code>
+Past 
+  29 </code></pre>
+<ul>
+<li>morph_verbform: <a href="https://universaldependencies.org/u/feat/VerbForm.html" class="uri">https://universaldependencies.org/u/feat/VerbForm.html</a></li>
+</ul>
+<div class="sourceCode" id="cb89"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_verbform)</span></code></pre></div>
+<pre><code>
+ Fin  Ger  Inf Part 
+  17    2    3   13 </code></pre>
+<ul>
+<li>morph_voice: <a href="https://universaldependencies.org/u/feat/Voice.html" class="uri">https://universaldependencies.org/u/feat/Voice.html</a></li>
+</ul>
+<div class="sourceCode" id="cb91"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>morph_voice)</span></code></pre></div>
+<pre><code>
+Pass 
+   7 </code></pre>
+</div>
+<div id="syntactic-relations" class="section level2">
+<h2>2.4. Syntactic relations</h2>
+<p>The column <code>dep_rel</code> in this data frame provides information about the syntactic relations. There are 37 possible tags for the universal syntactic relations. More information can be found <a href="https://universaldependencies.org/u/dep/index.html">at this link</a>.</p>
+<ul>
+<li>acl, clausal modifier of noun (adnominal clause)</li>
+<li>acl:relcl, relative clause modifier</li>
+<li>advcl, adverbial clause modifier</li>
+<li>advmod, adverbial modifier</li>
+<li>advmod:emph, emphasizing word, intensifier</li>
+<li>advmod:lmod, locative adverbial modifier</li>
+<li>amod, adjectival modifier</li>
+<li>appos, appositional modifier</li>
+<li>aux, auxiliary</li>
+<li>aux:pass, passive auxiliary</li>
+<li>case, case marking</li>
+<li>cc, coordinating conjunction</li>
+<li>cc:preconj, preconjunct</li>
+<li>ccomp, clausal complement</li>
+<li>clf, classifier</li>
+<li>compound, compound</li>
+<li>compound:lvc, light verb construction</li>
+<li>compound:prt, phrasal verb particle</li>
+<li>compound:redup, reduplicated compounds</li>
+<li>compound:svc, serial verb compounds</li>
+<li>conj, conjunct</li>
+<li>cop, copula</li>
+<li>csubj, clausal subject</li>
+<li>csubj:pass, clausal passive subject</li>
+<li>dep, unspecified dependency</li>
+<li>det, determiner</li>
+<li>det:numgov, pronominal quantifier governing the case of the noun</li>
+<li>det:nummod, pronominal quantifier agreeing in case with the noun</li>
+<li>det:poss, possessive determiner</li>
+<li>discourse, discourse element</li>
+<li>dislocated, dislocated elements</li>
+<li>expl, expletive</li>
+<li>expl:impers, impersonal expletive</li>
+<li>expl:pass, reflexive pronoun used in reflexive passive</li>
+<li>expl:pv, reflexive clitic with an inherently reflexive verb</li>
+<li>fixed, fixed multiword expression</li>
+<li>flat, flat multiword expression</li>
+<li>flat:foreign, foreign words</li>
+<li>flat:name, names</li>
+<li>goeswith, goes with</li>
+<li>iobj, indirect object</li>
+<li>list, list</li>
+<li>mark, marker</li>
+<li>nmod, nominal modifier</li>
+<li>nmod:poss, possessive nominal modifier</li>
+<li>nmod:tmod, temporal modifier</li>
+<li>nsubj, nominal subject</li>
+<li>nsubj:pass, passive nominal subject</li>
+<li>nummod, numeric modifier</li>
+<li>nummod:gov, numeric modifier governing the case of the noun</li>
+<li>obj, object</li>
+<li>obl, oblique nominal</li>
+<li>obl:agent, agent modifier</li>
+<li>obl:arg, oblique argument</li>
+<li>obl:lmod, locative modifier</li>
+<li>obl:tmod, temporal modifier</li>
+<li>orphan, orphan</li>
+<li>parataxis, parataxis</li>
+<li>punct, punctuation</li>
+<li>reparandum, overridden disfluency</li>
+<li>root, root</li>
+<li>vocative, vocative</li>
+<li>xcomp, open clausal complement</li>
+</ul>
+<p>We can similarly count the number of times these tags appear in a text and use them as predictive features.</p>
+<div class="sourceCode" id="cb93"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1"></a><span class="kw">table</span>(annotated<span class="op">$</span>dep_rel)</span></code></pre></div>
+<pre><code>
+ acl:relcl      advcl     advmod       amod        aux   aux:pass       case 
+         2          2          6         11          4          7         21 
+        cc   compound       conj        cop      csubj        det       mark 
+        11          5         10          4          1         30          4 
+      nmod      nsubj nsubj:pass     nummod        obj        obl  obl:npmod 
+        10          9          8          3          8          9          2 
+     punct       root      xcomp 
+        27         11          3 </code></pre>
+</div>
+</div>
+<div id="natural-language-processing-nlp" class="section level1">
+<h1>3. Natural Language Processing (NLP)</h1>
+<p>NLP is a more advanced modeling that goes beyond simple summary of text characteristics. To put it in a very naive way (and we will not do anything beyond it), NLP models takes a plain text, process the text to put it into little pieces (tokens, lemmas, words, POS tags, co-occurrences etc.), then use a very complex neural network model to convert it to a numerical vector that is meaningful and represent the text.</p>
+<p>Most recently, a group of scholars called these models as part of <a href="https://arxiv.org/pdf/2108.07258.pdf">Foundation Models</a>. A brief list for some of these NLP models and some information along with them including links to original papers are listed below.These models are very expensive to train and uses enormous amount of data available to train. For instance, Bert/Roberta were trained using the entire Wikipedia and a Book Corpus (a total of ~ 4.7 billion words), GPT2 was trained using 8 million web pages, and GPT3 was trained on 45 TB of data from the internet and books.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Model</th>
+<th align="center">Developer</th>
+<th align="center">Year</th>
+<th align="center"># of parameters</th>
+<th align="center">Estimated Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><a href="https://arxiv.org/pdf/1810.04805.pdf">Bert-Large</a></td>
+<td align="center">Google AI</td>
+<td align="center">2018</td>
+<td align="center">336 M</td>
+<td align="center"><a href="https://syncedreview.com/2019/06/27/the-staggering-cost-of-training-sota-ai-models/">$ 7K</a></td>
+</tr>
+<tr class="even">
+<td><a href="https://arxiv.org/pdf/1907.11692.pdf">Roberta-Large</a></td>
+<td align="center">Facebook AI</td>
+<td align="center">2019</td>
+<td align="center">335 M</td>
+<td align="center">?</td>
+</tr>
+<tr class="odd">
+<td><a href="https://d4mucfpksywv.cloudfront.net/better-language-models/language-models.pdf">GPT2-XL</a></td>
+<td align="center">Open AI</td>
+<td align="center">2019</td>
+<td align="center">1.5 B</td>
+<td align="center"><a href="https://medium.com/@vanya_cohen/opengpt-2-we-replicated-gpt-2-because-you-can-too-45e34e6d36dc">$ 50K</a></td>
+</tr>
+<tr class="even">
+<td><a href="https://arxiv.org/pdf/1910.10683.pdf">T5</a></td>
+<td align="center">Google AI</td>
+<td align="center">2020</td>
+<td align="center">11 B</td>
+<td align="center"><a href="https://arxiv.org/pdf/2004.08900.pdf">$ 1.3 M</a></td>
+</tr>
+<tr class="odd">
+<td><a href="https://arxiv.org/pdf/2005.14165.pdf">GPT3</a></td>
+<td align="center">OpenAI</td>
+<td align="center">2020</td>
+<td align="center">175 B</td>
+<td align="center"><a href="https://venturebeat.com/2020/06/01/ai-machine-learning-openai-gpt-3-size-isnt-everything/">$ 4.6 M</a></td>
+</tr>
+</tbody>
+</table>
+<p>All these models except GPT3 is open source and can be immediately utilized using open libraries (typically using Python), and these models can be customized to implement very specific tasks (e.g., question answering, sentiment analysis, translation, etc.). GPT3 is apparently the most powerful developed so far, and it can only be accessed through a private API, <a href="https://beta.openai.com/">https://beta.openai.com/</a>. You can explore some of the GPT3 applications on this website, <a href="https://gpt3demo.com/">https://gpt3demo.com/</a>. Below are a few of them:</p>
+<ul>
+<li>Artificial tweets (<a href="https://thoughts.sushant-kumar.com/word">https://thoughts.sushant-kumar.com/word</a>)</li>
+<li>Creative writing (<a href="https://thoughts.sushant-kumar.com/word">https://www.gwern.net/GPT-3</a>)</li>
+<li>Interview with (artificial) Einstein (<a href="https://maraoz.com/2021/03/14/einstein-gpt3/">https://maraoz.com/2021/03/14/einstein-gpt3/</a>)</li>
+</ul>
+<p>If you have time, <a href="https://www.youtube.com/watch?v=zJW57aCBCTk">this series of Youtube videos</a> provide some background and accessible information about these models. In particular, Episode 2 will give a good idea about what these numerical embeddings represent. If you want to get in-depth coverage of speech and language processing from scratch, <a href="https://web.stanford.edu/~jurafsky/slp3/">this freely available book</a> provides a good amount of material.</p>
+<p>In this lecture, we will only scratch the surface and focus on the tools available to make these models accessible through R (a political way of saying I don’t know what I am doing!). In particular, we will use <a href="https://www.r-text.org/">the text package</a> to connect with <a href="https://huggingface.co/transformers/">HuggingFace’s Transformers library in Python</a> and explore the word and sentence embeddings derived from the NLP models. The text package provides access to a large list of models from HuggingFace’s library, see <a href="https://huggingface.co/transformers/pretrained_models.html">https://huggingface.co/transformers/pretrained_models.html</a>.</p>
+<ul>
+<li></li>
+</ul>
+<div id="loading-the-required-packages" class="section level2">
+<h2>3.1. Loading the required packages</h2>
+<p>First, we need to prepare the environment. From Lecture 1a, you should have installed the necessary packages. Now, we will load all these packages using the code below.</p>
+<div class="sourceCode" id="cb95"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1"></a><span class="kw">require</span>(reticulate)</span></code></pre></div>
+<pre><code>Loading required package: reticulate</code></pre>
+<div class="sourceCode" id="cb97"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1"></a><span class="co"># List the available Python environments</span></span>
+<span id="cb97-2"><a href="#cb97-2"></a></span>
+<span id="cb97-3"><a href="#cb97-3"></a><span class="kw">virtualenv_list</span>()</span>
+<span id="cb97-4"><a href="#cb97-4"></a></span>
+<span id="cb97-5"><a href="#cb97-5"></a><span class="co"># Import the modules</span></span>
+<span id="cb97-6"><a href="#cb97-6"></a></span>
+<span id="cb97-7"><a href="#cb97-7"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;torch&#39;</span>)</span>
+<span id="cb97-8"><a href="#cb97-8"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;numpy&#39;</span>)</span>
+<span id="cb97-9"><a href="#cb97-9"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;transformers&#39;</span>)</span>
+<span id="cb97-10"><a href="#cb97-10"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;nltk&#39;</span>)</span>
+<span id="cb97-11"><a href="#cb97-11"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;tokenizers&#39;</span>)</span>
+<span id="cb97-12"><a href="#cb97-12"></a></span>
+<span id="cb97-13"><a href="#cb97-13"></a><span class="co"># Load the text package</span></span>
+<span id="cb97-14"><a href="#cb97-14"></a></span>
+<span id="cb97-15"><a href="#cb97-15"></a><span class="kw">require</span>(text)</span></code></pre></div>
+<pre><code>Loading required package: text</code></pre>
+<pre><code>Registered S3 method overwritten by &#39;tune&#39;:
+  method                   from   
+  required_pkgs.model_spec parsnip</code></pre>
+<pre><code>[0;34mThis is text (version 0.9.12). 
+[0m[0;32mText is new and still rapidly improving. 
+Newer versions may have improved functions and updated defaults to reflect current understandings of the state-of-the-art. 
+Please send us feedback based on your experience.[0m</code></pre>
+<pre><code>[1] &quot;my.python&quot;
+Module(torch)
+Module(numpy)
+Module(transformers)
+Module(nltk)
+Module(tokenizers)</code></pre>
+</div>
+<div id="word-embeddings" class="section level2">
+<h2>3.2. Word Embeddings</h2>
+<p>A word embedding is a vector that numerically represents a word. The length of this vector represents the number of dimensions the word is represented. we can also consider these numbers as coordinates in a geometric space with many dimensions. The words with similar meanings in this space will be closer to each other. The number of dimensions depends on the model and how it is trained. For instance, Roberta Base represents each word in 768 dimensions, while GPT2-Large represent each word in 1024 dimensions and GPT2-XL represents in 1600 dimensions.</p>
+<p>For instance, let’s consider a word (e.g., sofa) and get the word embeddings from different models using the textEmbed package. Note that it will download the model files when you first request word embeddings using a new model. Depending on the complexity of these models, some of these files may be big ( larger than 10GB) and it mat take long to download them depending on your connection. Once you use a model once, then it will be quicker to get word embeddings. Below, I am asking the word embeddings from four different models: <code>roberta-base</code>, <code>gpt2-large</code>, <code>gpt-neo</code>. You can specify any model from <a href="https://huggingface.co/transformers/pretrained_models.html">this list</a>. The name provided to the <code>model</code> argument of the <code>textEmbed</code> function is the one listed under the <strong>Model id</strong> column in this list.</p>
+<div class="sourceCode" id="cb102"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb102-1"><a href="#cb102-1"></a>tmp1 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x     =</span> <span class="st">&#39;sofa&#39;</span>,</span>
+<span id="cb102-2"><a href="#cb102-2"></a>                  <span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,</span>
+<span id="cb102-3"><a href="#cb102-3"></a>                  <span class="dt">layers =</span> <span class="dv">1</span>)</span>
+<span id="cb102-4"><a href="#cb102-4"></a></span>
+<span id="cb102-5"><a href="#cb102-5"></a>tmp1<span class="op">$</span>x</span>
+<span id="cb102-6"><a href="#cb102-6"></a></span>
+<span id="cb102-7"><a href="#cb102-7"></a><span class="kw">length</span>(tmp1<span class="op">$</span>x)</span></code></pre></div>
+<pre><code># A tibble: 1 x 768
+   Dim1   Dim2    Dim3  Dim4  Dim5   Dim6  Dim7   Dim8   Dim9  Dim10  Dim11
+  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+1 0.110 0.0218 -0.0114 0.238 0.654 -0.276 0.118 -0.205 0.0886 0.0395 -0.563
+# ... with 757 more variables: Dim12 &lt;dbl&gt;, Dim13 &lt;dbl&gt;, Dim14 &lt;dbl&gt;,
+#   Dim15 &lt;dbl&gt;, Dim16 &lt;dbl&gt;, Dim17 &lt;dbl&gt;, Dim18 &lt;dbl&gt;, Dim19 &lt;dbl&gt;,
+#   Dim20 &lt;dbl&gt;, Dim21 &lt;dbl&gt;, Dim22 &lt;dbl&gt;, Dim23 &lt;dbl&gt;, Dim24 &lt;dbl&gt;,
+#   Dim25 &lt;dbl&gt;, Dim26 &lt;dbl&gt;, Dim27 &lt;dbl&gt;, Dim28 &lt;dbl&gt;, Dim29 &lt;dbl&gt;,
+#   Dim30 &lt;dbl&gt;, Dim31 &lt;dbl&gt;, Dim32 &lt;dbl&gt;, Dim33 &lt;dbl&gt;, Dim34 &lt;dbl&gt;,
+#   Dim35 &lt;dbl&gt;, Dim36 &lt;dbl&gt;, Dim37 &lt;dbl&gt;, Dim38 &lt;dbl&gt;, Dim39 &lt;dbl&gt;,
+#   Dim40 &lt;dbl&gt;, Dim41 &lt;dbl&gt;, Dim42 &lt;dbl&gt;, Dim43 &lt;dbl&gt;, Dim44 &lt;dbl&gt;, ...
+[1] 768</code></pre>
+<p>If we use <code>roberta-base</code>, we get a vector with length 768 because Roberta Base was trained using 768 hidden states. You can try the following code yourself and see how the dimensions of the vector change depending on the model based on the number of hidden states used during the training.</p>
+<div class="sourceCode" id="cb104"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb104-1"><a href="#cb104-1"></a>tmp2 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x     =</span> <span class="st">&#39;sofa&#39;</span>,</span>
+<span id="cb104-2"><a href="#cb104-2"></a>                  <span class="dt">model =</span> <span class="st">&#39;gpt2-large&#39;</span>,</span>
+<span id="cb104-3"><a href="#cb104-3"></a>                  <span class="dt">layers =</span> <span class="dv">1</span>)</span>
+<span id="cb104-4"><a href="#cb104-4"></a></span>
+<span id="cb104-5"><a href="#cb104-5"></a>tmp2<span class="op">$</span>x</span>
+<span id="cb104-6"><a href="#cb104-6"></a></span>
+<span id="cb104-7"><a href="#cb104-7"></a><span class="kw">as.numeric</span>(tmp2<span class="op">$</span>x)</span>
+<span id="cb104-8"><a href="#cb104-8"></a></span>
+<span id="cb104-9"><a href="#cb104-9"></a><span class="kw">length</span>(tmp2<span class="op">$</span>x)</span></code></pre></div>
+<div class="sourceCode" id="cb105"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1"></a>tmp3 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x     =</span> <span class="st">&#39;sofa&#39;</span>,</span>
+<span id="cb105-2"><a href="#cb105-2"></a>                  <span class="dt">model =</span> <span class="st">&#39;EleutherAI/gpt-neo-2.7B&#39;</span>,</span>
+<span id="cb105-3"><a href="#cb105-3"></a>                  <span class="dt">layers =</span> <span class="dv">1</span>)</span>
+<span id="cb105-4"><a href="#cb105-4"></a></span>
+<span id="cb105-5"><a href="#cb105-5"></a>tmp3<span class="op">$</span>x</span>
+<span id="cb105-6"><a href="#cb105-6"></a></span>
+<span id="cb105-7"><a href="#cb105-7"></a><span class="kw">as.numeric</span>(tmp3<span class="op">$</span>x)</span>
+<span id="cb105-8"><a href="#cb105-8"></a></span>
+<span id="cb105-9"><a href="#cb105-9"></a><span class="kw">length</span>(tmp3<span class="op">$</span>x)</span></code></pre></div>
+<p>As you noticed, we also specified argument <code>layers=1</code>, so the function returns the embeddings from the first layer. These models typically have multiple layers. For instance, <code>roberta-base</code> has 12 layers, <code>gpt-neo</code> has 32 layers, <code>gpt2-large</code> has 36 layers. Multiple layers enable the model to capture non-linear relationships to represent complex language structures. Each layer returns a different vector of embeddings with the same length. We can request embeddings from any layer or from multiple layers at the same time.</p>
+<p>For instance, we can request the embeddings from the last layer of <code>roberta-base</code> and these embeddings will also have a length of 768, but the numbers would be different than the ones we got before from the first layer.</p>
+<div class="sourceCode" id="cb106"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb106-1"><a href="#cb106-1"></a>tmp1 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x     =</span> <span class="st">&#39;sofa&#39;</span>,</span>
+<span id="cb106-2"><a href="#cb106-2"></a>                  <span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,</span>
+<span id="cb106-3"><a href="#cb106-3"></a>                  <span class="dt">layers =</span> <span class="dv">12</span>)</span>
+<span id="cb106-4"><a href="#cb106-4"></a></span>
+<span id="cb106-5"><a href="#cb106-5"></a>tmp1<span class="op">$</span>x</span>
+<span id="cb106-6"><a href="#cb106-6"></a></span>
+<span id="cb106-7"><a href="#cb106-7"></a><span class="kw">length</span>(tmp1<span class="op">$</span>x)</span></code></pre></div>
+<pre><code># A tibble: 1 x 768
+     Dim1    Dim2   Dim3    Dim4  Dim5   Dim6   Dim7    Dim8   Dim9  Dim10
+    &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+1 -0.0357 0.00915 0.0452 -0.0228 0.444 -0.214 0.0168 -0.0311 0.0108 -0.110
+# ... with 758 more variables: Dim11 &lt;dbl&gt;, Dim12 &lt;dbl&gt;, Dim13 &lt;dbl&gt;,
+#   Dim14 &lt;dbl&gt;, Dim15 &lt;dbl&gt;, Dim16 &lt;dbl&gt;, Dim17 &lt;dbl&gt;, Dim18 &lt;dbl&gt;,
+#   Dim19 &lt;dbl&gt;, Dim20 &lt;dbl&gt;, Dim21 &lt;dbl&gt;, Dim22 &lt;dbl&gt;, Dim23 &lt;dbl&gt;,
+#   Dim24 &lt;dbl&gt;, Dim25 &lt;dbl&gt;, Dim26 &lt;dbl&gt;, Dim27 &lt;dbl&gt;, Dim28 &lt;dbl&gt;,
+#   Dim29 &lt;dbl&gt;, Dim30 &lt;dbl&gt;, Dim31 &lt;dbl&gt;, Dim32 &lt;dbl&gt;, Dim33 &lt;dbl&gt;,
+#   Dim34 &lt;dbl&gt;, Dim35 &lt;dbl&gt;, Dim36 &lt;dbl&gt;, Dim37 &lt;dbl&gt;, Dim38 &lt;dbl&gt;,
+#   Dim39 &lt;dbl&gt;, Dim40 &lt;dbl&gt;, Dim41 &lt;dbl&gt;, Dim42 &lt;dbl&gt;, Dim43 &lt;dbl&gt;, ...
+[1] 768</code></pre>
+<p>Or, we can request the embeddings from the last four layers. Now, each layer will have a length of 768, and the returning object is now a vector of length 3072 (768 x 4). Instead of contenating, you can also ask to take the minimum, maximum, or mean of the requested layers, and it will return a vector with a length of 768 .</p>
+<div class="sourceCode" id="cb108"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb108-1"><a href="#cb108-1"></a>tmp1 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x     =</span> <span class="st">&#39;sofa&#39;</span>,</span>
+<span id="cb108-2"><a href="#cb108-2"></a>                  <span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,</span>
+<span id="cb108-3"><a href="#cb108-3"></a>                  <span class="dt">layers =</span> <span class="dv">9</span><span class="op">:</span><span class="dv">12</span>,</span>
+<span id="cb108-4"><a href="#cb108-4"></a>                  <span class="dt">context_aggregation_layers =</span> <span class="st">&#39;concatenate&#39;</span>)</span>
+<span id="cb108-5"><a href="#cb108-5"></a></span>
+<span id="cb108-6"><a href="#cb108-6"></a>tmp1<span class="op">$</span>x</span>
+<span id="cb108-7"><a href="#cb108-7"></a></span>
+<span id="cb108-8"><a href="#cb108-8"></a><span class="kw">length</span>(tmp1<span class="op">$</span>x)</span>
+<span id="cb108-9"><a href="#cb108-9"></a></span>
+<span id="cb108-10"><a href="#cb108-10"></a></span>
+<span id="cb108-11"><a href="#cb108-11"></a></span>
+<span id="cb108-12"><a href="#cb108-12"></a>tmp1 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x     =</span> <span class="st">&#39;sofa&#39;</span>,</span>
+<span id="cb108-13"><a href="#cb108-13"></a>                  <span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,</span>
+<span id="cb108-14"><a href="#cb108-14"></a>                  <span class="dt">layers =</span> <span class="dv">9</span><span class="op">:</span><span class="dv">12</span>,</span>
+<span id="cb108-15"><a href="#cb108-15"></a>                  <span class="dt">context_aggregation_layers =</span> <span class="st">&#39;mean&#39;</span>)</span>
+<span id="cb108-16"><a href="#cb108-16"></a></span>
+<span id="cb108-17"><a href="#cb108-17"></a>tmp1<span class="op">$</span>x</span>
+<span id="cb108-18"><a href="#cb108-18"></a></span>
+<span id="cb108-19"><a href="#cb108-19"></a><span class="kw">length</span>(tmp1<span class="op">$</span>x)</span></code></pre></div>
+<pre><code># A tibble: 1 x 3,072
+    Dim1   Dim2   Dim3  Dim4  Dim5   Dim6    Dim7  Dim8   Dim9  Dim10  Dim11
+   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+1 0.0220 -0.100 0.0228 0.261 0.526 0.0779 -0.0801 0.111 -0.313 -0.264 -0.658
+# ... with 3,061 more variables: Dim12 &lt;dbl&gt;, Dim13 &lt;dbl&gt;, Dim14 &lt;dbl&gt;,
+#   Dim15 &lt;dbl&gt;, Dim16 &lt;dbl&gt;, Dim17 &lt;dbl&gt;, Dim18 &lt;dbl&gt;, Dim19 &lt;dbl&gt;,
+#   Dim20 &lt;dbl&gt;, Dim21 &lt;dbl&gt;, Dim22 &lt;dbl&gt;, Dim23 &lt;dbl&gt;, Dim24 &lt;dbl&gt;,
+#   Dim25 &lt;dbl&gt;, Dim26 &lt;dbl&gt;, Dim27 &lt;dbl&gt;, Dim28 &lt;dbl&gt;, Dim29 &lt;dbl&gt;,
+#   Dim30 &lt;dbl&gt;, Dim31 &lt;dbl&gt;, Dim32 &lt;dbl&gt;, Dim33 &lt;dbl&gt;, Dim34 &lt;dbl&gt;,
+#   Dim35 &lt;dbl&gt;, Dim36 &lt;dbl&gt;, Dim37 &lt;dbl&gt;, Dim38 &lt;dbl&gt;, Dim39 &lt;dbl&gt;,
+#   Dim40 &lt;dbl&gt;, Dim41 &lt;dbl&gt;, Dim42 &lt;dbl&gt;, Dim43 &lt;dbl&gt;, Dim44 &lt;dbl&gt;, ...
+[1] 3072
+# A tibble: 1 x 768
+     Dim1   Dim2   Dim3  Dim4  Dim5    Dim6   Dim7   Dim8   Dim9  Dim10  Dim11
+    &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+1 0.00216 -0.129 0.0735 0.155 0.524 -0.0404 0.0564 0.0261 -0.164 -0.209 -0.556
+# ... with 757 more variables: Dim12 &lt;dbl&gt;, Dim13 &lt;dbl&gt;, Dim14 &lt;dbl&gt;,
+#   Dim15 &lt;dbl&gt;, Dim16 &lt;dbl&gt;, Dim17 &lt;dbl&gt;, Dim18 &lt;dbl&gt;, Dim19 &lt;dbl&gt;,
+#   Dim20 &lt;dbl&gt;, Dim21 &lt;dbl&gt;, Dim22 &lt;dbl&gt;, Dim23 &lt;dbl&gt;, Dim24 &lt;dbl&gt;,
+#   Dim25 &lt;dbl&gt;, Dim26 &lt;dbl&gt;, Dim27 &lt;dbl&gt;, Dim28 &lt;dbl&gt;, Dim29 &lt;dbl&gt;,
+#   Dim30 &lt;dbl&gt;, Dim31 &lt;dbl&gt;, Dim32 &lt;dbl&gt;, Dim33 &lt;dbl&gt;, Dim34 &lt;dbl&gt;,
+#   Dim35 &lt;dbl&gt;, Dim36 &lt;dbl&gt;, Dim37 &lt;dbl&gt;, Dim38 &lt;dbl&gt;, Dim39 &lt;dbl&gt;,
+#   Dim40 &lt;dbl&gt;, Dim41 &lt;dbl&gt;, Dim42 &lt;dbl&gt;, Dim43 &lt;dbl&gt;, Dim44 &lt;dbl&gt;, ...
+[1] 768</code></pre>
+<p>It is not completely undderstood what different dimensions represent or what these different layers mean (or, I couldn’t find any document/source that explains it. Let me know if you come across one). Typically, it is recommended to use the last four layers of word embedding (I read or watched this somewhere, but I don’t really remember the source).</p>
+</div>
+<div id="sentence-embeddings" class="section level2">
+<h2>3.3. Sentence Embeddings</h2>
+<p>Similar to words, we can also represent a whole sentence using a numerical vector. Let’s consider the sentence <em>I like to drink Turkish coffee</em>, and let’s see what we get from <code>roberta-base</code>.</p>
+<div class="sourceCode" id="cb110"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb110-1"><a href="#cb110-1"></a>tmp1 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x     =</span> <span class="st">&#39;I like to drink Turkish coffee&#39;</span>,</span>
+<span id="cb110-2"><a href="#cb110-2"></a>                  <span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,</span>
+<span id="cb110-3"><a href="#cb110-3"></a>                  <span class="dt">layers =</span> <span class="dv">12</span>,</span>
+<span id="cb110-4"><a href="#cb110-4"></a>                  <span class="dt">context_aggregation_layers =</span> <span class="st">&#39;concatenate&#39;</span>)</span></code></pre></div>
+<p>Now, the returned object will have two major elements. First, it will return a matrix of word embeddings for each word in this sentence.</p>
+<div class="sourceCode" id="cb111"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb111-1"><a href="#cb111-1"></a>tmp1<span class="op">$</span>singlewords_we</span></code></pre></div>
+<pre><code># A tibble: 6 x 770
+  words       n     Dim1    Dim2     Dim3     Dim4   Dim5    Dim6     Dim7    Dim8
+  &lt;chr&gt;   &lt;int&gt;    &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;
+1 coffee      1 -0.106    0.0884  4.52e-2 -0.0600  0.185  -0.106  -0.0485  -0.0486
+2 drink       1 -0.0850  -0.0404  5.39e-2 -0.00823 0.0154 -0.136  -0.00811 -0.0724
+3 i           1 -0.00472 -0.0233 -7.32e-3 -0.153   0.221  -0.172  -0.0262   0.0784
+4 like        1  0.0131  -0.0387  3.33e-2 -0.0927  0.201  -0.114  -0.0258   0.0566
+5 to          1  0.00515  0.0257  6.82e-4 -0.0410  0.249  -0.0950 -0.0214   0.0614
+6 turkish     1  0.0757   0.178   8.82e-2  0.0341  0.0779 -0.104  -0.0348   0.111 
+# ... with 760 more variables: Dim9 &lt;dbl&gt;, Dim10 &lt;dbl&gt;, Dim11 &lt;dbl&gt;,
+#   Dim12 &lt;dbl&gt;, Dim13 &lt;dbl&gt;, Dim14 &lt;dbl&gt;, Dim15 &lt;dbl&gt;, Dim16 &lt;dbl&gt;,
+#   Dim17 &lt;dbl&gt;, Dim18 &lt;dbl&gt;, Dim19 &lt;dbl&gt;, Dim20 &lt;dbl&gt;, Dim21 &lt;dbl&gt;,
+#   Dim22 &lt;dbl&gt;, Dim23 &lt;dbl&gt;, Dim24 &lt;dbl&gt;, Dim25 &lt;dbl&gt;, Dim26 &lt;dbl&gt;,
+#   Dim27 &lt;dbl&gt;, Dim28 &lt;dbl&gt;, Dim29 &lt;dbl&gt;, Dim30 &lt;dbl&gt;, Dim31 &lt;dbl&gt;,
+#   Dim32 &lt;dbl&gt;, Dim33 &lt;dbl&gt;, Dim34 &lt;dbl&gt;, Dim35 &lt;dbl&gt;, Dim36 &lt;dbl&gt;,
+#   Dim37 &lt;dbl&gt;, Dim38 &lt;dbl&gt;, Dim39 &lt;dbl&gt;, Dim40 &lt;dbl&gt;, Dim41 &lt;dbl&gt;, ...</code></pre>
+<p>It will also have a vector of embeddings for the whole sentence.</p>
+<div class="sourceCode" id="cb113"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb113-1"><a href="#cb113-1"></a>tmp1<span class="op">$</span>x</span></code></pre></div>
+<pre><code># A tibble: 1 x 768
+     Dim1  Dim2   Dim3    Dim4     Dim5    Dim6   Dim7    Dim8    Dim9   Dim10
+    &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+1 -0.0118 0.103 0.0109 -0.0462 -0.00487 -0.0450 0.0823 -0.0307 0.00255 -0.0749
+# ... with 758 more variables: Dim11 &lt;dbl&gt;, Dim12 &lt;dbl&gt;, Dim13 &lt;dbl&gt;,
+#   Dim14 &lt;dbl&gt;, Dim15 &lt;dbl&gt;, Dim16 &lt;dbl&gt;, Dim17 &lt;dbl&gt;, Dim18 &lt;dbl&gt;,
+#   Dim19 &lt;dbl&gt;, Dim20 &lt;dbl&gt;, Dim21 &lt;dbl&gt;, Dim22 &lt;dbl&gt;, Dim23 &lt;dbl&gt;,
+#   Dim24 &lt;dbl&gt;, Dim25 &lt;dbl&gt;, Dim26 &lt;dbl&gt;, Dim27 &lt;dbl&gt;, Dim28 &lt;dbl&gt;,
+#   Dim29 &lt;dbl&gt;, Dim30 &lt;dbl&gt;, Dim31 &lt;dbl&gt;, Dim32 &lt;dbl&gt;, Dim33 &lt;dbl&gt;,
+#   Dim34 &lt;dbl&gt;, Dim35 &lt;dbl&gt;, Dim36 &lt;dbl&gt;, Dim37 &lt;dbl&gt;, Dim38 &lt;dbl&gt;,
+#   Dim39 &lt;dbl&gt;, Dim40 &lt;dbl&gt;, Dim41 &lt;dbl&gt;, Dim42 &lt;dbl&gt;, Dim43 &lt;dbl&gt;, ...</code></pre>
+<p>Now, let’s check the numerical representation of the first reading passage in our dataset. I will use <code>gpt-neo</code> and request the last 4 layers.</p>
+<div class="sourceCode" id="cb115"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb115-1"><a href="#cb115-1"></a>text</span>
+<span id="cb115-2"><a href="#cb115-2"></a></span>
+<span id="cb115-3"><a href="#cb115-3"></a>tmp3 &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x     =</span> text,</span>
+<span id="cb115-4"><a href="#cb115-4"></a>                  <span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,</span>
+<span id="cb115-5"><a href="#cb115-5"></a>                  <span class="dt">layers =</span> <span class="dv">9</span><span class="op">:</span><span class="dv">12</span>,</span>
+<span id="cb115-6"><a href="#cb115-6"></a>                  <span class="dt">context_aggregation_layers =</span> <span class="st">&#39;concatenate&#39;</span>)</span>
+<span id="cb115-7"><a href="#cb115-7"></a></span>
+<span id="cb115-8"><a href="#cb115-8"></a>tmp3<span class="op">$</span>x</span>
+<span id="cb115-9"><a href="#cb115-9"></a></span>
+<span id="cb115-10"><a href="#cb115-10"></a><span class="kw">length</span>(tmp3<span class="op">$</span>x)</span></code></pre></div>
+<pre><code>[1] &quot;When the young people returned to the ballroom, it presented a decidedly changed appearance. Instead of an interior scene, it was a winter landscape.\nThe floor was covered with snow-white canvas, not laid on smoothly, but rumpled over bumps and hillocks, like a real snow field. The numerous palms and evergreens that had decorated the room, were powdered with flour and strewn with tufts of cotton, like snow. Also diamond dust had been lightly sprinkled on them, and glittering crystal icicles hung from the branches.\nAt each end of the room, on the wall, hung a beautiful bear-skin rug.\nThese rugs were for prizes, one for the girls and one for the boys. And this was the game.\nThe girls were gathered at one end of the room and the boys at the other, and one end was called the North Pole, and the other the South Pole. Each player was given a small flag which they were to plant on reaching the Pole.\nThis would have been an easy matter, but each traveller was obliged to wear snowshoes.&quot;
+# A tibble: 1 x 3,072
+    Dim1   Dim2   Dim3    Dim4   Dim5     Dim6   Dim7  Dim8  Dim9  Dim10  Dim11
+   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
+1 0.0888 0.0811 0.0540 -0.0734 -0.145 -0.00628 -0.107 0.169 0.104 0.0980 -0.180
+# ... with 3,061 more variables: Dim12 &lt;dbl&gt;, Dim13 &lt;dbl&gt;, Dim14 &lt;dbl&gt;,
+#   Dim15 &lt;dbl&gt;, Dim16 &lt;dbl&gt;, Dim17 &lt;dbl&gt;, Dim18 &lt;dbl&gt;, Dim19 &lt;dbl&gt;,
+#   Dim20 &lt;dbl&gt;, Dim21 &lt;dbl&gt;, Dim22 &lt;dbl&gt;, Dim23 &lt;dbl&gt;, Dim24 &lt;dbl&gt;,
+#   Dim25 &lt;dbl&gt;, Dim26 &lt;dbl&gt;, Dim27 &lt;dbl&gt;, Dim28 &lt;dbl&gt;, Dim29 &lt;dbl&gt;,
+#   Dim30 &lt;dbl&gt;, Dim31 &lt;dbl&gt;, Dim32 &lt;dbl&gt;, Dim33 &lt;dbl&gt;, Dim34 &lt;dbl&gt;,
+#   Dim35 &lt;dbl&gt;, Dim36 &lt;dbl&gt;, Dim37 &lt;dbl&gt;, Dim38 &lt;dbl&gt;, Dim39 &lt;dbl&gt;,
+#   Dim40 &lt;dbl&gt;, Dim41 &lt;dbl&gt;, Dim42 &lt;dbl&gt;, Dim43 &lt;dbl&gt;, Dim44 &lt;dbl&gt;, ...
+[1] 3072</code></pre>
+<p><strong>So what?</strong></p>
+<p>NLP models provide meaningful contextual numerical representations of words or sentences. These numerical representations can be used as input features for predictive models to predict a certain outcome. In our case, we can utilize the embeddings from each reading passage to predict its reability.</p>
+</div>
+</div>
+<div id="wrapping-up" class="section level1">
+<h1>4. Wrapping-up</h1>
+<p>This lecture provided different types of information we can extract from any given text. The code below extracts these different types of information for every single passage in the readability dataset using a <code>for</code> loop. At the end, it creates a single data with ??? input features and the outcome (readability score). If you run this by yourself, it may take a long time. The final dataset with input features and the outcome to predict can be downloaded from <a href="???">this link</a>.</p>
+<div class="sourceCode" id="cb117"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb117-1"><a href="#cb117-1"></a><span class="co">################################################################################</span></span>
+<span id="cb117-2"><a href="#cb117-2"></a></span>
+<span id="cb117-3"><a href="#cb117-3"></a><span class="kw">require</span>(quanteda)</span>
+<span id="cb117-4"><a href="#cb117-4"></a><span class="kw">require</span>(quanteda.textstats)</span>
+<span id="cb117-5"><a href="#cb117-5"></a><span class="kw">require</span>(udpipe)</span>
+<span id="cb117-6"><a href="#cb117-6"></a><span class="kw">require</span>(reticulate)</span>
+<span id="cb117-7"><a href="#cb117-7"></a><span class="kw">require</span>(text)</span>
+<span id="cb117-8"><a href="#cb117-8"></a></span>
+<span id="cb117-9"><a href="#cb117-9"></a>ud_eng &lt;-<span class="st"> </span><span class="kw">udpipe_load_model</span>(<span class="kw">here</span>(<span class="st">&#39;english-ewt-ud-2.5-191206.udpipe&#39;</span>))</span>
+<span id="cb117-10"><a href="#cb117-10"></a></span>
+<span id="cb117-11"><a href="#cb117-11"></a><span class="kw">virtualenv_list</span>()</span>
+<span id="cb117-12"><a href="#cb117-12"></a></span>
+<span id="cb117-13"><a href="#cb117-13"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;torch&#39;</span>)</span>
+<span id="cb117-14"><a href="#cb117-14"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;numpy&#39;</span>)</span>
+<span id="cb117-15"><a href="#cb117-15"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;transformers&#39;</span>)</span>
+<span id="cb117-16"><a href="#cb117-16"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;nltk&#39;</span>)</span>
+<span id="cb117-17"><a href="#cb117-17"></a>reticulate<span class="op">::</span><span class="kw">import</span>(<span class="st">&#39;tokenizers&#39;</span>)</span>
+<span id="cb117-18"><a href="#cb117-18"></a></span>
+<span id="cb117-19"><a href="#cb117-19"></a><span class="co">################################################################################</span></span>
+<span id="cb117-20"><a href="#cb117-20"></a></span>
+<span id="cb117-21"><a href="#cb117-21"></a></span>
+<span id="cb117-22"><a href="#cb117-22"></a></span>
+<span id="cb117-23"><a href="#cb117-23"></a></span>
+<span id="cb117-24"><a href="#cb117-24"></a></span>
+<span id="cb117-25"><a href="#cb117-25"></a></span>
+<span id="cb117-26"><a href="#cb117-26"></a></span>
+<span id="cb117-27"><a href="#cb117-27"></a></span>
+<span id="cb117-28"><a href="#cb117-28"></a>readability &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv&#39;</span>,</span>
+<span id="cb117-29"><a href="#cb117-29"></a>                        <span class="dt">header=</span><span class="ot">TRUE</span>)</span>
+<span id="cb117-30"><a href="#cb117-30"></a></span>
+<span id="cb117-31"><a href="#cb117-31"></a>input.list &lt;-<span class="st"> </span><span class="kw">vector</span>(<span class="st">&#39;list&#39;</span>,<span class="kw">nrow</span>(readability))</span>
+<span id="cb117-32"><a href="#cb117-32"></a></span>
+<span id="cb117-33"><a href="#cb117-33"></a></span>
+<span id="cb117-34"><a href="#cb117-34"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(readability)){</span>
+<span id="cb117-35"><a href="#cb117-35"></a></span>
+<span id="cb117-36"><a href="#cb117-36"></a>  <span class="co"># Assign the text to analyze</span></span>
+<span id="cb117-37"><a href="#cb117-37"></a>  </span>
+<span id="cb117-38"><a href="#cb117-38"></a>  text &lt;-<span class="st"> </span>readability[i,]<span class="op">$</span>excerpt</span>
+<span id="cb117-39"><a href="#cb117-39"></a>  </span>
+<span id="cb117-40"><a href="#cb117-40"></a>  <span class="co"># Tokenization and document-feature matrix</span></span>
+<span id="cb117-41"><a href="#cb117-41"></a>  </span>
+<span id="cb117-42"><a href="#cb117-42"></a>  tokenized &lt;-<span class="st"> </span><span class="kw">tokens</span>(text,</span>
+<span id="cb117-43"><a href="#cb117-43"></a>                      <span class="dt">remove_punct =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb117-44"><a href="#cb117-44"></a>                      <span class="dt">remove_numbers =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb117-45"><a href="#cb117-45"></a>                      <span class="dt">remove_symbols =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb117-46"><a href="#cb117-46"></a>                      <span class="dt">remove_separators =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb117-47"><a href="#cb117-47"></a>  </span>
+<span id="cb117-48"><a href="#cb117-48"></a>  dm &lt;-<span class="st"> </span><span class="kw">dfm</span>(tokenized)</span>
+<span id="cb117-49"><a href="#cb117-49"></a></span>
+<span id="cb117-50"><a href="#cb117-50"></a>  <span class="co"># basic text stats</span></span>
+<span id="cb117-51"><a href="#cb117-51"></a>  </span>
+<span id="cb117-52"><a href="#cb117-52"></a>  text_sm &lt;-<span class="st"> </span><span class="kw">textstat_summary</span>(dm)</span>
+<span id="cb117-53"><a href="#cb117-53"></a>  text_sm<span class="op">$</span>sents &lt;-<span class="st"> </span><span class="kw">nsentence</span>(text)</span>
+<span id="cb117-54"><a href="#cb117-54"></a>  text_sm<span class="op">$</span>chars &lt;-<span class="st"> </span><span class="kw">nchar</span>(text)</span>
+<span id="cb117-55"><a href="#cb117-55"></a></span>
+<span id="cb117-56"><a href="#cb117-56"></a>    <span class="co"># text_sm[2:length(text_sm)]</span></span>
+<span id="cb117-57"><a href="#cb117-57"></a>    </span>
+<span id="cb117-58"><a href="#cb117-58"></a>  <span class="co"># Word-length features</span></span>
+<span id="cb117-59"><a href="#cb117-59"></a>  </span>
+<span id="cb117-60"><a href="#cb117-60"></a>  wl &lt;-<span class="st"> </span><span class="kw">nchar</span>(tokenized[[<span class="dv">1</span>]])</span>
+<span id="cb117-61"><a href="#cb117-61"></a>  </span>
+<span id="cb117-62"><a href="#cb117-62"></a>  wl.tab &lt;-<span class="st"> </span><span class="kw">table</span>(wl)</span>
+<span id="cb117-63"><a href="#cb117-63"></a>  </span>
+<span id="cb117-64"><a href="#cb117-64"></a>  wl.features &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="kw">matrix</span>(<span class="dv">0</span>,<span class="dt">nrow=</span><span class="dv">1</span>,<span class="dt">nco=</span><span class="dv">30</span>))</span>
+<span id="cb117-65"><a href="#cb117-65"></a>  <span class="kw">colnames</span>(wl.features) &lt;-<span class="st"> </span><span class="kw">paste0</span>(<span class="st">&#39;wl.&#39;</span>,<span class="dv">1</span><span class="op">:</span><span class="dv">30</span>)</span>
+<span id="cb117-66"><a href="#cb117-66"></a>  </span>
+<span id="cb117-67"><a href="#cb117-67"></a>  ind &lt;-<span class="st"> </span><span class="kw">colnames</span>(wl.features)<span class="op">%in%</span><span class="kw">paste0</span>(<span class="st">&#39;wl.&#39;</span>,<span class="kw">names</span>(wl.tab))</span>
+<span id="cb117-68"><a href="#cb117-68"></a>  </span>
+<span id="cb117-69"><a href="#cb117-69"></a>  wl.features[,ind] &lt;-<span class="st"> </span>wl.tab</span>
+<span id="cb117-70"><a href="#cb117-70"></a>  </span>
+<span id="cb117-71"><a href="#cb117-71"></a>  wl.features<span class="op">$</span>mean.wl  &lt;-<span class="st">   </span><span class="kw">mean</span>(wl)</span>
+<span id="cb117-72"><a href="#cb117-72"></a>  wl.features<span class="op">$</span>sd.wl    &lt;-<span class="st">   </span><span class="kw">sd</span>(wl)</span>
+<span id="cb117-73"><a href="#cb117-73"></a>  wl.features<span class="op">$</span>min.wl   &lt;-<span class="st">   </span><span class="kw">min</span>(wl)</span>
+<span id="cb117-74"><a href="#cb117-74"></a>  wl.features<span class="op">$</span>max.wl   &lt;-<span class="st">   </span><span class="kw">max</span>(wl)</span>
+<span id="cb117-75"><a href="#cb117-75"></a>  </span>
+<span id="cb117-76"><a href="#cb117-76"></a>    <span class="co"># wl.features</span></span>
+<span id="cb117-77"><a href="#cb117-77"></a>  </span>
+<span id="cb117-78"><a href="#cb117-78"></a>  <span class="co"># Text entropy/Max entropy ratio</span></span>
+<span id="cb117-79"><a href="#cb117-79"></a>  </span>
+<span id="cb117-80"><a href="#cb117-80"></a>  t.ent &lt;-<span class="st"> </span><span class="kw">textstat_entropy</span>(dm)</span>
+<span id="cb117-81"><a href="#cb117-81"></a>  n     &lt;-<span class="st">  </span><span class="kw">sum</span>(<span class="kw">featfreq</span>(dm))</span>
+<span id="cb117-82"><a href="#cb117-82"></a>  p     &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="dv">1</span><span class="op">/</span>n,n)</span>
+<span id="cb117-83"><a href="#cb117-83"></a>  m.ent &lt;-<span class="st"> </span><span class="op">-</span><span class="kw">sum</span>(p<span class="op">*</span><span class="kw">log</span>(p,<span class="dt">base=</span><span class="dv">2</span>))</span>
+<span id="cb117-84"><a href="#cb117-84"></a>  </span>
+<span id="cb117-85"><a href="#cb117-85"></a>  ent &lt;-<span class="st"> </span>t.ent<span class="op">$</span>entropy<span class="op">/</span>m.ent</span>
+<span id="cb117-86"><a href="#cb117-86"></a>  </span>
+<span id="cb117-87"><a href="#cb117-87"></a>    <span class="co"># ent</span></span>
+<span id="cb117-88"><a href="#cb117-88"></a>  </span>
+<span id="cb117-89"><a href="#cb117-89"></a>  <span class="co"># Lexical diversity</span></span>
+<span id="cb117-90"><a href="#cb117-90"></a>  </span>
+<span id="cb117-91"><a href="#cb117-91"></a>  text_lexdiv &lt;-<span class="st"> </span><span class="kw">textstat_lexdiv</span>(tokenized,</span>
+<span id="cb117-92"><a href="#cb117-92"></a>                                 <span class="dt">remove_numbers =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb117-93"><a href="#cb117-93"></a>                                 <span class="dt">remove_punct   =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb117-94"><a href="#cb117-94"></a>                                 <span class="dt">remove_symbols =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb117-95"><a href="#cb117-95"></a>                                 <span class="dt">measure        =</span> <span class="st">&#39;all&#39;</span>)</span>
+<span id="cb117-96"><a href="#cb117-96"></a>  </span>
+<span id="cb117-97"><a href="#cb117-97"></a>    <span class="co"># text_lexdiv[,2:ncol(text_lexdiv)]</span></span>
+<span id="cb117-98"><a href="#cb117-98"></a>  </span>
+<span id="cb117-99"><a href="#cb117-99"></a>  <span class="co"># Measures of readability</span></span>
+<span id="cb117-100"><a href="#cb117-100"></a>  </span>
+<span id="cb117-101"><a href="#cb117-101"></a>  text_readability &lt;-<span class="st"> </span><span class="kw">textstat_readability</span>(text,<span class="dt">measure=</span><span class="st">&#39;all&#39;</span>)</span>
+<span id="cb117-102"><a href="#cb117-102"></a>  </span>
+<span id="cb117-103"><a href="#cb117-103"></a>      <span class="co"># text_readability[,2:ncol(text_readability)]</span></span>
+<span id="cb117-104"><a href="#cb117-104"></a>  </span>
+<span id="cb117-105"><a href="#cb117-105"></a>  <span class="co"># POS tag frequency</span></span>
+<span id="cb117-106"><a href="#cb117-106"></a>  </span>
+<span id="cb117-107"><a href="#cb117-107"></a>  annotated &lt;-<span class="st"> </span><span class="kw">udpipe_annotate</span>(ud_eng, <span class="dt">x =</span> text)</span>
+<span id="cb117-108"><a href="#cb117-108"></a>  annotated &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(annotated)</span>
+<span id="cb117-109"><a href="#cb117-109"></a>  annotated &lt;-<span class="st"> </span><span class="kw">cbind_morphological</span>(annotated)</span>
+<span id="cb117-110"><a href="#cb117-110"></a>  </span>
+<span id="cb117-111"><a href="#cb117-111"></a>  pos.tags &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="kw">table</span>(annotated<span class="op">$</span>upos),<span class="kw">table</span>(annotated<span class="op">$</span>xpos))</span>
+<span id="cb117-112"><a href="#cb117-112"></a>    </span>
+<span id="cb117-113"><a href="#cb117-113"></a>    <span class="co"># pos.tags</span></span>
+<span id="cb117-114"><a href="#cb117-114"></a>  </span>
+<span id="cb117-115"><a href="#cb117-115"></a>  <span class="co"># Syntactic relations</span></span>
+<span id="cb117-116"><a href="#cb117-116"></a>  </span>
+<span id="cb117-117"><a href="#cb117-117"></a>  dep_rel &lt;-<span class="st"> </span><span class="kw">table</span>(annotated<span class="op">$</span>dep_rel)</span>
+<span id="cb117-118"><a href="#cb117-118"></a>  </span>
+<span id="cb117-119"><a href="#cb117-119"></a>  dep_rel</span>
+<span id="cb117-120"><a href="#cb117-120"></a>  </span>
+<span id="cb117-121"><a href="#cb117-121"></a>  <span class="co"># morphological features</span></span>
+<span id="cb117-122"><a href="#cb117-122"></a>  </span>
+<span id="cb117-123"><a href="#cb117-123"></a>    annotated[,]</span>
+<span id="cb117-124"><a href="#cb117-124"></a>  </span>
+<span id="cb117-125"><a href="#cb117-125"></a>  <span class="co"># Sentence Embeddings</span></span>
+<span id="cb117-126"><a href="#cb117-126"></a>    </span>
+<span id="cb117-127"><a href="#cb117-127"></a>    embeds &lt;-<span class="st"> </span><span class="kw">textEmbed</span>(<span class="dt">x     =</span> text,</span>
+<span id="cb117-128"><a href="#cb117-128"></a>                        <span class="dt">model =</span> <span class="st">&#39;roberta-base&#39;</span>,</span>
+<span id="cb117-129"><a href="#cb117-129"></a>                        <span class="dt">layers =</span> <span class="dv">12</span>,</span>
+<span id="cb117-130"><a href="#cb117-130"></a>                        <span class="dt">context_aggregation_layers =</span> <span class="st">&#39;concatenate&#39;</span>)</span>
+<span id="cb117-131"><a href="#cb117-131"></a>    </span>
+<span id="cb117-132"><a href="#cb117-132"></a>    embeds<span class="op">$</span>x</span>
+<span id="cb117-133"><a href="#cb117-133"></a>    </span>
+<span id="cb117-134"><a href="#cb117-134"></a>}</span></code></pre></div>
 </div>
 
 
