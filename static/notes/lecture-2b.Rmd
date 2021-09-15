@@ -792,138 +792,172 @@ This lecture provided different types of information we can extract from any giv
 
 ################################################################################
 
-require(quanteda)
-require(quanteda.textstats)
-require(udpipe)
-require(reticulate)
-require(text)
+  require(quanteda)
+  require(quanteda.textstats)
+  require(udpipe)
+  require(reticulate)
+  require(text)
 
-ud_eng <- udpipe_load_model(here('english-ewt-ud-2.5-191206.udpipe'))
+  ud_eng <- udpipe_load_model(here('english-ewt-ud-2.5-191206.udpipe'))
 
-virtualenv_list()
+  virtualenv_list()
 
-reticulate::import('torch')
-reticulate::import('numpy')
-reticulate::import('transformers')
-reticulate::import('nltk')
-reticulate::import('tokenizers')
+  reticulate::import('torch')
+  reticulate::import('numpy')
+  reticulate::import('transformers')
+  reticulate::import('nltk')
+  reticulate::import('tokenizers')
 
 ################################################################################
 
+  readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',
+                          header=TRUE)
 
+  input.list <- vector('list',nrow(readability))
 
+  for(i in 1:nrow(readability)){
 
-
-
-
-
-readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',
-                        header=TRUE)
-
-input.list <- vector('list',nrow(readability))
-
-
-for(i in 1:nrow(readability)){
-
-  # Assign the text to analyze
+    # Assign the text to analyze
   
-  text <- readability[i,]$excerpt
+      text <- readability[i,]$excerpt
   
-  # Tokenization and document-feature matrix
+    # Tokenization and document-feature matrix
   
-  tokenized <- tokens(text,
-                      remove_punct = TRUE,
-                      remove_numbers = TRUE,
-                      remove_symbols = TRUE,
-                      remove_separators = TRUE)
+      tokenized <- tokens(text,
+                          remove_punct = TRUE,
+                          remove_numbers = TRUE,
+                          remove_symbols = TRUE,
+                          remove_separators = TRUE)
   
-  dm <- dfm(tokenized)
+      dm <- dfm(tokenized)
 
-  # basic text stats
+    # basic text stats
   
-  text_sm <- textstat_summary(dm)
-  text_sm$sents <- nsentence(text)
-  text_sm$chars <- nchar(text)
+      text_sm <- textstat_summary(dm)
+      text_sm$sents <- nsentence(text)
+      text_sm$chars <- nchar(text)
 
-    # text_sm[2:length(text_sm)]
+        # text_sm[2:length(text_sm)]
     
-  # Word-length features
+    # Word-length features
   
-  wl <- nchar(tokenized[[1]])
+      wl <- nchar(tokenized[[1]])
   
-  wl.tab <- table(wl)
+      wl.tab <- table(wl)
   
-  wl.features <- data.frame(matrix(0,nrow=1,nco=30))
-  colnames(wl.features) <- paste0('wl.',1:30)
+      wl.features <- data.frame(matrix(0,nrow=1,nco=30))
+      colnames(wl.features) <- paste0('wl.',1:30)
   
-  ind <- colnames(wl.features)%in%paste0('wl.',names(wl.tab))
+      ind <- colnames(wl.features)%in%paste0('wl.',names(wl.tab))
   
-  wl.features[,ind] <- wl.tab
+      wl.features[,ind] <- wl.tab
   
-  wl.features$mean.wl  <-   mean(wl)
-  wl.features$sd.wl    <-   sd(wl)
-  wl.features$min.wl   <-   min(wl)
-  wl.features$max.wl   <-   max(wl)
+      wl.features$mean.wl  <-   mean(wl)
+      wl.features$sd.wl    <-   sd(wl)
+      wl.features$min.wl   <-   min(wl)
+      wl.features$max.wl   <-   max(wl)
   
-    # wl.features
+      # wl.features
   
-  # Text entropy/Max entropy ratio
+    # Text entropy/Max entropy ratio
   
-  t.ent <- textstat_entropy(dm)
-  n     <-  sum(featfreq(dm))
-  p     <- rep(1/n,n)
-  m.ent <- -sum(p*log(p,base=2))
+      t.ent <- textstat_entropy(dm)
+      n     <-  sum(featfreq(dm))
+      p     <- rep(1/n,n)
+      m.ent <- -sum(p*log(p,base=2))
   
-  ent <- t.ent$entropy/m.ent
+      ent <- t.ent$entropy/m.ent
   
-    # ent
+      # ent
   
-  # Lexical diversity
+    # Lexical diversity
   
-  text_lexdiv <- textstat_lexdiv(tokenized,
-                                 remove_numbers = TRUE,
-                                 remove_punct   = TRUE,
-                                 remove_symbols = TRUE,
-                                 measure        = 'all')
+      text_lexdiv <- textstat_lexdiv(tokenized,
+                                     remove_numbers = TRUE,
+                                     remove_punct   = TRUE,
+                                     remove_symbols = TRUE,
+                                     measure        = 'all')
   
-    # text_lexdiv[,2:ncol(text_lexdiv)]
+      # text_lexdiv[,2:ncol(text_lexdiv)]
   
-  # Measures of readability
+    # Measures of readability
   
-  text_readability <- textstat_readability(text,measure='all')
+      text_readability <- textstat_readability(text,measure='all')
   
       # text_readability[,2:ncol(text_readability)]
   
-  # POS tag frequency
+    # POS tag frequency
   
-  annotated <- udpipe_annotate(ud_eng, x = text)
-  annotated <- as.data.frame(annotated)
-  annotated <- cbind_morphological(annotated)
+      annotated <- udpipe_annotate(ud_eng, x = text)
+      annotated <- as.data.frame(annotated)
+      annotated <- cbind_morphological(annotated)
   
-  pos.tags <- c(table(annotated$upos),table(annotated$xpos))
+      pos_tags <- c(table(annotated$upos),table(annotated$xpos))
     
-    # pos.tags
+      # pos.tags
   
-  # Syntactic relations
+    # Syntactic relations
   
-  dep_rel <- table(annotated$dep_rel)
+      dep_rel <- table(annotated$dep_rel)
   
-  dep_rel
+        #dep_rel
   
-  # morphological features
+    # morphological features
   
-    annotated[,]
-  
-  # Sentence Embeddings
+      feat_names <- c('morph_abbr','morph_animacy','morph_aspect','morph_case',
+                      'morph_clusivity','morph_definite','morph_degree',
+                      'morph_evident','morph_foreign','morph_gender','morph_mood',
+                      'morph_nounclass','morph_number','morph_numtype',
+                      'morph_person','morph_polarity','morph_polite','morph_poss',
+                      'morph_prontype','morph_reflex','morph_tense','morph_typo',
+                      'morph_verbform','morph_voice')
+
+      feat_vec <- c()
+      
+      for(j in 1:length(feat_names)){
+        
+        if(feat_names[j]%in%colnames(annotated)){
+          morph_tmp   <- table(annotated[,feat_names[j]])
+          names_tmp   <- paste0(feat_names[j],'_',names(morph_tmp))
+          morph_tmp   <- as.vector(morph_tmp)
+          names(morph_tmp) <- names_tmp
+          feat_vec  <- c(feat_vec,morph_tmp)
+        }
+      }
+      
+        # feat_vec
+      
+    # Sentence Embeddings
     
-    embeds <- textEmbed(x     = text,
-                        model = 'roberta-base',
-                        layers = 12,
-                        context_aggregation_layers = 'concatenate')
+      embeds <- textEmbed(x     = text,
+                          model = 'roberta-base',
+                          layers = 12,
+                          context_aggregation_layers = 'concatenate')
     
-    embeds$x
+      embeds$x
     
-}
+      
+    # combine them all into one vector and store in the list object
+      
+      input.list[[i]] <- cbind(text_sm[2:length(text_sm)],
+                               wl.features,
+                               as.data.frame(ent),
+                               text_lexdiv[,2:ncol(text_lexdiv)],
+                               text_readability[,2:ncol(text_readability)],
+                               t(as.data.frame(pos_tags)),
+                               t(as.data.frame(c(dep_rel))),
+                               t(as.data.frame(feat_vec)),
+                               as.data.frame(embeds$x)
+                               )
+      
+      print(i)
+  }
+  
+  
+  # Combine all elements of list in a single data frame
+  require(gtools)
+  
+  smartbind
 
 ```
 
