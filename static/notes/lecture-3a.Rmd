@@ -80,6 +80,19 @@ options(scipen=99)
 
 ```
 
+In the next few weeks, we will talk about different approaches to build predictive models. We need some performance metrics to evaluate how useful a model is by itself, or how well it performs compared to alternative models. We will consider the performance metrics in two main categories: 1) metrics for predicting a continuous outcome, 2) metrics for predicting a binary outcome. 
+
+We will use two hypothetical small datasets (N = 30) for introducing these concepts. The first hypothetical dataset will have a continuous outcome and predictions. The second hypothetical dataset will have a binary outcome and predictions.
+
+You can load these two hypothetical datasets using the code below:
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',
+                        header=TRUE)
+```
+
+
 
 # 1. Evaluation Metrics for Continuous Outcomes
 
@@ -99,22 +112,34 @@ options(scipen=99)
 
 ### Mean Absolute Percentage Error
 
-## Baseline performance
+## Baseline performance considerations
 
 
 # 2. Evaluation Metrics for Binary Outcomes
 
+## Brier Score
+
 ## Confusion Matrix
 
-## Accuracy, Precision, Recall
+### Accuracy
 
-## Brier Score
+### True Positive Rate 
+
+### False Positive Rate
+
+### Precision
+
+### Recall
 
 ## F1 score
 
 ## AUC
 
 ## Log loss
+
+## Custome metrics for profit/cost optimization
+
+## Baseline performance considerations
 
 ## Baseline performance
 

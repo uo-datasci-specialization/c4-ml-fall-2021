@@ -1531,6 +1531,105 @@ margin-right: 4.5px; } }
     </style>
 
 
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; } /* Alert */
+code span.an { color: #008000; } /* Annotation */
+code span.at { } /* Attribute */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #0000ff; } /* ControlFlow */
+code span.ch { color: #008080; } /* Char */
+code span.cn { } /* Constant */
+code span.co { color: #008000; } /* Comment */
+code span.cv { color: #008000; } /* CommentVar */
+code span.do { color: #008000; } /* Documentation */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.im { } /* Import */
+code span.in { color: #008000; } /* Information */
+code span.kw { color: #0000ff; } /* Keyword */
+code span.op { } /* Operator */
+code span.ot { color: #ff4000; } /* Other */
+code span.pp { color: #ff4000; } /* Preprocessor */
+code span.sc { color: #008080; } /* SpecialChar */
+code span.ss { color: #008080; } /* SpecialString */
+code span.st { color: #008080; } /* String */
+code span.va { } /* Variable */
+code span.vs { color: #008080; } /* VerbatimString */
+code span.wa { color: #008000; font-weight: bold; } /* Warning */
+
+.sourceCode .row {
+  width: 100%;
+}
+.sourceCode {
+  overflow-x: auto;
+}
+.code-folding-btn {
+  margin-right: -30px;
+}
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
 
 
 
@@ -1738,7 +1837,7 @@ University of Oregon | EDLD 654<br><h4 class="date">09/15/2021</h4>
   addClassKlippyTo("pre.r, pre.markdown");
   addKlippy('right', 'top', 'auto', '1', 'Copy code', 'Copied!');
 </script>
-<p>[Updated: Wed, Sep 15, 2021 - 11:17:28 ]</p>
+<p>[Updated: Wed, Sep 15, 2021 - 13:49:39 ]</p>
 <style>
 
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
@@ -1757,6 +1856,11 @@ University of Oregon | EDLD 654<br><h4 class="date">09/15/2021</h4>
 }
 
 </style>
+<p>In the next few weeks, we will talk about different approaches to build predictive models. We need some performance metrics to evaluate how useful a model is by itself, or how well it performs compared to alternative models. We will consider the performance metrics in two main categories: 1) metrics for predicting a continuous outcome, 2) metrics for predicting a binary outcome.</p>
+<p>We will use two hypothetical small datasets (N = 30) for introducing these concepts. The first hypothetical dataset will have a continuous outcome and predictions. The second hypothetical dataset will have a binary outcome and predictions.</p>
+<p>You can load these two hypothetical datasets using the code below:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>readability &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv&#39;</span>,</span>
+<span id="cb1-2"><a href="#cb1-2"></a>                        <span class="dt">header=</span><span class="ot">TRUE</span>)</span></code></pre></div>
 <div id="evaluation-metrics-for-continuous-outcomes" class="section level1">
 <h1>1. Evaluation Metrics for Continuous Outcomes</h1>
 <div id="explained-variance-r2" class="section level2">
@@ -1783,20 +1887,32 @@ University of Oregon | EDLD 654<br><h4 class="date">09/15/2021</h4>
 <h3>Mean Absolute Percentage Error</h3>
 </div>
 </div>
-<div id="baseline-performance" class="section level2">
-<h2>Baseline performance</h2>
+<div id="baseline-performance-considerations" class="section level2">
+<h2>Baseline performance considerations</h2>
 </div>
 </div>
 <div id="evaluation-metrics-for-binary-outcomes" class="section level1">
 <h1>2. Evaluation Metrics for Binary Outcomes</h1>
-<div id="confusion-matrix" class="section level2">
-<h2>Confusion Matrix</h2>
-</div>
-<div id="accuracy-precision-recall" class="section level2">
-<h2>Accuracy, Precision, Recall</h2>
-</div>
 <div id="brier-score" class="section level2">
 <h2>Brier Score</h2>
+</div>
+<div id="confusion-matrix" class="section level2">
+<h2>Confusion Matrix</h2>
+<div id="accuracy" class="section level3">
+<h3>Accuracy</h3>
+</div>
+<div id="true-positive-rate" class="section level3">
+<h3>True Positive Rate</h3>
+</div>
+<div id="false-positive-rate" class="section level3">
+<h3>False Positive Rate</h3>
+</div>
+<div id="precision" class="section level3">
+<h3>Precision</h3>
+</div>
+<div id="recall" class="section level3">
+<h3>Recall</h3>
+</div>
 </div>
 <div id="f1-score" class="section level2">
 <h2>F1 score</h2>
@@ -1807,7 +1923,13 @@ University of Oregon | EDLD 654<br><h4 class="date">09/15/2021</h4>
 <div id="log-loss" class="section level2">
 <h2>Log loss</h2>
 </div>
-<div id="baseline-performance-1" class="section level2">
+<div id="custome-metrics-for-profitcost-optimization" class="section level2">
+<h2>Custome metrics for profit/cost optimization</h2>
+</div>
+<div id="baseline-performance-considerations-1" class="section level2">
+<h2>Baseline performance considerations</h2>
+</div>
+<div id="baseline-performance" class="section level2">
 <h2>Baseline performance</h2>
 </div>
 </div>
