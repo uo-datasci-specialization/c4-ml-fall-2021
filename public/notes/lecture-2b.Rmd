@@ -1,0 +1,991 @@
+---
+title: Data Pre-processing II (Text Data)
+subtitle: Applied Machine Learning for Educational Data Science
+author:
+  name: Cengiz Zopluoglu
+  affiliation: University of Oregon | EDLD 654
+date: 09/08/2021 ## Or "Lecture no."
+output: 
+  html_document:
+    keep_md: false
+    theme: journal
+    highlight: haddock
+    code_folding: hide
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  pdf_document:
+    extra_dependencies: ["amssymb","animate"]
+    keep_tex: false ## Change to true if want keep intermediate .tex file
+    toc: true
+    toc_depth: 3
+    dev: cairo_pdf
+always_allow_html: true
+urlcolor: blue
+mainfont: cochineal
+sansfont: Fira Sans
+monofont: Fira Code ## Although, see: https://tex.stackexchange.com/q/294362
+
+## Automatically knit to both formats:
+knit: (function(inputFile, encoding) {
+ rmarkdown::render(inputFile, encoding = encoding, 
+ output_format = 'all') 
+ })
+---
+
+
+
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position=c('top','right'))
+```
+
+`r paste('[Updated:',format(Sys.time(),'%a, %b %d, %Y - %H:%M:%S'),']')`
+
+<style>
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    z-index: 2;
+    color: #fff;
+    background-color: #FC4445;
+    border-color: #97CAEF;
+}
+
+#infobox {
+  padding: 1em 1em 1em 4em;
+  margin-bottom: 10px;
+  border: 2px solid black;
+  border-radius: 10px;
+  background: #E6F6DC 5px center/3em no-repeat;
+}
+
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = "",fig.align='center')
+require(here)
+require(ggplot2)
+require(plot3D)
+require(kableExtra)
+require(knitr)
+require(giski)
+require(magick)
+require(gridExtra)
+options(scipen=99)
+
+# Resources:
+
+  # https://blogs.rstudio.com/ai/posts/2020-07-30-state-of-the-art-nlp-models-from-r/
+  # https://arxiv.org/pdf/1907.11692.pdf
+  # https://huggingface.co/transformers/master/tokenizer_summary.html
+  # https://towardsdatascience.com/bert-roberta-distilbert-xlnet-which-one-to-use-3d5ab82ba5f8
+  # https://towardsdatascience.com/hyperparameter-optimization-for-optimum-transformer-models-b95a32b70949
+  # https://towardsdatascience.com/tokenizers-nlps-building-block-9ab17d3e6929
+  # https://blog.floydhub.com/tokenization-nlp/
+  # https://www.youtube.com/watch?v=FKlPCK1uFrc
+  # https://www.youtube.com/watch?v=zJW57aCBCTk
+  # https://github.com/huggingface/transformers/issues/2072
+  # https://jalammar.github.io/illustrated-bert/
+  # https://www.youtube.com/watch?v=PXc_SlnT2g0
+
+```
+
+Generating features from text data is very different than dealing with continuous and categorical data. First, let's remember the dataset we are working with.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',
+                        header=TRUE)
+
+str(readability)
+
+readability[1,]$excerpt
+
+readability[1,]$target
+```
+
+The excerpt column includes a plain text data and the target column includes a corresponding measure of readability for each excerpt. A higher target value indicates a more difficult text to read. What kind of features we can generate from the plain text to predict its readability? 
+
+In the following sections, we will demonstrate how to derive these features for a single observation. At the end, we will finish with some code to compile all these information in a useful tabular format to be able to use in predictive modeling later.
+
+# 1. Textual statistics via `quanteda`
+
+For this section, we will rely on two packages: `quanteda`, `quanteda.textmodels`.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+require(quanteda)
+require(quanteda.textstats)
+
+```
+
+## 1.1. Tokenization
+
+The first thing to do is tokenization of the plain text using the `tokens()` function from the `quanteda` package. This will create an object that contains every word, punctuations, symbols, numbers, etc. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+text <- as.character(readability[1,]$excerpt)
+
+text
+  
+tokenized <- tokens(text)
+
+tokenized[[1]]
+```
+
+We can also create a separate tokenization that includes only words.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+tokenized.words <- tokens(text,
+                          remove_punct = TRUE,
+                          remove_numbers = TRUE,
+                          remove_symbols = TRUE,
+                          remove_separators = TRUE)
+
+tokenized.words[[1]]
+```
+
+Then, we will also create a document-feature matrix using the `dfm()` function from the `quanteda` package. This is simply an object that contains the information about the frequency of each single token in the text.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+dm <- dfm(tokenized)
+
+dm
+
+featfreq(dm)
+```
+
+
+## 1.2. Basic statistics
+
+We can use the `texstat_summary()` function to obtain some basic information about any reading passage in this dataset such as number of characters, number of sentences, number of tokens, number of unique tokens, number of numbers, number of punctuation marks, number of symbols, number of tags, and number of emojis. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+text_sm <- textstat_summary(dm)
+
+text_sm
+
+# for some reason it returns NAs for number of characters and number of sentences
+
+text_sm$sents <- nsentence(text)
+text_sm$chars <- nchar(text)
+
+text_sm
+
+```
+
+## 1.3. Word length statistics
+
+We can derive the distribution of word lengths in a passage. The number of words with length 1, 2, 3, ..., 20 can be defined as predictive features. Summary statistics of this distribution (minimum word length, maximum word length, average word length, variability of word length) may also predict readability. Below is a code to extract these features and combine them in a vector.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Word lengths
+
+  wl <- nchar(tokenized.words[[1]])
+  
+  wl
+
+# Summary stat. of word length
+
+  min(wl)
+  max(wl)
+  mean(wl)
+  sd(wl)
+
+# Distribution of word lengths
+  
+  wl.tab <- table(wl)
+  
+  wl.tab
+  
+# Word Length features combined
+  
+  wl.features <- data.frame(matrix(0,nrow=1,nco=30))
+  colnames(wl.features) <- paste0('wl.',1:30)
+  
+  ind <- colnames(wl.features)%in%paste0('wl.',names(wl.tab))
+  
+  wl.features[,ind] <- wl.tab
+  
+  wl.features$mean.wl  <-   mean(wl)
+  wl.features$sd.wl    <-   sd(wl)
+  wl.features$min.wl   <-   min(wl)
+  wl.features$max.wl   <-   max(wl)
+  
+  wl.features
+  
+```
+
+## 1.4. Text Entropy
+
+In the `quanteda.textstats` package, `textstat_entropy()` provides a numerical measure of **text entropy**. The entropy is first computed by computing the proportion of each token, and then the entropy is computed using the following formula.
+
+$$
+-\sum_{i}p_i*log_2(p_i),
+$$
+where $p_i$ is the proportion of $i^th$ token.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Do it yourself
+
+y <- featfreq(dm)
+p <- y/sum(y)
+-sum(p*log(p,base=2))
+
+
+# use the built-in function
+# ?textstat_entropy
+
+textstat_entropy(dm)
+```
+
+Based on this definition of entropy, note that there is a maximum entropy for any text when each token appears only once in the text. We can find these for hypothetical texts with 1 to 500 tokens.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',fig.width=6,fig.height=6,message=FALSE, warning=FALSE}
+
+n = 1:500
+ent <- c()
+for(i in 1:500){
+ p <- rep(1/i,i)
+ ent[i] <- -sum(p*log(p,base=2))
+}
+
+ ggplot()+
+  geom_point(aes(x=n,y=ent),cex=1)+
+  geom_line(aes(x=n,y=ent),lty=2)+
+  theme_bw()+
+  xlab('Number of Tokens')+
+  ylab('Maximum Entropy')
+
+```
+
+The more tokens appear more than once, the entropy starts decreasing. See below for an hypothetical example
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',fig.width=10,fig.height=6,message=FALSE, warning=FALSE}
+
+# maximum entropy
+
+p <- rep(1/50,50)
+p
+-sum(p*log(p,base=2))
+
+# One of the tokens appears twice
+
+p <- c(rep(1/50,48),2/50)
+p
+-sum(p*log(p,base=2))
+
+
+# Two of the tokens appear twice
+
+p <- c(rep(1/50,46),2/50,2/50)
+p
+-sum(p*log(p,base=2))
+```
+
+## 1.5. Lexical diversity
+
+We can calculate a variety of indices regarding the lexical diversity by using the `textstat_lexdiv()` function. All these indices have two primary inputs: number of unique tokens (V), total number of tokens (N). The help page (`?textstat_lexdiv`) provides the formula for a total of 13 indices all a function of total number of tokens and number of unique tokens. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+textstat_lexdiv(tokenized,
+                remove_numbers = TRUE,
+                remove_punct   = TRUE,
+                remove_symbols = TRUE,
+                measure        = 'all')
+
+```
+
+
+## 1.6. Measures of readability
+
+We can calculate a variety of indices for readability. These indices exist for a long time and functions of variables such as number of words, number of characters, number of sentences, number of syllables, number of words matching the [Dale-Chall List of 3000 "familiar words"](https://www.readabilityformulas.com/articles/dale-chall-readability-word-list.php), average sentence length, average word length, ratio of number of words matching the Dale-Chall list of 3000 "familiar words" to the total number of all words, and number of "difficult" words not matching the Dale-Chall list of "familiar" words.
+
+The `textstat_readability()` function provides about 46 different indices as functions of these variables, see `?textstat_readability` for all the formulas and references.
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+textstat_readability(text,
+                     measure='all')
+
+```
+
+
+# 2. Lemmatization, Parts of Speech Tagging, and Dependency Parsing via `udpipe`
+
+For this section, we will rely on the `udpipe` package.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+require(udpipe)
+
+```
+
+We first need to download a pre-made language model. `udpipe` provides models for 65 different languages. We will download the model for English. When you run the code below, this will download a model file in your working directory.
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+udpipe_download_model(language = "english")
+```
+
+Note that, you have to download  a model file only once. Once you download it, you can reload it to your R environment using the following code.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+ud_eng <- udpipe_load_model(here('english-ewt-ud-2.5-191206.udpipe'))
+
+ud_eng
+```
+
+## 2.1. Morphological annotation
+
+For a given plain text, we first run `udpipe_annotate()` function. This function returns a detailed analysis of the given text.
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+annotated <- udpipe_annotate(ud_eng, x = text)
+annotated <- as.data.frame(annotated)
+annotated <- cbind_morphological(annotated)
+
+str(annotated)
+
+head(annotated)
+```
+
+## 2.2. Part of Speech Tags (POS)
+
+Two columns in this data frame provides POS tags. the column `upos` indicates [Universal POS Tags](https://universaldependencies.org/u/pos/index.html). This is a list of values you will see in this column.
+
+- ADJ: adjective
+- ADP: adposition
+- ADV: adverb
+- AUX: auxiliary
+- CCONJ: coordinating conjunction
+- DET: determiner
+- INTJ: interjection
+- NOUN: noun
+- NUM: numeral
+- PART: particle
+- PRON: pronoun
+- PROPN: proper noun
+- PUNCT: punctuation
+- SCONJ: subordinating conjunction
+- SYM: symbol
+- VERB: verb
+- X: other
+
+We can simply count the number of times these tags appear in a text and use them as predictive features of how readable the text is.
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$upos)
+
+```
+
+The column `xpos` also provide similar information; however, these are language specific POS tags. 
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$xpos)
+
+```
+
+While I couldn't find any reference to what these abbreviations mean, below is my best guess based on the information [at this link (Oxford English part-of-speech Tagset)](https://www.sketchengine.eu/oxford-english-corpus-tagset/) and [this link (Brown Corpus)](https://en.wikipedia.org/wiki/Brown_Corpus#Part-of-speech_tags_used).
+
+- CC: coordinating conjunction (and, or)
+- CD: cardinal numeral (one, two, 2, etc.)
+- DT: singular determiner/quantifier (this, that)
+- HYPH: hyphenation
+- IN: preposition
+- JJ: adjective
+- MD: modal auxiliary (can, should, will)
+- NN: singular or mass noun
+- NNP: plural noun
+- NNS: possessive plural noun
+- PRP: ???
+- RB: adverb
+- TO: infinitive marker to
+- VB: verb, base form
+- VBD: verb, past tense
+- VBG: verb, present participle/gerund
+- VBN: verb, past participle
+- WDT: wh- determiner (what, which)
+- WRB: wh- adverb (how, where, when)
+
+## 2.3. Features
+
+The morphological features returned under the column `feats` distinguish additional lexical and grammatical properties of words, not covered by the POS tags. You will see these features independently appended to the data frame at the end with columns having a `morph_` prefix.Below is a list of these columns with links for more information.
+
+- morph_case: https://universaldependencies.org/u/feat/Case.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_case)
+
+```
+
+
+- morph_definite: https://universaldependencies.org/u/feat/Definite.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_definite)
+
+```
+
+- morph_degree: https://universaldependencies.org/u/feat/Degree.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_degree)
+
+```
+
+- morph_gender: https://universaldependencies.org/u/feat/Gender.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_gender)
+
+```
+
+- morph_mood: https://universaldependencies.org/u/feat/Mood.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_mood)
+
+```
+
+- morp_number: https://universaldependencies.org/u/feat/Number.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_number)
+
+```
+
+- morph_numtype: https://universaldependencies.org/u/feat/NumType.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_numtype)
+
+```
+
+- morph_person: https://universaldependencies.org/u/feat/Person.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_person)
+
+```
+
+- morph_prontype: https://universaldependencies.org/u/feat/PronType.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_prontype)
+
+```
+
+- morph_tense: https://universaldependencies.org/u/feat/Tense.html
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_tense)
+
+```
+
+- morph_verbform: https://universaldependencies.org/u/feat/VerbForm.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_verbform)
+
+```
+
+- morph_voice: https://universaldependencies.org/u/feat/Voice.html
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$morph_voice)
+
+```
+
+
+## 2.4. Syntactic relations
+
+The column `dep_rel` in this data frame provides information about the syntactic relations. There are 37 possible tags for the universal syntactic relations. More information can be found [at this link](https://universaldependencies.org/u/dep/index.html). 
+
+- acl, clausal modifier of noun (adnominal clause)
+- acl:relcl, relative clause modifier
+- advcl, adverbial clause modifier
+- advmod, adverbial modifier
+- advmod:emph, emphasizing word, intensifier
+- advmod:lmod, locative adverbial modifier
+- amod, adjectival modifier
+- appos, appositional modifier
+- aux, auxiliary
+- aux:pass, passive auxiliary
+- case, case marking
+- cc, coordinating conjunction
+- cc:preconj, preconjunct
+- ccomp, clausal complement
+- clf, classifier
+- compound, compound
+- compound:lvc, light verb construction
+- compound:prt, phrasal verb particle
+- compound:redup, reduplicated compounds
+- compound:svc, serial verb compounds
+- conj, conjunct
+- cop, copula
+- csubj, clausal subject
+- csubj:pass, clausal passive subject
+- dep, unspecified dependency
+- det, determiner
+- det:numgov, pronominal quantifier governing the case of the noun
+- det:nummod, pronominal quantifier agreeing in case with the noun
+- det:poss, possessive determiner
+- discourse, discourse element
+- dislocated, dislocated elements
+- expl, expletive
+- expl:impers, impersonal expletive
+- expl:pass, reflexive pronoun used in reflexive passive
+- expl:pv, reflexive clitic with an inherently reflexive verb
+- fixed, fixed multiword expression
+- flat, flat multiword expression
+- flat:foreign, foreign words
+- flat:name, names
+- goeswith, goes with
+- iobj, indirect object
+- list, list
+- mark, marker
+- nmod, nominal modifier
+- nmod:poss, possessive nominal modifier
+- nmod:tmod, temporal modifier
+- nsubj, nominal subject
+- nsubj:pass, passive nominal subject
+- nummod, numeric modifier
+- nummod:gov, numeric modifier governing the case of the noun
+- obj, object
+- obl, oblique nominal
+- obl:agent, agent modifier
+- obl:arg, oblique argument
+- obl:lmod, locative modifier
+- obl:tmod, temporal modifier
+- orphan, orphan
+- parataxis, parataxis
+- punct, punctuation
+- reparandum, overridden disfluency
+- root, root
+- vocative, vocative
+- xcomp, open clausal complement
+
+We can similarly count the number of times these tags appear in a text and use them as predictive features.
+
+```{r, echo=TRUE,eval=knitr::is_html_output(),class.source='klippy',class.source = 'fold-show'}
+
+table(annotated$dep_rel)
+
+```
+
+# 3. Natural Language Processing (NLP)
+
+NLP is a more advanced modeling that goes beyond simple summary of text characteristics. To put it in a very naive way (and we will not do anything beyond it), NLP models takes a plain text, process the text to put it into little pieces (tokens, lemmas, words, POS tags, co-occurrences etc.), then use a very complex neural network model to convert it to a numerical vector that is meaningful and represent the text. 
+
+Most recently, a group of scholars called these models as part of [Foundation Models](https://arxiv.org/pdf/2108.07258.pdf). A brief list for some of these NLP models and some information along with them including links to original papers are listed below.These models are very expensive to train and uses enormous amount of data available to train. For instance, Bert/Roberta were trained using the entire Wikipedia and a Book Corpus (a total of ~ 4.7 billion words), GPT2 was trained using 8 million web pages, and GPT3 was trained on 45 TB of data from the internet and books. 
+
+| Model                                                                                      | Developer  | Year |# of parameters | Estimated Cost |
+|--------------------------------------------------------------------------------------------|:----------:|:----:|:--------------:|:--------------:|
+| [Bert-Large](https://arxiv.org/pdf/1810.04805.pdf)                                         | Google AI  | 2018 | 336 M          | [$ 7K](https://syncedreview.com/2019/06/27/the-staggering-cost-of-training-sota-ai-models/) |     
+| [Roberta-Large](https://arxiv.org/pdf/1907.11692.pdf)                                      | Facebook AI| 2019 | 335 M          | ? |
+| [GPT2-XL](https://d4mucfpksywv.cloudfront.net/better-language-models/language-models.pdf)  | Open AI    | 2019 | 1.5 B          | [$ 50K](https://medium.com/@vanya_cohen/opengpt-2-we-replicated-gpt-2-because-you-can-too-45e34e6d36dc)|
+| [T5](https://arxiv.org/pdf/1910.10683.pdf)                                                 | Google AI  | 2020 |  11 B          | [$ 1.3 M](https://arxiv.org/pdf/2004.08900.pdf)|
+| [GPT3](https://arxiv.org/pdf/2005.14165.pdf)                                               | OpenAI     | 2020 | 175 B          | [$ 4.6 M](https://venturebeat.com/2020/06/01/ai-machine-learning-openai-gpt-3-size-isnt-everything/)|
+
+
+All these models except GPT3 is open source and can be immediately utilized using open libraries (typically using Python), and these models can be customized to implement very specific tasks (e.g., question answering, sentiment analysis, translation, etc.). GPT3 is apparently the most powerful developed so far, and it can only be accessed through a private API, [https://beta.openai.com/](https://beta.openai.com/). You can explore some of the GPT3 applications on this website, [https://gpt3demo.com/](https://gpt3demo.com/). Below are a few of them:
+
+- Artificial tweets ([https://thoughts.sushant-kumar.com/word](https://thoughts.sushant-kumar.com/word))
+- Creative writing ([https://www.gwern.net/GPT-3](https://thoughts.sushant-kumar.com/word))
+- Interview with (artificial) Einstein ([https://maraoz.com/2021/03/14/einstein-gpt3/](https://maraoz.com/2021/03/14/einstein-gpt3/))
+
+If you have time, [this series of Youtube videos](https://www.youtube.com/watch?v=zJW57aCBCTk) provide some background and accessible information about these models. In particular, Episode 2 will give a good idea about what these numerical embeddings represent. If you want to get in-depth coverage of speech and language processing from scratch, [this freely available book](
+https://web.stanford.edu/~jurafsky/slp3/) provides a good amount of material.   
+
+In this lecture, we will only scratch the surface and focus on the tools available to make these models accessible through R (a political way of saying I don't know what I am doing!). In particular, we will use [the text package](
+https://www.r-text.org/) to connect with [HuggingFace's Transformers library in Python](https://huggingface.co/transformers/) and explore the word and sentence embeddings derived from the NLP models. The text package provides access to a large list of models from HuggingFace's library, see [https://huggingface.co/transformers/pretrained_models.html](https://huggingface.co/transformers/pretrained_models.html). 
+
+- 
+
+## 3.1. Loading the required packages
+
+First, we need to prepare the environment. From Lecture 1a, you should have installed the necessary packages. Now, we will load all these packages using the code below.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',results='hold'}
+
+require(reticulate)
+
+# List the available Python environments
+
+virtualenv_list()
+
+# Import the modules
+
+reticulate::import('torch')
+reticulate::import('numpy')
+reticulate::import('transformers')
+reticulate::import('nltk')
+reticulate::import('tokenizers')
+
+# Load the text package
+
+require(text)
+```
+
+## 3.2. Word Embeddings
+
+A word embedding is a vector that numerically represents a word. The length of this vector represents the number of dimensions the word is represented. we can also consider these numbers as coordinates in a geometric space with many dimensions. The words with similar meanings in this space will be closer to each other. The number of dimensions depends on the model and how it is trained. For instance, Roberta Base represents each word in 768 dimensions, while GPT2-Large represent each word in 1024 dimensions and GPT2-XL represents in 1600 dimensions.
+
+For instance, let's consider a word (e.g., sofa) and get the word embeddings from different models using the textEmbed package. Note that it will download the model files when you first request word embeddings using a new model. Depending on the complexity of these models, some of these files may be big ( larger than 10GB) and it mat take long to download them depending on your connection. Once you use a model once, then it will be quicker to get word embeddings. Below, I am asking the word embeddings from four different models: `roberta-base`, `gpt2-large`, `gpt-neo`. You can specify any model from [this list](https://huggingface.co/transformers/pretrained_models.html). The name provided to the `model` argument of the `textEmbed` function is the one listed under the **Model id** column in this list. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',results='hold',warning=FALSE,message=FALSE}
+
+tmp1 <- textEmbed(x     = 'sofa',
+                  model = 'roberta-base',
+                  layers = 1)
+
+tmp1$x
+
+length(tmp1$x)
+```
+
+If we use `roberta-base`, we get a vector with length 768 because Roberta Base was trained using 768 hidden states. You can try the following code yourself and see how the dimensions of the vector change depending on the model based on the number of hidden states used during the training.
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',results='hold',warning=FALSE,message=FALSE}
+
+tmp2 <- textEmbed(x     = 'sofa',
+                  model = 'gpt2-large',
+                  layers = 1)
+
+tmp2$x
+
+as.numeric(tmp2$x)
+
+length(tmp2$x)
+
+```
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',results='hold',warning=FALSE,message=FALSE}
+
+tmp3 <- textEmbed(x     = 'sofa',
+                  model = 'EleutherAI/gpt-neo-2.7B',
+                  layers = 1)
+
+tmp3$x
+
+as.numeric(tmp3$x)
+
+length(tmp3$x)
+
+```
+
+As you noticed, we also specified argument `layers=1`, so the function returns the embeddings from the first layer. These models typically have multiple layers. For instance, `roberta-base` has 12 layers, `gpt-neo` has 32 layers, `gpt2-large` has 36 layers. Multiple layers enable the model to capture non-linear relationships to represent complex language structures. Each layer returns a different vector of embeddings with the same length. We can request embeddings from any layer or from multiple layers at the same time.
+
+For instance, we can request the embeddings from the last layer of `roberta-base` and these embeddings will also have a length of 768, but the numbers would be different than the ones we got before from the first layer.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',results='hold',warning=FALSE,message=FALSE}
+
+tmp1 <- textEmbed(x     = 'sofa',
+                  model = 'roberta-base',
+                  layers = 12)
+
+tmp1$x
+
+length(tmp1$x)
+```
+
+Or, we can request the embeddings from the last four layers. Now, each layer will have a length of 768, and the returning object is now a vector of length 3072 (768 x 4). Instead of contenating, you can also ask to take the minimum, maximum, or mean of the requested layers, and it will return a vector with a length of 768 .
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',results='hold',warning=FALSE,message=FALSE}
+
+tmp1 <- textEmbed(x     = 'sofa',
+                  model = 'roberta-base',
+                  layers = 9:12,
+                  context_aggregation_layers = 'concatenate')
+
+tmp1$x
+
+length(tmp1$x)
+
+
+
+tmp1 <- textEmbed(x     = 'sofa',
+                  model = 'roberta-base',
+                  layers = 9:12,
+                  context_aggregation_layers = 'mean')
+
+tmp1$x
+
+length(tmp1$x)
+```
+
+It is not completely undderstood what different dimensions represent or what these different layers mean (or, I couldn't find any document/source that explains it. Let me know if you come across one). Typically, it is recommended to use the last four layers of word embedding (I read or watched this somewhere, but I don't really remember the source).  
+
+## 3.3. Sentence Embeddings
+
+Similar to words, we can also represent a whole sentence using a numerical vector. Let's consider the sentence *I like to drink Turkish coffee*, and let's see what we get from `roberta-base`.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',results='hold',warning=FALSE,message=FALSE}
+
+tmp1 <- textEmbed(x     = 'I like to drink Turkish coffee',
+                  model = 'roberta-base',
+                  layers = 12,
+                  context_aggregation_layers = 'concatenate')
+```
+
+Now, the returned object will have two major elements. First, it will return a matrix of word embeddings for each word in this sentence.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',results='hold',warning=FALSE,message=FALSE}
+tmp1$singlewords_we
+```
+
+It will also have a vector of embeddings for the whole sentence.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',results='hold',warning=FALSE,message=FALSE}
+tmp1$x
+```
+
+Now, let's check the numerical representation of the first reading passage in our dataset. I will use `gpt-neo` and request the last 4 layers.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',results='hold',warning=FALSE,message=FALSE}
+
+text
+
+tmp3 <- textEmbed(x     = text,
+                  model = 'roberta-base',
+                  layers = 9:12,
+                  context_aggregation_layers = 'concatenate')
+
+tmp3$x
+
+length(tmp3$x)
+
+```
+
+**So what?**
+
+NLP models provide meaningful contextual numerical representations of words or sentences. These numerical representations can be used as input features for predictive models to predict a certain outcome. In our case, we can utilize the embeddings from each reading passage to predict its reability.
+
+# 4. Wrapping-up
+
+This lecture provided different types of information we can extract from any given text. The code below extracts these different types of information for every single passage in the readability dataset using a `for` loop. At the end, it creates a single data with ??? input features and the outcome (readability score). If you run this by yourself, it may take a long time. The final dataset with input features and the outcome to predict can be downloaded from [this link](???).
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+################################################################################
+
+  require(quanteda)
+  require(quanteda.textstats)
+  require(udpipe)
+  require(reticulate)
+  require(text)
+
+  ud_eng <- udpipe_load_model(here('english-ewt-ud-2.5-191206.udpipe'))
+
+  virtualenv_list()
+
+  reticulate::import('torch')
+  reticulate::import('numpy')
+  reticulate::import('transformers')
+  reticulate::import('nltk')
+  reticulate::import('tokenizers')
+
+################################################################################
+
+  readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',
+                          header=TRUE)
+
+  input.list <- vector('list',nrow(readability))
+
+  for(i in 1:nrow(readability)){
+
+    # Assign the text to analyze
+  
+      text <- readability[i,]$excerpt
+  
+    # Tokenization and document-feature matrix
+  
+      tokenized <- tokens(text,
+                          remove_punct = TRUE,
+                          remove_numbers = TRUE,
+                          remove_symbols = TRUE,
+                          remove_separators = TRUE)
+  
+      dm <- dfm(tokenized)
+
+    # basic text stats
+  
+      text_sm <- textstat_summary(dm)
+      text_sm$sents <- nsentence(text)
+      text_sm$chars <- nchar(text)
+
+        # text_sm[2:length(text_sm)]
+    
+    # Word-length features
+  
+      wl <- nchar(tokenized[[1]])
+  
+      wl.tab <- table(wl)
+  
+      wl.features <- data.frame(matrix(0,nrow=1,nco=30))
+      colnames(wl.features) <- paste0('wl.',1:30)
+  
+      ind <- colnames(wl.features)%in%paste0('wl.',names(wl.tab))
+  
+      wl.features[,ind] <- wl.tab
+  
+      wl.features$mean.wl  <-   mean(wl)
+      wl.features$sd.wl    <-   sd(wl)
+      wl.features$min.wl   <-   min(wl)
+      wl.features$max.wl   <-   max(wl)
+  
+      # wl.features
+  
+    # Text entropy/Max entropy ratio
+  
+      t.ent <- textstat_entropy(dm)
+      n     <-  sum(featfreq(dm))
+      p     <- rep(1/n,n)
+      m.ent <- -sum(p*log(p,base=2))
+  
+      ent <- t.ent$entropy/m.ent
+  
+      # ent
+  
+    # Lexical diversity
+  
+      text_lexdiv <- textstat_lexdiv(tokenized,
+                                     remove_numbers = TRUE,
+                                     remove_punct   = TRUE,
+                                     remove_symbols = TRUE,
+                                     measure        = 'all')
+  
+      # text_lexdiv[,2:ncol(text_lexdiv)]
+  
+    # Measures of readability
+  
+      text_readability <- textstat_readability(text,measure='all')
+  
+      # text_readability[,2:ncol(text_readability)]
+  
+    # POS tag frequency
+  
+      annotated <- udpipe_annotate(ud_eng, x = text)
+      annotated <- as.data.frame(annotated)
+      annotated <- cbind_morphological(annotated)
+  
+      pos_tags <- c(table(annotated$upos),table(annotated$xpos))
+    
+      # pos.tags
+  
+    # Syntactic relations
+  
+      dep_rel <- table(annotated$dep_rel)
+  
+        #dep_rel
+  
+    # morphological features
+  
+      feat_names <- c('morph_abbr','morph_animacy','morph_aspect','morph_case',
+                      'morph_clusivity','morph_definite','morph_degree',
+                      'morph_evident','morph_foreign','morph_gender','morph_mood',
+                      'morph_nounclass','morph_number','morph_numtype',
+                      'morph_person','morph_polarity','morph_polite','morph_poss',
+                      'morph_prontype','morph_reflex','morph_tense','morph_typo',
+                      'morph_verbform','morph_voice')
+
+      feat_vec <- c()
+      
+      for(j in 1:length(feat_names)){
+        
+        if(feat_names[j]%in%colnames(annotated)){
+          morph_tmp   <- table(annotated[,feat_names[j]])
+          names_tmp   <- paste0(feat_names[j],'_',names(morph_tmp))
+          morph_tmp   <- as.vector(morph_tmp)
+          names(morph_tmp) <- names_tmp
+          feat_vec  <- c(feat_vec,morph_tmp)
+        }
+      }
+      
+        # feat_vec
+      
+    # Sentence Embeddings
+    
+      embeds <- textEmbed(x     = text,
+                          model = 'roberta-base',
+                          layers = 12,
+                          context_aggregation_layers = 'concatenate')
+    
+      embeds$x
+    
+      
+    # combine them all into one vector and store in the list object
+      
+      input.list[[i]] <- cbind(text_sm[2:length(text_sm)],
+                               wl.features,
+                               as.data.frame(ent),
+                               text_lexdiv[,2:ncol(text_lexdiv)],
+                               text_readability[,2:ncol(text_readability)],
+                               t(as.data.frame(pos_tags)),
+                               t(as.data.frame(c(dep_rel))),
+                               t(as.data.frame(feat_vec)),
+                               as.data.frame(embeds$x)
+                               )
+      
+      print(i)
+  }
+  
+  
+  # Combine all elements of list in a single data frame
+  require(gtools)
+  
+  smartbind
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
