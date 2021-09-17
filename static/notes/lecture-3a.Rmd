@@ -84,64 +84,421 @@ In the next few weeks, we will talk about different approaches to build predicti
 
 We will use two hypothetical datasets for introducing these concepts. The first hypothetical dataset will have a continuous outcome and predictions. The second hypothetical dataset will have a binary outcome and predictions.
 
-You can load these two hypothetical datasets using the code below:
+You can load these two hypothetical datasets using the code below.
 
-```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
 d_con <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/performance_continuous.csv',header=TRUE)
 
+head(d_con)
+```
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
 d_bin <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/performance_binary.csv',header=TRUE)
+
+head(d_bin)
 ```
 
 # 1. Evaluation Metrics for Continuous Outcomes
 
-## Explained Variance ($R^2$)
+It is first useful to plot the observed values and predicted values to examine if there are certain areas where the model systematically overpredicts or under-predicts the outcome. The plot below is a simple scatterplot and the diagonal line is a line where the predicted outcome and observed outcome are equal. In this example, there is no indication of systematic bias in model predictions.
 
-## Error related indices
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
 
-### Mean Absolute Error
+ggplot(data = d_con, aes(x=pred,y=obs))+
+  geom_point(cex=1)+
+  geom_abline()+
+  theme_bw()+
+  xlab('Model Predictions')+
+  ylab('Observed Outcome')
+```
 
-### Median Absolute Error
+## Accuracy
 
-### Mean Squared Error
+A family of metrics commonly used for models predicting a continuous outcome is related to the accuracy of predictions. These metrics have a single most important unit in our predictions, the prediction error for a single observation. Error (a.k.a. residual) for an observation is defined as the difference between the observed value and model predicted value for the outcome.
 
-### Root Mean Squared Error
+$$e_i = y_i - \hat{y_i}$$
 
-### Squared Log Error
+Below is a list of of commonly used metrics that is a function of prediction error.
 
-### Mean Absolute Percentage Error
+**Mean Absolute Error(MAE)**
 
-## Baseline performance considerations
+$$ MAE = \frac{\sum_{i=1}^{N} \left | e_i \right |}{N}$$
 
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+mae <- mean(abs(d_con$obs-d_con$pred))
+
+mae
+```
+
+**Mean Squared Error(MSE)**
+
+
+$$ MSE = \frac{\sum_{i=1}^{N} e_i^{2}}{N}$$
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+mse <- mean((d_con$obs-d_con$pred)^2)
+mse
+```
+
+**Root Mean Squared Error (RMSE)**
+
+$$ RMSE = \sqrt{\frac{\sum_{i=1}^{N} e_i^{2}}{N}}$$
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+rmse <- sqrt(mean((d_con$obs-d_con$pred)^2))
+rmse
+```
+
+## Reduction in Total Amount of Error
+
+Another metric that may give a useful insight about a model's predictive performance is the reduction in the total amount of error. If we consider that we don't have any information about the outcome, our best guess would be the mean value of the outcome to make a prediction for each observation coming from the same population. In other words, our model would yield a constant prediction for each future observation. We can also consider this an intercept-only model or null model.
+
+In our case, if we use the mean to predict the outcome for each observation, the sum of squared error would be equal to 284.003.
+
+$$ SSE = \sum_{i=1}^{N} (y-\bar{y})^2$$
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+mean(d_con$obs)
+
+sse_null <- sum((d_con$obs-mean(d_con$obs))^2)
+
+sse_null
+```
+
+Instead, if we rely on our model to predict the outcome, the sum of squared error would be equal to 70.523
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+sse_model <- sum((d_con$obs-d_con$pred)^2)
+
+sse_model
+```
+
+By using our model instead of a simple mean, we improved our predictions such that the total amount of error is reduced from 284.003 to 70.523. Therefore, we can say that the total amount of prediction error is reduced by about 75% when we use our model instead of a simple null model.
+
+$$ 1-\frac{SSE_{model}}{SSE_{null}} $$
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+1 - (sse_model/sse_null)
+```
+In other words, $SSE_null$ provides a reference point when you do the worst job possible (using mean). If we have a perfect model, then SSE would be 0, the best job you could do. So, we can evaluate a model's predictive performance by measuring where it stands between these two extreme points. 
 
 # 2. Evaluation Metrics for Binary Outcomes
 
-## Brier Score
+When the outcome is a binary variable, most models typically yield a probability estimate for a class membership (or, a continuous valued prediction between 0 and 1). For instance, in our hypothetical dataset, the predicted value for the first observation (ID=5) is 0.204, indicating that the model predicts that the probability of this observation being in Group 1 is 0.204. On the other hand, the observation indeed belongs to Group 1 (out=1). Therefore, the model doesn't do a good job of prediction for this observation. 
 
-## Confusion Matrix
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+head(d_bin)
+```
 
-### Accuracy
+Let's look at another observation. The model predicts a probability of 0.759 for being in Group 1, and the observation is indeed in Group 1. Therefore, the model does a relatively good job for this observation.
 
-### True Positive Rate 
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+d_bin[2129,]
+```
 
-### False Positive Rate
+In an ideal situation where a model does a perfect job to predict a binary outcome, we expect all those observations in Group 0 to have a predicted probability of 0 and all those observations in Group 1 to have a predicted probability of 1. So, predicted values close to 0 for observations in Group 0 and predicted values close to 1 for observations in Group 1 are desirable. 
 
-### Precision
+One way to look at the quality of predictions for a binary outcome is to examine the distribution of predictions for both classes. For this hypothetical dataset, we can see that the predicted probability of being in Group 1 are slightly higher on average for those in Group 1. This implies that there is some value in our model predictions. The more separation between the distribution of two classes, the better the model performance is. Later, we will see numerical summaries of separation between these two distributions. 
 
-### Recall
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
 
-## F1 score
+ggplot(data = d_bin, aes(x=pred,lty=factor(out)))+
+  geom_density()+
+  theme_bw()+
+  xlab('Model Predictions')
+```
 
-## AUC
+## Accuracy of Class Probabilities
 
-## Log loss
+We can calculate MAE, MSE, and RMSE to measure the accuracy of predicted probabilities when the outcome is binary. They have the same definition as in the continuous case.
 
-## Custome metrics for profit/cost optimization
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-## Baseline performance considerations
+# Mean absolute error
 
-## Baseline performance
+mean(abs(d_bin$out-d_bin$pred))
 
+# Mean squared error (a.k.a., Brier score for binary outcomes)
+
+mean((d_bin$out-d_bin$pred)^2)
+
+# Root mean squared error
+
+sqrt(mean((d_bin$out-d_bin$pred)^2))
+
+
+```
+
+We can similarly consider the reduction in total amount of error for binary cases. When the outcome is binary, the proportion of the observation in Group 1 (mean) becomes the best estimate for any observation without any information. So, we can consider the null case is when we assign a predicted probability to each observation such that the probability is equal to the proportion of people in Group 1 in the population (or our best estimate of it). Then, we can apply the same thoughts for this case to measure the reduction in the total amount of error when a model is used to make predictions.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# SSE_null
+
+mean(d_bin$out)
+
+sse_null <- sum((d_bin$out-mean(d_bin$out))^2)
+
+sse_null
+
+# SSE_model
+
+sse_model <- sum((d_bin$out-d_bin$pred)^2)
+
+sse_model
+
+# Proportional reduction in prediction error 
+
+1 - (sse_model/sse_null)
+```
+
+## Accuracy of Class Predictions
+
+### Confusion Matrix and Related Metrics
+
+In most situations, accuracy of class probabilities is not very useful because one has to make a decision and place these observations in a group based on these probabilities. For instance, suppose you are predicting whether or not an individual will be recidivated so you can take action based on this decision. Then, you have to transform this continuous probability (or probability-like score) predicted by a model into a binary prediction. Therefore, one has to determine an arbitrary cut-off value. Once a cut-off value for this transformation is determined, then we have class predictions. Consider that we use a cut-off value of 0.5 for the hypothetical dataset. So, if an observation has a predicted class probability less than 0.5, we predict that this person is in Group 0 (or whatever 0 represents). Likewise, if an observation has a predicted class probability higher than 0.5, we predict that this person is in Group 1.
+
+In the code below, I convert the class probabilities to class proportions using a cut-off value of 0.5.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+d_bin$pred_class <- ifelse(d_bin$pred>.5,1,0)
+
+head(d_bin)
+```
+
+As we now have a binary outcome and a binary prediction, we can summarize them in a 2 x 2 table. This is called **confusion matrix**.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+tab <- table(d_bin$pred_class,
+             d_bin$out,
+             dnn = c('Predicted','Observed'))
+
+tab
+```
+
+The table indicates that there are 2142 observations with an outcome 0 and the model accurately predicts 0 for 2005 of them while inaccurately predicts 1 for 137 of them. Similarly, there are 886 observations with an outcome 1 and model accurately predicts 1 for 166 of them while inaccurately predicts 0 for 720 of them.
+
+Based on the elements of this table, we can define four key concepts:
+
+- **True Positives(TP)**: True positives are the observations where both the outcome and prediction are equal to 1. They represent correct predictions for those observations the event is observed.
+
+- **True Negative(TN)**: True negatives are the observations where both the outcome and prediction are equal to 0. They also represent correct predictions for those observations the event is not observed.
+
+- **False Positives(FP)**: False positives are the observations where the outcome is 0 but the prediction is 1. They represents incorrect predictions for those observations the event is not observed. 
+
+- **False Negatives(FN)**: False negatives are the observations where the outcome is 1 but the prediction is 0. They represents incorrect predictions for those observations the event is observed. 
+
+Several metrics can be defined based on these four variables. We define a few important metrics below.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+tn <- tab[1,1]
+tp <- tab[2,2]
+fp <- tab[2,1]
+fn <- tab[1,2]
+
+
+```
+
+
+- **Accuracy**: Overall accuracy simply represent the proportion of correct predictions.
+
+$$ACC = \frac{TP + TN}{TP + TN + FP + FN}$$
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+acc <- (tp + tn)/(tp+tn+fp+fn)
+
+acc
+
+```
+
+- **True Positive Rate (Sensitivity)**: True positive rate (a.k.a. sensitivity) is the proportion of correct predictions for those observations the outcome is 1 (event is observed).
+
+$$TPR = \frac{TP}{TP + FN}$$
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+tpr <- (tp)/(tp+fn)
+
+tpr
+
+```
+
+
+- **True Negative Rate (Specificity)**: True negative rate (a.k.a. specificity) is the proportion of correct predictions for those observations the outcome is 0 (event is not observed).
+
+$$TNR = \frac{TN}{TN + FP}$$
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+tnr <- (tn)/(tn+fp)
+
+tnr
+
+```
+
+- **Positive predicted value (Precision)**: Positive predicted value (a.k.a. precision) is the proportion of correct decisions when the model predicts that the outcome is 1. 
+
+$$PPV = \frac{TP}{TP + FP}$$
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+ppv <- (tp)/(tp+fp)
+
+ppv
+
+```
+
+- **F1 score**: F1 score is a metric that combines both PPV and TPR.
+
+
+$$F1 = 2*\frac{PPV*TPR}{PPV + TPR}$$
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+f1 <- (2*ppv*tpr)/(ppv+tpr)
+
+f1
+
+```
+
+### Area Under the Receiver Operating Curve (AUC or AUROC)
+
+The confusion matrix and related metrics all depend on the arbitrary cut-off value one picks when transforming continuous predicted probabilities to binary predicted classes. We can change the cut-off value to optimize certain metrics, and there is always a trade-off between these metrics for different cut-off values. For instance, let's pick different cut-off values and calculate these metrics for each one.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Write a generic function to return the metric for a given vector of observed 
+# outcome, predicted probability and cut-off value
+
+cmat <- function(x,y,cut){
+  # x, a vector of predicted probabilities
+  # y, a vector of observed outcomes
+  # cut, user-defined cut-off value
+ 
+  x_ <- ifelse(x>cut,1,0)
+    
+  tn <- sum(x_==0 & y==0)
+  tp <- sum(x_==1 & y==1)
+  fp <- sum(x_==1 & y==0)
+  fn <- sum(x_==0 & y==1)
+  
+  acc <- (tp + tn)/(tp+tn+fp+fn)
+  tpr <- (tp)/(tp+fn)
+  tnr <- (tn)/(tn+fp)
+  ppv <- (tp)/(tp+fp)
+  f1 <- (2*ppv*tpr)/(ppv+tpr)
+
+  return(list(acc=acc,tpr=tpr,tnr=tnr,ppv=ppv,f1=f1))
+}
+
+# Try it out
+
+  # cmat(x=d_bin$pred,y=d_bin$out,cut=0.5)
+
+# Do it for different cut-off values
+
+metrics <- data.frame(cut=seq(0,1,0.01),
+                      acc=NA,
+                      tpr=NA,
+                      tnr=NA,
+                      ppv=NA,
+                      f1=NA)
+
+
+for(i in 1:nrow(metrics)){
+  
+  cmat_ <- cmat(x   = d_bin$pred,
+                y   = d_bin$out,
+                cut = metrics[i,1])
+  
+  metrics[i,2:6] = c(cmat_$acc,cmat_$tpr,cmat_$tnr,cmat_$ppv,cmat_$f1)
+
+}
+
+metrics
+
+```
+
+Notice the trade-off between TPR (sensitivity) and TNR (specificity). The more conservative cut-off value we pick (a higher probability), the higher TNR is and the lower TPR is.
+
+A receiver operating characteristic curve (ROC) is plot that represents this dynamic relationship between TPR and TNR for varying levels of a cut-off value. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
+
+ggplot(data = metrics, aes(x=1-tpr,y=tnr))+
+  geom_line()+
+  xlab('1-TPR')+
+  ylab('TNR')+
+  geom_abline(lty=2)+
+  theme_bw()
+```
+
+ROC may be a useful plot to inform about model's predictive power as well as choosing an optimal cut-off value. The area under the ROC curve (AUC or AUROC) is typically used to evaluate the predictive power of classification models. The diagonal line in this plot represents a hypothetical model with no predictive power and AUC for the diagonal line is 0.5 (it is half of the whole square). The more ROC curve resembles with the diagonal line, less the predictive power is. The solid line is the ROC curve for our predictions in the hypothetical dataset. It is not easy to calculate AUC by hand or straight formula as it requires calculus and numerical approximations. There are many alternatives in R to calculate AUC. We will use the `cutpointr` package as it also provides other tools to select an optimal cut-off point.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
+
+# install.packages('cutpointr')
+
+require(cutpointr)
+
+cut.obj <- cutpointr(x     = d_bin$pred,
+                     class = d_bin$out)
+
+auc(cut.obj)
+
+```
+
+We see that AUC for the predictions in the hypothetical dataset is 0.705. This can be considered as mediocre in terms of predictive power. The closer AUC is to 1, the more predictive power the model has. The closer AUC is to 0.5, the closer predictive power is to random guessing. The magnitude of AUC is also closely related to how well the predicted probabilities are separated for two classes.
+
+The `cutpointr` package provides more in terms of finding optimal values to maximize certain metrics. For instance, suppose we want to find the optimal cut-off value that maximizes the sum of specificity and sensitivity.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
+
+cut.obj <- cutpointr(x      = d_bin$pred,
+                     class  = d_bin$out,
+                     method = maximize_metric,
+                     metric = sum_sens_spec)
+
+cut.obj
+
+plot(cut.obj)
+
+```
+
+You can also create custom cost functions to maximize if you can attach a $ value to TP, FP, TN, FN. For instance, suppose that a true-positive prediction made by the model brings a 5 dollars profit and a false-positive prediction made by the model costs 1 dollars. A true-negative or a false-negative doesn't cost or profit anything. Then, you can find an optimal cut-off value that maximizes the total profit.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
+
+# Custom function
+
+cost <- function(tp,fp,tn,fn,...){
+  my.cost <- matrix(5*tp - 1*fp + 0*tn + 0*fn, ncol = 1)
+  colnames(my.cost) <- 'my.cost'
+  return(my.cost)
+}
+
+cut.obj <- cutpointr(x      = d_bin$pred,
+                     class  = d_bin$out,
+                     method = maximize_metric,
+                     metric = cost)
+
+cut.obj
+
+plot(cut.obj)
+
+```
+
+
+Check [this page](https://cran.r-project.org/web/packages/cutpointr/vignettes/cutpointr.html) to find more information about the `cutpointr` package. 
 
 
 
