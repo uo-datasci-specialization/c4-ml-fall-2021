@@ -40,7 +40,7 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< slides "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< notes "" >}}
+{{< notes "warm-up-2" >}}
 {{< /wrap >}}
   {{< wrap >}}
 
@@ -58,18 +58,18 @@ Each of the below links to the full book. Icons in the schedule link to specific
  {{< schedule >}}
 
 {{< week-odd "09-27" >}}
-  {{< description "Evaluation Metrics" "Several measures to evaluate the performance of a set of predictions will be introduced in the context of predicting a continuous outcome, a binary outcome, and a multi-class outcome." >}}
+  {{< description "Introductions, Course Overview" "NA" >}}
   {{< wrap >}}
 {{< slides "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< notes "" >}}
+{{< notes "lecture-1a" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< assigned "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
-{{< due "assignments/#final-project" "Final" >}}
+
 {{< /wrap >}}
   {{< wrap >}}
 {{< readings "apm" "NA" "Ch. 5.1" >}}
@@ -79,12 +79,12 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< /week-odd >}}
 
 {{< week-even "09-29" >}}
-  {{< description "Overfitting and Resampling Techniques" "abcde" >}}
+  {{< description "Introduction to Toy Datasets" "NA" >}}
   {{< wrap >}}
 {{< slides "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-{{< notes "" >}}
+{{< notes "lecture-1b" >}}
 {{< /wrap >}}
   {{< wrap >}}
 
@@ -103,7 +103,7 @@ Each of the below links to the full book. Icons in the schedule link to specific
  {{< schedule >}}
 
 {{< week-odd "10-04" >}}
-  {{< description "Introduction to Machine Learning" "abcde" >}}
+  {{< description "NA" "NA" >}}
   {{< wrap >}}
 {{< slides "" >}}
 {{< /wrap >}}
@@ -111,10 +111,10 @@ Each of the below links to the full book. Icons in the schedule link to specific
 {{< notes "" >}}
 {{< /wrap >}}
   {{< wrap >}}
-
+{{< assigned "assignments/#final-project" "Final" >}}
 {{< /wrap >}}
   {{< wrap >}}
-
+{{< due "assignments/#final-project" "Final" >}}
 {{< /wrap >}}
   {{< wrap >}}
 {{< readings "hands" "intro.html" "Ch. 1" >}}
