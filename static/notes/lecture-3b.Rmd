@@ -80,22 +80,155 @@ options(scipen=99)
 
  # https://kourentzes.com/forecasting/2016/02/08/how-to-fit-an-elephant/
  # https://kourentzes.shinyapps.io/FitElephant/
+
+ # https://www.johndcook.com/blog/2011/06/21/how-to-fit-an-elephant/
 ```
 
+# Principle of Parcimony
 
+## How many parameters does it take to fit an elephant?
 
 <iframe width='600' height='900' src='https://kourentzes.shinyapps.io/FitElephant/' frameborder='0'></iframe>
 
+## The Principle of Parsimony
+
+# Bias - Variance Tradeoff
+
+When we use a model to predict an outcome, there are two main sources of error: model error and sampling error.
+
+**Model Error**: Given that no model is a full representation of truth underlying observed data, every model is misspecified to some degree. Conceptually, we can define the model error as the distance between the model and true generating mechanism underlying data. Technically, for a given set of predictors, it is the difference between the expected value predicted by the model and the true value underlying data. The term **bias** is also commonly used for model error.
+
+**Sampling Error**: Given that the amount of data is fixed during any modeling process, it will decrease the stability of parameter estimates for models with increasing complexity across samples drawn from the same population. Consequently, this will increase the variance of predictions (more variability of a predicted value across different samples) for a given set of same predictors. The term **estimation error** or **variance** is also used for sampling error.
+
+The essence of any modeling activity is to balance these two sources of error and find a stable model (generalizable across different samples) with the least amount of bias.
+
+We will do a simple Monte Carlo experimentation to better understand these two sources of error. Suppose that there is a true generating model underlying some observed data. This model is
+
+$$
+y = e^{(x-0.3)^2} - 1 + \epsilon,
+$$
+where $x$ is a predictor variable that is equally spaced and ranges from 0 to 1, $\epsilon$ is a random error component and follows a normal distribution with a mean of zero and standard deviation of 0.1, and $y$ is the outcome variable. Suppose that we simulate a small observed data following this model with a sample size of 20. Then, we use a very simple linear model to represent the observed simulated data.
+
+$$
+y = \beta_0 + \beta_1x + \epsilon
+$$
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+set.seed(09282021)
+
+N = 20
+
+x <- seq(0,1,length=20)
+
+x
+
+e <- rnorm(20,0,.1)
+
+e
+
+y <- exp((x-0.3)^2) - 1 + e
+
+y
 
 
+mod <- lm(y ~ 1 + x)
+mod
+
+predict(mod)
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
+
+ggplot()+
+  geom_function(fun = function(x) exp((x-.3)^2)-1)+
+  geom_point(aes(x=x,y=y))+
+  geom_line(aes(x=x,y=predict(mod)),lty=2,col='gray')+
+  theme_bw()+
+  xlab('x')+
+  ylab('y')+
+  xlim(c(0,1))+
+  ylim(c(-0.25,1))
+
+```
 
 
+The solid line in this plot represents the true nature of the relationship between $x$ and $y$. The observed data points do not lie on this line due to random error component (noise). The gray dashed line is how we represent the relationship between $x$ and $y$ if we use a simple linear model. 
+
+This demonstration only represents a single dataset. Now, suppose that we repeat the same process 10 times. We will produce 10 different datasets with the same size (N=20) using the exact same predictor values ($x$) and true data generating model. Then, we will fit a simple linear model to each one of these 10 datasets. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
+
+set.seed(09282021)
+
+E  <- vector('list',10)
+Y  <- vector('list',10)
+M1 <- vector('list',10)
+
+N = 20
+
+x <- seq(0,1,length=N)
+
+for(i in 1:10){
+  
+  E[[i]]  <- rnorm(N,0,.1)
+  Y[[i]]  <- exp((x-0.3)^2) - 1 + E[[i]]
+  
+  M1[[i]] <- lm(Y[[i]] ~ 1 + x)
+}
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6,eval=knitr::is_html_output()}
+
+p <- ggplot()+
+  geom_function(fun = function(x) exp((x-.3)^2)-1)+
+  theme_bw()+
+  xlab('x')+
+  ylab('y')+
+  xlim(c(0,1))+
+  ylim(c(-0.25,1))
+
+for(i in 1:10){
+  p <- p + geom_line(aes_string(x=x,y=predict(M1[[i]])),col='gray',lty=2)
+}
+
+p
+```
 
 
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=4,eval=knitr::is_latex_output()}
+p
+```
 
 
+The solid line again represents the true nature of the relationship between $x$ and $y$. There are 10 different lines (gray, dashed) and each lines represents a simple linear model fitted to different simulated data from the exact same data generating mechanism. The table below provides a more detailed look at the fitted values from each replication for evvery single $x$ value.
 
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6,eval=knitr::is_html_output()}
 
+out <- matrix(nrow=20,ncol=10)
+for(i in 1:10){
+  out[,i] <- predict(M1[[i]])
+}
+
+y.true <- exp((x-.3)^2)-1
+Y.true <- matrix(y.true,nrow=20,ncol=30,byrow=FALSE)
+
+yy <- as.data.frame(cbind(x,y.true,out))
+
+colnames(yy) <- c('x','y (TRUE)',paste('Rep',1:10))
+
+round(yy,3) %>%
+  kbl() %>%
+  kable_minimal() %>%
+  add_header_above(c(" " = 2,"Model Predicted Value" = 10)) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) 
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6,eval=knitr::is_latex_output()}
+
+round(yy,3) %>%
+  kbl()
+```
 
 
 
