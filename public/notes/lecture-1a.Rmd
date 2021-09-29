@@ -108,7 +108,7 @@ You will need to install the following packages for the following weeks:
 
 install.packages(pkgs = c('udpipe',
                           'quanteda',
-                          'quanteda.textstats), 
+                          'quanteda.textstats'), 
                  dependencies = TRUE)
                  
 # Make sure to install the developer version of the text package from Github 

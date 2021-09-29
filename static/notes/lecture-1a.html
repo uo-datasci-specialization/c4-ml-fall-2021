@@ -1846,7 +1846,7 @@ University of Oregon | EDLD 654<br><h4 class="date">06/28/2021</h4>
 }
 
 </style>
-<p>[Updated: Wed, Sep 29, 2021 - 09:24:57 ]</p>
+<p>[Updated: Wed, Sep 29, 2021 - 10:06:42 ]</p>
 <p>There are two datasets we will analyze throughout the whole course. The first dataset has a continuous outcome and the second dataset has a binary outcome. We will apply several methods and algorithms to these two datasets during the course. This will give us an opportunity to compare and contrast the prediction outcomes from several models and methods on the same datasets. This section provides some background information and context for these two datasets.</p>
 <div id="readability" class="section level1">
 <h1>Readability</h1>
@@ -1880,14 +1880,14 @@ University of Oregon | EDLD 654<br><h4 class="date">06/28/2021</h4>
 </ul>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">install.packages</span>(<span class="dt">pkgs =</span> <span class="kw">c</span>(<span class="st">&#39;udpipe&#39;</span>,</span>
 <span id="cb7-2"><a href="#cb7-2"></a>                          <span class="st">&#39;quanteda&#39;</span>,</span>
-<span id="cb7-3"><a href="#cb7-3"></a>                          <span class="st">&#39;quanteda.textstats), </span></span>
-<span id="cb7-4"><a href="#cb7-4"></a><span class="st">                 dependencies = TRUE)</span></span>
-<span id="cb7-5"><a href="#cb7-5"></a><span class="st">                 </span></span>
-<span id="cb7-6"><a href="#cb7-6"></a><span class="st"># Make sure to install the developer version of the text package from Github </span></span>
+<span id="cb7-3"><a href="#cb7-3"></a>                          <span class="st">&#39;quanteda.textstats&#39;</span>), </span>
+<span id="cb7-4"><a href="#cb7-4"></a>                 <span class="dt">dependencies =</span> <span class="ot">TRUE</span>)</span>
+<span id="cb7-5"><a href="#cb7-5"></a>                 </span>
+<span id="cb7-6"><a href="#cb7-6"></a><span class="co"># Make sure to install the developer version of the text package from Github </span></span>
 <span id="cb7-7"><a href="#cb7-7"></a></span>
-<span id="cb7-8"><a href="#cb7-8"></a><span class="st"># install.packages(&quot;devtools&quot;)</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a><span class="co"># install.packages(&quot;devtools&quot;)</span></span>
 <span id="cb7-9"><a href="#cb7-9"></a></span>
-<span id="cb7-10"><a href="#cb7-10"></a><span class="st">devtools::install_github(&quot;oscarkjell/text&quot;)</span></span></code></pre></div>
+<span id="cb7-10"><a href="#cb7-10"></a>devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;oscarkjell/text&quot;</span>)</span></code></pre></div>
 <p>You can run the following code in your computer to get prepared for the following weeks. Note that you only have to run the following code once to create a virtual Python environment and install the necessary packages.</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># Install and load the reticulate package</span></span>
 <span id="cb8-2"><a href="#cb8-2"></a></span>
