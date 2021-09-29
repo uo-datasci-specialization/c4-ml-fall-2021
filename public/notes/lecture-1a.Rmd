@@ -89,7 +89,7 @@ readability[1,]$target
 
 ```
 
-[According to the data owner](https://www.kaggle.com/c/commonlitreadabilityprize/discussion/240423), '*the target value is the result of a Bradley-Terry analysis of more than 111,000 pairwise comparisons between excerpts. Teachers spanning grades 3-12  served as the raters for these comparisons.*' A higher target value indicates a more difficult text to read. The purpose is to develop a model that predicts a readability score for a given text to identify an appropriate reading level.
+[According to the data owner](https://www.kaggle.com/c/commonlitreadabilityprize/discussion/240423), '*the target value is the result of a Bradley-Terry analysis of more than 111,000 pairwise comparisons between excerpts. Teachers spanning grades 3-12  served as the raters for these comparisons.*' A lower target value indicates a more difficult text to read. The highest target score is equivalent of the 3rd grade level while the lowest target score is equivalent of the 12th grade level.  The purpose is to develop a model that predicts a readability score for a given text to identify an appropriate reading level.
 
 We will not consider the standard error variable in our models although it has a strong relationship with the target outcome because the standard errors would not be available for new observations we would like to predict. There may be be creative ways to make use of standard error in a multi-step prediction model (e.g., develop a separate prediction model for standard errors in the first step, and then use the predicted standard errors to predict target scores in the second step); however, we will not get into that in this course. 
 
