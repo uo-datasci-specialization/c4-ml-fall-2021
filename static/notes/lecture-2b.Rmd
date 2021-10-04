@@ -955,9 +955,14 @@ This lecture provided different types of information we can extract from any giv
   
   
   # Combine all elements of list in a single data frame
+
   require(gtools)
   
-  smartbind
+  readability_features <- smartbind(list = input.list)
+  
+  write.csv(readability_features, 
+            here('data/readability_features.csv'),
+            row.names = FALSE)
 
 ```
 
