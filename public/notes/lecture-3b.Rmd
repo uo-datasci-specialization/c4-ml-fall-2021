@@ -85,17 +85,19 @@ options(scipen=99)
  # https://arxiv.org/pdf/1904.12320.pdf
 ```
 
-# Principle of Parcimony
+# How many parameters does it take to fit an elephant?
 
-## How many parameters does it take to fit an elephant?
+Once upon a time, two physicists met and one convinced the other that the agreement between some model-based calculations and measured experimental numbers were only superficial. In that conversation, von Neumann was quoted as saying this famous phrase *"... with four parameters I can fit an elephant, and with five I can make him wiggle his trunk."* [You can read the full story here.](https://www.nature.com/articles/427297a)
 
+Since then, a number of people tried to come up with mathematical models that can drawn an elephant with as few parameters as possible. This has become an interesting activity when people want to make a point about the how complex of a model one would need to understand what we observe in real world.
 
+Now, we will join them. Below is a web application where you can increase the number of parameters in a model from 1 to 70, and it should start to look like an elephant. The purpose of our exploration is to find the number of parameters you would use if you want to model an elephant. Start manipulating the **p** (number of parameters) and examine how the model predicted contour changes. Stop when you believe that you can convince someone else that it looks like an elephant.
 
-<iframe width='600' height='900' src='https://kourentzes.shinyapps.io/FitElephant/' frameborder='0'></iframe>
+<iframe width='1000' height='900' src='https://kourentzes.shinyapps.io/FitElephant/' frameborder='0'></iframe>
 
-## The Principle of Parsimony
+# The Principle of Parsimony
 
-# Bias - Variance Tradeoff
+## Bias - Variance Tradeoff
 
 When we use a model to predict an outcome, there are two main sources of error: model error and sampling error.
 
