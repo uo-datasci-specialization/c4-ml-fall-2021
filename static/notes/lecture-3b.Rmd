@@ -1,5 +1,5 @@
 ---
-title: Modeling Process
+title: Bias - Variance Tradeoff and Cross-validation
 subtitle: Applied Machine Learning for Educational Data Science
 author:
   name: Cengiz Zopluoglu
@@ -85,15 +85,23 @@ options(scipen=99)
  # https://arxiv.org/pdf/1904.12320.pdf
 ```
 
-# How many parameters does it take to fit an elephant?
+# How many parameters does it take to draw an elephant?
 
 Once upon a time, two physicists met and one convinced the other that the agreement between some model-based calculations and measured experimental numbers were only superficial. In that conversation, von Neumann was quoted as saying this famous phrase *"... with four parameters I can fit an elephant, and with five I can make him wiggle his trunk."* [You can read the full story here.](https://www.nature.com/articles/427297a)
 
 Since then, a number of people tried to come up with mathematical models that can drawn an elephant with as few parameters as possible. This has become an interesting activity when people want to make a point about the how complex of a model one would need to understand what we observe in real world.
 
-Now, we will join them. Below is a web application where you can increase the number of parameters in a model from 1 to 70, and it should start to look like an elephant. The purpose of our exploration is to find the number of parameters you would use if you want to model an elephant. Start manipulating the **p** (number of parameters) and examine how the model predicted contour changes. Stop when you believe that you can convince someone else that it looks like an elephant.
+Now, we will join them. See the following plot that has a number of data points. Would you say there is an elephant there? If so, can you come up with a mathematical model to fit these data points? How complex would that model be? How many parameters would you need?
 
-<iframe width='1000' height='900' src='https://kourentzes.shinyapps.io/FitElephant/' frameborder='0'></iframe>
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
+
+knitr::include_graphics(here('static/notes/images/elephant.png'))
+
+```
+
+Below is a web application with such a model. You can increase the number of parameters in this model from 1 to 70, and the model predictions will start to look like an elephant. The purpose of our quick exploration is to find the number of parameters you would use to model an elephant. Start manipulating the **p** (number of parameters) and examine how the model predicted contour changes. Stop when you believe that you can convince someone else that it looks like an elephant.
+
+https://kourentzes.shinyapps.io/FitElephant/
 
 # The Principle of Parsimony
 
@@ -768,7 +776,57 @@ We first split data into two main components: training dataset and test dataset.
 During the exploration and model development, it is also a good strategy to cross-validate the model performance within the training set. This is typically done by creating multiple partitions within the training set, and testing models on each partition while optimizing the parameters. There are different approaches for creating different partitions in the training dataset such as ***k*-fold cross-validation** or **bootstrapping**, but *k*-fold cross validation is the most common. In *k*-fold cross validation, the training sample is randomly partitioned into *k* sets of equal size. A model is fitted to *k*-1 folds and the remaining fold is used to test the model performance. This can be repeated *k* times by treating a different fold as an hold-out set. Finally, the performance evaluation metric is aggregated (e.g., average) across *k* replications to get a *k*-fold cross-validation estimate of the performance evaluation metric. Once the model is optimized and a final model is developed as a result of this cross-validation process, then the final model is trained using the whole training data and evaluated one final time on test dataset to measure the generalizability of model predictions. 
 
 
+# Back to the Elephant
 
+If you are curious more about drawing an elephant, [a more recent paper by Mayer, Khairy, and Howard (2010)](https://aapt.scitation.org/doi/full/10.1119/1.3254017) provided a mathematical model that can draw an elephant with only four complex parameters (just like what von Neumann said). Below is an R code to reproduce their model using R.
+
+Even more, [this paper by Boué (2019)](https://arxiv.org/abs/1904.12320) argues that you can approximate any dataset of any modality with a single parameter. Go figure!
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8,eval=knitr::is_html_output()}
+
+# 4 complex parameters
+
+  p1 <- 50-30i
+  p2 <- 18+8i
+  p3 <- 12-10i
+  p4 <- -14-60i
+
+  Cx <- c(0,50i,18i,12,0,-14)
+  Cy <- c(0,-60-30i,8i,-10i,0,0)
+
+# t, parameter that can be interpreted as the elapsed time while going along
+# the path of the contour
+  
+  t <- seq(0,2*pi,length.out = 1000)
+
+# X-coordinates
+  
+  x <- c()
+  
+  A <- c(0,0,0,12,0,-14)  # Real part of Cx
+  B <- c(0,50,18,0,0,0)   # Imaginary part of Cx
+  
+  for(i in 1:length(t)){
+    k <- 0:5
+    x[i] <- sum(A*cos(k*t[i]) + B*sin(k*t[i])) # Eq 1
+  }
+  
+# Y-coordinates
+  
+  y <- c()
+  
+  A <- c(0,-60,0,0,0,0)     # Real part of Cy
+  B <- c(0,-30,8,-10,0,0)   # Imaginary part of Cy
+  
+  for(i in 1:length(t)){
+    k <- 0:5
+    y[i] <- sum(A*cos(k*t[i]) + B*sin(k*t[i])) # Eq 2
+  }
+  
+# Function to draw the elephant
+
+  plot(y,-x,type='l')
+```  
 
 
 

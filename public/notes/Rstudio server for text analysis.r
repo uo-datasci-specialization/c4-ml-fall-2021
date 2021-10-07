@@ -35,21 +35,28 @@ miniconda, and python modules
 
 7) Then, run the following. If you get the numbers at the end, you are good.
 
+	readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',header=TRUE)
 
-    virtualenv_list()
+	str(readability)
 
-    reticulate::import('torch')
-    reticulate::import('numpy')
-    reticulate::import('transformers')
-    reticulate::import('nltk')
-    reticulate::import('tokenizers')
+	text <- as.character(readability[1,]$excerpt)
+	text
 
-    readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',
-                            header=TRUE)
-    
-    text <- as.character(readability[1,]$excerpt)
-    
-    tmp1 <- textEmbed(x     = 'sofa',
-                      model = 'roberta-base',
-                      layers = 1)
+	require(reticulate)
+	require(text)
+
+	virtualenv_list()
+
+	reticulate::import('torch')
+	reticulate::import('numpy')
+	reticulate::import('transformers')
+	reticulate::import('nltk')
+	reticulate::import('tokenizers')
+
+
+	tmp1 <- textEmbed(x     = 'sofa',
+        	          model = 'roberta-base',
+                	  layers = 1)
+
+	tmp1$x
     
