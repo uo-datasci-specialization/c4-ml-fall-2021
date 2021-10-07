@@ -5,7 +5,19 @@
     <link>https://ml-21.netlify.app/</link>
     <description>Recent content in Applied Machine Learning on Machine Learning for Educational Data Science</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en-us</language><atom:link href="https://ml-21.netlify.app/index.xml" rel="self" type="application/rss+xml" />
+    <language>en-us</language>
+    <lastBuildDate>Thu, 07 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://ml-21.netlify.app/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Homework Assignment 1</title>
+      <link>https://ml-21.netlify.app/hw1/</link>
+      <pubDate>Thu, 07 Oct 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://ml-21.netlify.app/hw1/</guid>
+      <description>Overview The purpose of this lab is to get you working with git and GitHub collaboratively, as well as to refresh some basic {dplyr} skills. You should work together in groups of 3-4.
+The basics of the lab are to:
+ Create a shared repo Create an R Markdown document Work on a few different data visualizations together  File issues for the different pieces of the lab Create branches for those issues Different people work on different branches - merge them in when you&amp;rsquo;re ready   Submit a link to the repo through Canvas when you&amp;rsquo;ve completed the lab I check the commit history, and give each person credit  To receive full credit you must create and merge branches.</description>
+    </item>
+    
     <item>
       <title>Assignments</title>
       <link>https://ml-21.netlify.app/assignments/</link>

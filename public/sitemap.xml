@@ -3,15 +3,27 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://ml-21.netlify.app/</loc>
+    <lastmod>2021-10-07T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>https://ml-21.netlify.app/assignments/</loc>
+    <loc>https://ml-21.netlify.app/tags/assignments/</loc>
+    <lastmod>2021-10-07T00:00:00+00:00</lastmod>
   </url><url>
     <loc>https://ml-21.netlify.app/post/</loc>
+    <lastmod>2021-10-07T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ml-21.netlify.app/hw1/</loc>
+    <lastmod>2021-10-07T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ml-21.netlify.app/tags/lab/</loc>
+    <lastmod>2021-10-07T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ml-21.netlify.app/tags/</loc>
+    <lastmod>2021-10-07T00:00:00+00:00</lastmod>
+  </url><url>
+    <loc>https://ml-21.netlify.app/assignments/</loc>
   </url><url>
     <loc>https://ml-21.netlify.app/schedule/</loc>
   </url><url>
     <loc>https://ml-21.netlify.app/syllabus/</loc>
-  </url><url>
-    <loc>https://ml-21.netlify.app/tags/</loc>
   </url>
 </urlset>
