@@ -1,0 +1,61 @@
+name,description
+id,Student identifier
+gndr,Code indicating the gender of the student (F = Female; M = Male)
+ethnic_cd,"Code representing the racial/ethnic reporting subgroup category for the student
+     A = Asian race, non-Hispanic
+     B = Black/African American race, non-Hispanic
+     H = Hispanic ethnicity
+      I = American Indian/Alaskan Native race, non-Hispanic
+     M = Multi-racial, non-Hispanic
+     P = Pacific Islander race, non-Hispanic
+     W = White race, non-Hispanic"
+enrl_grd,Code indicating the enrolled grade level of the student; or a grade level assigned to an ungraded student based on student age.
+tst_bnch,"Code indicating the benchmark level of the administered test
+     1B = Benchmark 1 (grade 3)
+     2B = Benchmark 2 (grade 5)
+     3B = Benchmark 3 (grade 8)
+     G4 = Grade 4 benchmark
+     G6 = Grade 6 benchmark
+     G7 = Grade 7 benchmark
+     X3 = Extended Grade 3
+     X4 = Extended Grade 4
+     X5 = Extended Grade 5
+     X6 = Extended Grade 6
+     X7 = Extended Grade 7
+     X8 = Extended Grade 8"
+tst_dt,Date the test was taken (mm/dd/yyyy)
+migrant_ed_fg,Indicates student participation in a program designed to assure that migratory children receive full and appropriate opportunity to meet the state academic content and student academic achievement standards.
+ind_ed_fg,Indicates student participation in a program designed to meet the unique educational and culturally related academic needs of American Indians.
+sp_ed_fg,Indicates student participation in an Individualized Education Plan (IEP/IFSP).
+tag_ed_fg,Indicates student participation in a Talented and Gifted program.
+econ_dsvntg,Indicates student eligibility for a Free or Reduced Lunch program.
+ayp_lep,"Indicates a student who received services or was eligible to receive services in a Limited English Proficient program.
+     Blank = Not eligible or served by an LEP program
+     A = First year LEP student without ELPA
+     B = First year LEP student with ELPA
+     E = Experienced LEP student (more than 5 years)
+     F = Former LEP (student exited LEP program more than two years ago)   --- new in 2016-17
+     M = Monitored Year 1 (student exited LEP program in the prior year)   --- new in 2016-17
+     N = Not eligible or served by an LEP program
+     S = Monitored Year 2 (student exited LEP program two years ago)   --- new in 2016-17
+     T = Transitioning (student exited LEP program in the prior year or two years ago)   --- discontinued in 2016-17
+     W = Student exited an LEP program on or before May 1 of the current year
+     X = Student exited an LEP program after May 1 of the current year
+     Y = Student in LEP program between 2 and 5 years"
+stay_in_dist,Indicates that the student has been enrolled for more than 50% of the days in the school year as of the first school day in May at the district where the student is resident on the first school day in May.
+stay_in_schl,Indicates that the student has been enrolled for more than 50% of the days in the school year as of the first school day in May at the school where the student is resident on the first school day in May.
+dist_sped,Indicates that the student was enrolled in a district special education program during the school year and received general education classroom instruction for less than 40% of the time as of the first school day in May.
+trgt_assist_fg,Flag indicating the record is included in Title 1 Targeted Assistance for the Adequate Yearly Progress (AYP) school performance calculations.
+ayp_dist_partic,Flag indicating the record is included in the denominator of Adequate Yearly Progress (AYP) district participation calculations.
+ayp_schl_partic,Flag indicating the record is included in the denominator of Adequate Yearly Progress (AYP) school participation calculations.
+ayp_dist_prfrm,Flag indicating the record is included in the denominator of Adequate Yearly Progress (AYP) district performance calculations.
+ayp_schl_prfrm,Flag indicating the record is included in the denominator of Adequate Yearly Progress (AYP) school performance calculations.
+rc_dist_partic,Flag indicating the record is included in the denominator of Report Card (RC) district participation calculations.
+rc_schl_partic,Flag indicating the record is included in the denominator of Report Card (RC) school participation calculations.
+rc_dist_prfrm,Flag indicating the record is included in the denominator of Report Card (RC) district performance calculations.
+rc_schl_prfrm,Flag indicating the record is included in the denominator of Report Card (RC) school participation calculations.
+grp_rpt_dist_partic,Flag indicating the record is included in the denominator of Group Report district participation calculations.
+grp_rpt_schl_partic,Flag indicating the record is included in the denominator of Group Report school participation calculations.
+grp_rpt_dist_prfrm,Flag indicating the record is included in the denominator of Group Report district performance calculations.
+grp_rpt_schl_prfrm,Flag indicating the record is included in the denominator of Group Report school participation calculations.
+score,Scale Score for Total test
