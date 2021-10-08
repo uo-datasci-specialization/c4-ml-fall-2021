@@ -12,6 +12,8 @@ toc: true
 ---
 <script src="{{< blogdown/postref >}}index_files/kePrint/kePrint.js"></script>
 <link href="{{< blogdown/postref >}}index_files/lightable/lightable.css" rel="stylesheet" />
+<script src="{{< blogdown/postref >}}index_files/kePrint/kePrint.js"></script>
+<link href="{{< blogdown/postref >}}index_files/lightable/lightable.css" rel="stylesheet" />
 
 
 
@@ -35,6 +37,8 @@ If you have any questions, please do not hesitate to reach out to me.
 
 ## Part 1: Preprocessing Text Data
 
+### Description
+
 For this part of the assignment, you will work with a Twitter dataset which is randomly sampled from a larger dataset on the Kaggle platform [(see this link for the original data)](https://www.kaggle.com/matyasmacudzinski/sentiment-analysis-using-bert/data). In this subset data, there are 1,500 tweets and three variables.
 
 - **sentiment**: a character string variable with two values (Positive and Negative) for the outcome variable to predict. 
@@ -44,6 +48,8 @@ For this part of the assignment, you will work with a Twitter dataset which is r
 Our ultimate goal is to build a model to predict whether or not a tweet has a positive sentiment by using the information from time of the tweet and text of the tweet. We will do this in the following assignments. For this assignment, we will only engineer features to use them later for building our models and prepare the dataset for model development. 
 
 Please complete the following tasks. Provide the R code you wrote and any associated output for each task.
+
+### Tasks
 
 **Task 1.1.** Import the tweet data from [this link](https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/tweet_sub.csv).
 
@@ -167,13 +173,215 @@ Centering and scaling for Dim1, Dim2, Dim3, Dim4, Dim5, Dim6, Dim7, Dim8,... [tr
 
 **Task 1.9** Export the final dataset (1500 x 778) as a .csv file and upload it to Canvas along your submission.
 
-
-
-
-
-
-
-
-
 ## Part 2: Preprocessing Continuous and Categorical Variables
+
+### Description
+
+For the second part of the assignment, we are going to use a dataset compiled by Dr. Daniel Anderson. These specific data are **simulated** from an actual statewide testing administration across the state of Oregon, but the overall distributions are highly similar. The dataset has 189,426 observations and 29 variables. Below is a table of data dictionary for the variables in this dataset.
+
+<table class=" lightable-minimal table table-striped table-hover table-condensed table-responsive" style='font-family: "Trebuchet MS", verdana, sans-serif; margin-left: auto; margin-right: auto; margin-left: auto; margin-right: auto;'>
+ <thead>
+  <tr>
+   <th style="text-align:right;"> Variable </th>
+   <th style="text-align:left;"> name </th>
+   <th style="text-align:left;"> description </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:right;"> 1 </td>
+   <td style="text-align:left;"> id </td>
+   <td style="text-align:left;"> Student identifier </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 2 </td>
+   <td style="text-align:left;"> sex </td>
+   <td style="text-align:left;"> Code indicating the biological sex of the student (F = Female; M = Male) </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 3 </td>
+   <td style="text-align:left;"> ethnic_cd </td>
+   <td style="text-align:left;"> Code representing the racial/ethnic reporting subgroup category for the student
+     A = Asian race, non-Hispanic
+     B = Black/African American race, non-Hispanic
+     H = Hispanic ethnicity
+      I = American Indian/Alaskan Native race, non-Hispanic
+     M = Multi-racial, non-Hispanic
+     P = Pacific Islander race, non-Hispanic
+     W = White race, non-Hispanic </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 4 </td>
+   <td style="text-align:left;"> enrl_grd </td>
+   <td style="text-align:left;"> Code indicating the enrolled grade level of the student; or a grade level assigned to an ungraded student based on student age. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 5 </td>
+   <td style="text-align:left;"> tst_bnch </td>
+   <td style="text-align:left;"> Code indicating the benchmark level of the administered test
+     1B = Benchmark 1 (grade 3)
+     2B = Benchmark 2 (grade 5)
+     3B = Benchmark 3 (grade 8)
+     G4 = Grade 4 benchmark
+     G6 = Grade 6 benchmark
+     G7 = Grade 7 benchmark
+     X3 = Extended Grade 3
+     X4 = Extended Grade 4
+     X5 = Extended Grade 5
+     X6 = Extended Grade 6
+     X7 = Extended Grade 7
+     X8 = Extended Grade 8 </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 6 </td>
+   <td style="text-align:left;"> tst_dt </td>
+   <td style="text-align:left;"> Date the test was taken (mm/dd/yyyy) </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 7 </td>
+   <td style="text-align:left;"> migrant_ed_fg </td>
+   <td style="text-align:left;"> Indicates student participation in a program designed to assure that migratory children receive full and appropriate opportunity to meet the state academic content and student academic achievement standards. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 8 </td>
+   <td style="text-align:left;"> ind_ed_fg </td>
+   <td style="text-align:left;"> Indicates student participation in a program designed to meet the unique educational and culturally related academic needs of American Indians. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 9 </td>
+   <td style="text-align:left;"> sp_ed_fg </td>
+   <td style="text-align:left;"> Indicates student participation in an Individualized Education Plan (IEP/IFSP). </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 10 </td>
+   <td style="text-align:left;"> tag_ed_fg </td>
+   <td style="text-align:left;"> Indicates student participation in a Talented and Gifted program. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 11 </td>
+   <td style="text-align:left;"> econ_dsvntg </td>
+   <td style="text-align:left;"> Indicates student eligibility for a Free or Reduced Lunch program. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 12 </td>
+   <td style="text-align:left;"> ayp_lep </td>
+   <td style="text-align:left;"> Indicates a student who received services or was eligible to receive services in a Limited English Proficient program.
+     Blank = Not eligible or served by an LEP program
+     A = First year LEP student without ELPA
+     B = First year LEP student with ELPA
+     E = Experienced LEP student (more than 5 years)
+     F = Former LEP (student exited LEP program more than two years ago)   --- new in 2016-17
+     M = Monitored Year 1 (student exited LEP program in the prior year)   --- new in 2016-17
+     N = Not eligible or served by an LEP program
+     S = Monitored Year 2 (student exited LEP program two years ago)   --- new in 2016-17
+     T = Transitioning (student exited LEP program in the prior year or two years ago)   --- discontinued in 2016-17
+     W = Student exited an LEP program on or before May 1 of the current year
+     X = Student exited an LEP program after May 1 of the current year
+     Y = Student in LEP program between 2 and 5 years </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 13 </td>
+   <td style="text-align:left;"> stay_in_dist </td>
+   <td style="text-align:left;"> Indicates that the student has been enrolled for more than 50% of the days in the school year as of the first school day in May at the district where the student is resident on the first school day in May. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 14 </td>
+   <td style="text-align:left;"> stay_in_schl </td>
+   <td style="text-align:left;"> Indicates that the student has been enrolled for more than 50% of the days in the school year as of the first school day in May at the school where the student is resident on the first school day in May. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 15 </td>
+   <td style="text-align:left;"> dist_sped </td>
+   <td style="text-align:left;"> Indicates that the student was enrolled in a district special education program during the school year and received general education classroom instruction for less than 40% of the time as of the first school day in May. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 16 </td>
+   <td style="text-align:left;"> trgt_assist_fg </td>
+   <td style="text-align:left;"> Flag indicating the record is included in Title 1 Targeted Assistance for the Adequate Yearly Progress (AYP) school performance calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 17 </td>
+   <td style="text-align:left;"> ayp_dist_partic </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Adequate Yearly Progress (AYP) district participation calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 18 </td>
+   <td style="text-align:left;"> ayp_schl_partic </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Adequate Yearly Progress (AYP) school participation calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 19 </td>
+   <td style="text-align:left;"> ayp_dist_prfrm </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Adequate Yearly Progress (AYP) district performance calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 20 </td>
+   <td style="text-align:left;"> ayp_schl_prfrm </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Adequate Yearly Progress (AYP) school performance calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 21 </td>
+   <td style="text-align:left;"> rc_dist_partic </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Report Card (RC) district participation calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 22 </td>
+   <td style="text-align:left;"> rc_schl_partic </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Report Card (RC) school participation calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 23 </td>
+   <td style="text-align:left;"> rc_dist_prfrm </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Report Card (RC) district performance calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 24 </td>
+   <td style="text-align:left;"> rc_schl_prfrm </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Report Card (RC) school participation calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 25 </td>
+   <td style="text-align:left;"> grp_rpt_dist_partic </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Group Report district participation calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 26 </td>
+   <td style="text-align:left;"> grp_rpt_schl_partic </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Group Report school participation calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 27 </td>
+   <td style="text-align:left;"> grp_rpt_dist_prfrm </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Group Report district performance calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 28 </td>
+   <td style="text-align:left;"> grp_rpt_schl_prfrm </td>
+   <td style="text-align:left;"> Flag indicating the record is included in the denominator of Group Report school participation calculations. </td>
+  </tr>
+  <tr>
+   <td style="text-align:right;"> 29 </td>
+   <td style="text-align:left;"> score </td>
+   <td style="text-align:left;"> Scale Score for Total test </td>
+  </tr>
+</tbody>
+</table>
+
+### Tasks
+
+**Task 2.1.** Import the Oregon testing data from [this link](https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/oregon.csv).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
