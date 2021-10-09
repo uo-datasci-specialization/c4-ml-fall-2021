@@ -13,9 +13,9 @@
       <pubDate>Thu, 07 Oct 2021 00:00:00 +0000</pubDate>
       
       <guid>https://ml-21.netlify.app/hw1/</guid>
-      <description>Overview The purpose of this lab is to get you working with git and GitHub collaboratively, as well as to refresh some basic {dplyr} skills. You should work together in groups of 3-4.
-The basics of the lab are to:
- Create a shared repo Create an R Markdown document Work on a few different data visualizations together  File issues for the different pieces of the lab Create branches for those issues Different people work on different branches - merge them in when you&amp;rsquo;re ready   Submit a link to the repo through Canvas when you&amp;rsquo;ve completed the lab I check the commit history, and give each person credit  To receive full credit you must create and merge branches.</description>
+      <description>Overview The purpose of this assignment is to get you working with the recipes package and preprocessing the variables in two different datasets. You will use the same datasets with processed variables to build models in the next assignments.
+Please prepare your assignment using RMarkdown. There are alternative ways to submit your assignment depending on your preference.
+  You knit the R Markdown document to a PDF document and then submit both the .</description>
     </item>
     
     <item>
