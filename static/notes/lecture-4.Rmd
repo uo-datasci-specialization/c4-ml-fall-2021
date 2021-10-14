@@ -1,0 +1,178 @@
+---
+title: Linear Regression and Regularization
+subtitle: Applied Machine Learning for Educational Data Science
+author:
+  name: Cengiz Zopluoglu
+  affiliation: University of Oregon | EDLD 654
+date: 10/12/2021 ## Or "Lecture no."
+output: 
+  html_document:
+    keep_md: false
+    theme: journal
+    highlight: haddock
+    code_folding: hide
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  pdf_document:
+    extra_dependencies: ["amssymb","animate"]
+    keep_tex: false ## Change to true if want keep intermediate .tex file
+    toc: true
+    toc_depth: 3
+    dev: cairo_pdf
+always_allow_html: true
+urlcolor: blue
+mainfont: cochineal
+sansfont: Fira Sans
+monofont: Fira Code ## Although, see: https://tex.stackexchange.com/q/294362
+
+## Automatically knit to both formats:
+knit: (function(inputFile, encoding) {
+ rmarkdown::render(inputFile, encoding = encoding, 
+ output_format = 'all') 
+ })
+---
+
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position=c('top','right'))
+```
+
+`r paste('[Updated:',format(Sys.time(),'%a, %b %d, %Y - %H:%M:%S'),']')`
+
+<style>
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    z-index: 2;
+    color: #fff;
+    background-color: #FC4445;
+    border-color: #97CAEF;
+}
+
+#infobox {
+  padding: 1em 1em 1em 4em;
+  margin-bottom: 10px;
+  border: 2px solid black;
+  border-radius: 10px;
+  background: #E6F6DC 5px center/3em no-repeat;
+}
+
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = "",fig.align='center')
+require(here)
+require(ggplot2)
+require(plot3D)
+require(kableExtra)
+require(knitr)
+require(giski)
+require(magick)
+require(gridExtra)
+options(scipen=99)
+
+# Resources:
+
+  # https://bradleyboehmke.github.io/HOML/linear-regression.html
+  # https://bradleyboehmke.github.io/HOML/regularized-regression.html
+  # James et al. Ch 3 and Ch 6.2
+  # Applied Predictive Modeling, Chapter 6
+```
+
+In the machine learning literature, the prediction algorithms are classified into two main categories: *supervised* and *unsupervised*. Supervised algorithms are being used when the dataset has an actual outcome of interest to predict (labels), and the goal is to build the "best" model predicting the outcome of interest that exists in the data. On the other side, unsupervised algorithms are being used when the dataset doesn't have an outcome of interest, and the goal is typically to identify similar groups of observations (rows of data) or similar groups of variables (columns of data) in data. In this course, we plan to cover a number of *supervised* algorithms. Linear regression is one of the simplest approach among supervised algorithms, and also one of the easiest to interpret. 
+
+# Linear Regression
+
+## Model Description
+
+In most general terms, the linear regression model with $P$ predictors ($X_1$,$X_2$,$X_3$,...,$X_p$) to predict an outcome (Y) can be written as the following:
+
+$$ Y = \beta_0  + \sum_{p=1}^{P} \beta_pX_{p} + \epsilon.$$
+In this model, $Y$ represents the observed value for the outcome for an observation, $X_{p}$ represents the observed value of the $p^{th}$ variable for the same observation, and $\beta_p$ is the associated model parameter for the $p^{th}$ variable. $\epsilon$ is the model error (residual) for the observation.
+
+This model includes only the main effects of each predictor and can be easily extended by including a quadratic or higher-order polynomial terms for all (or a specific subset of) predictors. For instance, the model below includes all first-order, second-order, and third-order polynomial terms for all predictors. 
+
+$$ Y = \beta_0  + \sum_{p=1}^{P} \beta_pX_{p} + \sum_{k=1}^{P} \beta_{k+P}X_{k}^2 + \sum_{m=1}^{P} \beta_{m+2P}X_{m}^3 + \epsilon.$$
+The simple first-order, second-order, and third-order polynomial terms can also be replaced by corresponding terms obtained from B-splines or natural splines.
+
+Sometimes, the effect of predictor variables on the outcome variable are not additive, and the effect of one predictor on the response variable can depend on the levels of another predictor. These non-additive effects are also called interaction effects. The interaction effects can also be a first-order interaction (interaction between two variables, e.g., $X_1*X_2$), second-order interaction ($X_1*X_2*X_3$), or higher orders.  It is also possible to add the interaction effects to the model. For instance, the model below also adds the first-order interactions.
+
+$$ Y = \beta_0  + \sum_{p=1}^{P} \beta_pX_{p} + \sum_{k=1}^{P} \beta_{k+P}X_{k}^2 + \sum_{m=1}^{P} \beta_{m+2P}X_{m}^3 + \sum_{i=1}^{P}\sum_{j=i+1}^{P}\beta_{i,j}X_iX_j + \epsilon.$$
+If you are not comfortable or confused with notational representation, below is an example for different models you can write with 5 predictors ($X_1,X_2,X_3$).
+
+A model with only main-effects:
+
+$$ Y = \beta_0  + \beta_1X_{1} + \beta_2X_{2} + \beta_3X_{3}+ \epsilon.$$
+
+A model with polynomial terms up to the 3rd degree added:
+
+$$Y = \beta_0  + \beta_1X_1 + \beta_2X_2 + \beta_3X_3 + \\ \beta_4X_1^2 + \beta_5X_2^2 + \beta_6X_3^2+ \\ \beta_{7}X_1^3 + \beta_{8}X_2^3 + \beta_{9}X_3^3
+$$
+
+A model with both interaction terms and polynomial terms up to the 3rd degree added:
+
+$$Y = \beta_0  + \beta_1X_1 + \beta_2X_2 + \beta_3X_3 + \\ \beta_4X_1^2 + \beta_5X_2^2 + \beta_6X_3^2+ \\ \beta_{7}X_1^3 + \beta_{8}X_2^3 + \beta_{9}X_3^3+ \\ \beta_{1,2}X_1X_2+ \beta_{1,3}X_1X_3 + \beta_{2,3}X_2X_3 + \epsilon $$
+
+## Model Estimation
+
+Suppose that we 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+readability_feat <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
+
+readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability',header=TRUE)
+
+
+```
+
+## Model Evaluation
+
+## Model Interpretation
+
+# Linear Regression with Regularization
+
+## Ridge Penalty
+
+## Lasso Penalty
+
+## Elastic Net
+
+# Wrapping up: Predicting Readability Scores
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

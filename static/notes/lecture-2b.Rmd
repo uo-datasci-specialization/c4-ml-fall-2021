@@ -810,8 +810,7 @@ This lecture provided different types of information we can extract from any giv
 
 ################################################################################
 
-  readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',
-                          header=TRUE)
+  readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',header=TRUE)
 
   input.list <- vector('list',nrow(readability))
 
@@ -959,6 +958,12 @@ This lecture provided different types of information we can extract from any giv
   require(gtools)
   
   readability_features <- smartbind(list = input.list)
+  
+  # Add the target score to the feature matrix
+  
+  readability_features$target <- readability$target
+  
+  # Export the final data with features
   
   write.csv(readability_features, 
             here('data/readability_features.csv'),
