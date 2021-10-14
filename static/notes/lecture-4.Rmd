@@ -69,7 +69,9 @@ require(knitr)
 require(giski)
 require(magick)
 require(gridExtra)
+require(plotly)
 options(scipen=99)
+
 
 # Resources:
 
@@ -259,7 +261,60 @@ sum(d$error^2)
  
 ```
 
-Now, how do we know that the set of coefficients we guesstimate ,{$\beta_0,\beta_1$} = {7.5,-2}, is a good model? Is there any other set of coefficients that would provide less error than this model? The only way of knowing this is to try a bunch of different models and see if we can find a better one that gives us better predictions (smaller residuals). But, there is literally infinite number of set of {$\beta_0,\beta_1$} coefficients, so which ones we should try?
+Now, how do we know that the set of coefficients we guesstimate ,{$\beta_0,\beta_1$} = {7.5,-2}, is a good model? Is there any other set of coefficients that would provide less error than this model? The only way of knowing this is to try a bunch of different models and see if we can find a better one that gives us better predictions (smaller residuals). But, there is literally infinite pairs of {$\beta_0,\beta_1$} coefficients, so which ones we should try?
+
+Below, I will do a quick exploration. For instance, suppose the potential range for my intercept ($\beta_0$) is from -10 to 10 and I will consider every single possible value from -10 t 10 with increments of .1. Also, suppose the potential range for my slope ($\beta_1$) is from -2 to 2 and I will consider every single possible value from -2 to 2 with increments of .01. Given that every single combination of $\beta_0$ and $\beta_1$ indicates a different model, these settings suggest a total of 80,601 models to explore. If you are crazy enough, you can try every single model and compute the SSR. Then, we can plot them in a 3D by putting $\beta_0$ on the X-axis, $\beta_1$ on the Y-axis, and SSR on the Z-axis. Check the plot below and tell me if you can manually explore and find the minimum of this surface.
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+grid    <- expand.grid(b0=seq(-10,10,.1),b1=seq(-2,2,.01))           
+grid$SSR <- NA
+
+for(i in 1:nrow(grid)){
+  predicted    <- readability_sub$mean.wl*grid[i,]$b1 + grid[i,]$b0
+  grid[i,]$SSR <- sum((readability_sub$target - predicted)^2)
+  print(i)
+}
+
+  
+  write.csv(grid, 
+            here('data/grid_regression.csv'),
+            row.names = FALSE)
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+grid <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/grid_regression.csv',header=TRUE)
+
+plot_ly(grid, x = ~b0, y = ~b1, z = ~SSR, 
+        marker = list(color = ~SSR,
+                      showscale = TRUE,
+                      cmin=min(grid$SSR)*1.5,
+                      cmax=min(grid$SSR),cauto=F),
+        width=800,height=600) %>% 
+  add_markers()
+
+
+plot_ly(grid, x = ~b0, y = ~b1, z = ~SSR, type='contour', 
+        showscale=TRUE,
+        contours = list(coloring = 'heatmap'),
+        zmin=max(grid$SSR)*1.5,
+        zmax=max(grid$SSR),
+        zauto=F,
+        colors = 'Blues',
+        width=800,height=600)
+
+```
+
+
+
+
+
+
+
+
+
 
 ### Matrix Approach to Linear Regression
 
