@@ -106,29 +106,166 @@ $$ Y = \beta_0  + \beta_1X_{1} + \beta_2X_{2} + \beta_3X_{3}+ \epsilon.$$
 
 A model with polynomial terms up to the 3rd degree added:
 
-$$Y = \beta_0  + \beta_1X_1 + \beta_2X_2 + \beta_3X_3 + \\ \beta_4X_1^2 + \beta_5X_2^2 + \beta_6X_3^2+ \\ \beta_{7}X_1^3 + \beta_{8}X_2^3 + \beta_{9}X_3^3
-$$
+$$Y = \beta_0  + \beta_1X_1 + \beta_2X_2 + \beta_3X_3 + \\ \beta_4X_1^2 + \beta_5X_2^2 + \beta_6X_3^2+ \\ \beta_{7}X_1^3 + \beta_{8}X_2^3 + \beta_{9}X_3^3$$
 
 A model with both interaction terms and polynomial terms up to the 3rd degree added:
 
-$$Y = \beta_0  + \beta_1X_1 + \beta_2X_2 + \beta_3X_3 + \\ \beta_4X_1^2 + \beta_5X_2^2 + \beta_6X_3^2+ \\ \beta_{7}X_1^3 + \beta_{8}X_2^3 + \beta_{9}X_3^3+ \\ \beta_{1,2}X_1X_2+ \beta_{1,3}X_1X_3 + \beta_{2,3}X_2X_3 + \epsilon $$
+$$Y = \beta_0  + \beta_1X_1 + \beta_2X_2 + \beta_3X_3 + \\ \beta_4X_1^2 + \beta_5X_2^2 + \beta_6X_3^2+ \\ \beta_{7}X_1^3 + \beta_{8}X_2^3 + \beta_{9}X_3^3+ \\ \beta_{1,2}X_1X_2+ \beta_{1,3}X_1X_3 + \beta_{2,3}X_2X_3 + \epsilon$$
 
 ## Model Estimation
 
-Suppose that we 
+Suppose that we would like to predict the target readability score for a given text from average word length in the text. Below is a scatterplot to show the relationship between these two variables for a random sample of 20 observations. There seems to be a moderate negative correlation. So, we can tell that the higher the average word length is in a given text, the lower the readability score (more difficult to read).
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-readability_feat <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
-
-readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability',header=TRUE)
+readability_sub <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_feat_sub.csv',header=TRUE)
 
 
 ```
 
-## Model Evaluation
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
+  geom_point()+
+  xlab('Average Word Length')+
+  ylab('Readability Score')+
+  theme_bw()+
+  xlim(c(3,6))+
+  ylim(c(-4,2))
+
+```
+
+Let's consider a simple linear regression model such that the readability score is the outcome ($Y$) and average word length is the predictor($X1$). Our regression model would be
+
+$$Y_i = \beta_0  + \beta_1X_{i} + \epsilon_i.$$
+In this case, the set of coefficients, {$\beta_0,\beta_1$}, represents a linear line. We can come up with any set of {$\beta_0,\beta_1$} coefficients and use it as our model. For instance, suppose I guesstimate that these coefficients are {$\beta_0,\beta_1$} = {7.5,-2}. Then, my model would look like the following.
+
+$$Y_i = 7.5  - 2X_{i} + \epsilon_i.$$
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
+  geom_point()+
+  xlab('Average Word Length')+
+  ylab('Readability Score')+
+  theme_bw()+
+  xlim(c(3,6))+
+  ylim(c(-4,2))+
+  geom_abline(intercept=7.5,slope=-2,lty=2)
+  
+```
+
+Using this model, I can predict the target readability score for all the observation in my dataset. For instance, the average word length is 4.604 for the first reading passage. Then, my prediction of readability score based on this model would be -1.708. On the other side, the observed value of the target score for this observation is -2.586. This discrepancy between the observed value and my model predicts is the model error (residual) for the first observation and captured in the $\epsilon$ term in the model.
+
+$$Y_1 = 7.5  - 2X_{1} + \epsilon_1.$$
+$$\hat{Y_1} = 7.5  - 2*4.604 = -1.708 $$
+$$\epsilon_1 = -2.586 - (-1.708) =  -0.878 $$
+We can visualize this in the plot. The black dot represents the observed data point, and the blue dot on the line represents the model prediction for a given $X$ value. The vertical distance between these two data points is the model error for this particular observation.
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+x1 = readability_sub[1,c('mean.wl')]
+y1 = readability_sub[1,c('mean.wl')]*-2 + 7.5
+
+ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
+  geom_point(col='gray')+
+  xlab('Average Word Length')+
+  ylab('Readability Score')+
+  theme_bw()+
+  xlim(c(3,6))+
+  ylim(c(-4,2))+
+  geom_abline(intercept=7.5,slope=-2,lty=2)+
+  geom_point(x=x1,y=y1,color='blue',cex=2)+
+  geom_point(x=readability_sub[1,c('mean.wl')],y=readability_sub[1,c('target')],color='black',cex=2)+
+  geom_segment(x=x1,y=y1,xend=x1,yend=readability_sub[1,c('target')])
+  
+  
+```
+
+We can do the same experiment for the second observation. The average word length is 3.830 for the second reading passage. The model predicts a readability score of be -0.161. Observed value of the target score for this observation is 0.459. Therefore the model error for the second observation would be 0.62.
+
+
+$$Y_2 = 7.5  - 2X_{2} + \epsilon_2.$$
+$$\hat{Y_2} = 7.5  - 2*3.830 = -0.161 $$
+$$\epsilon_1 = 0.459 - (-0.161) =  0.62 $$
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+x1 = readability_sub[2,c('mean.wl')]
+y1 = readability_sub[2,c('mean.wl')]*-2 + 7.5
+
+ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
+  geom_point(col='gray')+
+  xlab('Average Word Length')+
+  ylab('Readability Score')+
+  theme_bw()+
+  xlim(c(3,6))+
+  ylim(c(-4,2))+
+  geom_abline(intercept=7.5,slope=-2,lty=2)+
+  geom_point(x=x1,y=y1,color='blue',cex=2)+
+  geom_point(x=readability_sub[2,c('mean.wl')],y=readability_sub[2,c('target')],color='black',cex=2)+
+  geom_segment(x=x1,y=y1,xend=x1,yend=readability_sub[2,c('target')])
+  
+```
+
+Using a similar approach, we can calculate the model error for every single observation.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+d <-  readability_sub[,c('mean.wl','target')]
+
+d$predicted <- d$mean.wl*-2 + 7.5
+d$error     <- d$target - d$predicted
+
+d
+ 
+```
+
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+p <- ggplot(data=d,aes(x=mean.wl,y=target))+
+  geom_point()+
+  xlab('Average Word Length')+
+  ylab('Readability Score')+
+  theme_bw()+
+  xlim(c(3,6))+
+  ylim(c(-4,2))+
+  geom_abline(intercept=7.5,slope=-2,lty=2,color='gray')
+ 
+for(i in 1:nrow(d)){
+ p <- p + geom_segment(x=d[i,1],y=d[i,2],xend=d[i,1],yend=d[i,3],lty=2)
+}  
+
+p
+```
+
+While it is helpful to see the model error for every single observation, we will need to aggregate them in some way to form an overall measure for the total amount of error for this model. Some alternatives for aggregating these individual errors could be using 
+
+a. the sum of the residuals (SR),
+b. the sum of absolute value of residuals (SAR), or
+c. the sum of squared residuals (SSR)
+
+Among these alternatives, (a) is not a useful aggregation as the positive residuals and negative residuals will cancel each other and may misrepresent the total amount of error for all observations. Both (b) and (c) are plausible alternatives and can be used. On the other hand, (b) is less desirable because the absolute values are mathematically more difficult to deal with (ask a calculus professor!). So, (c) seems to be a good way of aggregating the total amount of error, it is mathematically easy to work with. We can show (c) in a mathematical notation as the following.
+
+$$SSR = \sum_{i=1}^{N}(Y_i - (\beta_0+\beta_1X_i))^2$$
+$$SSR = \sum_{i=1}^{N}(Y_i - \hat{Y_i})^2$$
+$$SSR = \sum_{i=1}^{N}\epsilon_i^2$$
+For our model, the sum of squared residuals would be 15.384.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+sum(d$error^2)
+ 
+```
+
+Now, how do we know that the set of coefficients we guesstimate ,{$\beta_0,\beta_1$} = {7.5,-2}, is a good model? Is there any other set of coefficients that would provide less error than this model? The only way of knowing this is to try a bunch of different models and see if we can find a better one that gives us better predictions (smaller residuals). But, there is literally infinite number of set of {$\beta_0,\beta_1$} coefficients, so which ones we should try?
+
+### Matrix Approach to Linear Regression
 
 ## Model Interpretation
+
+## Model Evaluation
 
 # Linear Regression with Regularization
 
