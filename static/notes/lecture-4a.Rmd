@@ -135,12 +135,12 @@ ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
 
 ```
 
-Let's consider a simple linear regression model such that the readability score is the outcome ($Y$) and average word length is the predictor($X1$). Our regression model would be
+Let's consider a simple linear regression model such that the readability score is the outcome ($Y$) and average word length is the predictor($X$). Our regression model would be
 
-$$Y_i = \beta_0  + \beta_1X_{i} + \epsilon_i.$$
-In this case, the set of coefficients, {$\beta_0,\beta_1$}, represents a linear line. We can come up with any set of {$\beta_0,\beta_1$} coefficients and use it as our model. For instance, suppose I guesstimate that these coefficients are {$\beta_0,\beta_1$} = {7.5,-2}. Then, my model would look like the following.
+$$Y = \beta_0  + \beta_1X + \epsilon.$$
+In this case, the set of coefficients, {$\beta_0,\beta_1$}, represents a linear line. We can come up with any set of {$\beta_0,\beta_1$} coefficients and use it as our model. For instance, suppose I guesstimate that these coefficients are {$\beta_0,\beta_1$} = {7.5,-2}. Then, my model would be
 
-$$Y_i = 7.5  - 2X_{i} + \epsilon_i.$$
+$$Y = 7.5  - 2X + \epsilon.$$
 
 ```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -155,11 +155,11 @@ ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
   
 ```
 
-Using this model, I can predict the target readability score for all the observation in my dataset. For instance, the average word length is 4.604 for the first reading passage. Then, my prediction of readability score based on this model would be -1.708. On the other side, the observed value of the target score for this observation is -2.586. This discrepancy between the observed value and my model predicts is the model error (residual) for the first observation and captured in the $\epsilon$ term in the model.
+Using this model, I can predict the target readability score for any observation in my dataset. For instance, the average word length is 4.604 for the first reading passage. Then, my prediction of readability score based on this model would be -1.708. On the other side, the observed value of the readbility score for this observation is -2.586. This discrepancy between the observed value and the model prediction is the model error (residual) for the first observation and captured in the $\epsilon$ term in the model.
 
-$$Y_1 = 7.5  - 2X_{1} + \epsilon_1.$$
-$$\hat{Y_1} = 7.5  - 2*4.604 = -1.708 $$
-$$\hat{\epsilon_1} = -2.586 - (-1.708) =  -0.878 $$
+$$Y_{(1)} = 7.5  - 2X_{(1)} + \epsilon_{(1)}.$$
+$$\hat{Y}_{(1)} = 7.5  - 2*4.604 = -1.708 $$
+$$\hat{\epsilon}_{(1)} = -2.586 - (-1.708) =  -0.878 $$
 We can visualize this in the plot. The black dot represents the observed data point, and the blue dot on the line represents the model prediction for a given $X$ value. The vertical distance between these two data points is the model error for this particular observation.
 
 ```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
@@ -182,12 +182,12 @@ ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
   
 ```
 
-We can do the same experiment for the second observation. The average word length is 3.830 for the second reading passage. The model predicts a readability score of be -0.161. Observed value of the target score for this observation is 0.459. Therefore the model error for the second observation would be 0.62.
+We can do the same thing for the second observation. The average word length is 3.830 for the second reading passage. The model predicts a readability score of be -0.161. Observed value of the readability score for this observation is 0.459. Therefore the model error for the second observation would be 0.62.
 
 
-$$Y_2 = 7.5  - 2X_{2} + \epsilon_2.$$
-$$\hat{Y_2} = 7.5  - 2*3.830 = -0.161 $$
-$$\hat{\epsilon_2} = 0.459 - (-0.161) =  0.62 $$
+$$Y_{(2)} = 7.5  - 2X_{(2)} + \epsilon_{(2)}.$$
+$$\hat{Y}_{(2)} = 7.5  - 2*3.830 = -0.161 $$
+$$\hat{\epsilon}_{(2)} = 0.459 - (-0.161) =  0.62 $$
 
 ```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -246,11 +246,11 @@ a. the sum of the residuals (SR),
 b. the sum of absolute value of residuals (SAR), or
 c. the sum of squared residuals (SSR)
 
-Among these alternatives, (a) is not a useful aggregation as the positive residuals and negative residuals will cancel each other and (a) may misrepresent the total amount of error for all observations. Both (b) and (c) are plausible alternatives and can be used. On the other hand, (b) is less desirable because the absolute values are mathematically more difficult to deal with (ask a calculus professor!). So, (c) seems to be a good way of aggregating the total amount of error, it is mathematically easy to work with. We can show (c) in a mathematical notation as the following.
+Among these alternatives, (a) is not a useful aggregation as the positive residuals and negative residuals will cancel each other and (a) may misrepresent the total amount of error for all observations. Both (b) and (c) are plausible alternatives and can be used. On the other hand, (b) is less desirable because the absolute values are mathematically more difficult to deal with (ask a calculus professor!). So, (c) seems to be a good way of aggregating the total amount of error, and it is mathematically easier to work with. We can show (c) in a mathematical notation as the following.
 
-$$SSR = \sum_{i=1}^{N}(Y_i - (\beta_0+\beta_1X_i))^2$$
-$$SSR = \sum_{i=1}^{N}(Y_i - \hat{Y_i})^2$$
-$$SSR = \sum_{i=1}^{N}\epsilon_i^2$$
+$$SSR = \sum_{i=1}^{N}(Y_{(i)} - (\beta_0+\beta_1X_{(i)}))^2$$
+$$SSR = \sum_{i=1}^{N}(Y_{(i)} - \hat{Y_{(i)}})^2$$
+$$SSR = \sum_{i=1}^{N}\epsilon_{(i)}^2$$
 For our model, the sum of squared residuals would be 15.384.
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
@@ -297,30 +297,30 @@ plot_ly(grid, x = ~b0, y = ~b1, z = ~SSR,
 ```
 
 
-The finding the best set of {$\beta_0,\beta_1$} coefficients that minimizes the sum of squared residuals is indeed an optimization problem. For any optimization problem, there is a **loss function** we either try to minimize or maximize. In this case, our loss function is the sum of squared residuals.
+Finding the best set of {$\beta_0,\beta_1$} coefficients that minimizes the sum of squared residuals is an optimization problem. For any optimization problem, there is a **loss function** we either try to minimize or maximize. In this case, our loss function is the sum of squared residuals.
 
-$$Loss = \sum_{i=1}^{N}(Y_i - (\beta_0+\beta_1X_i))^2$$
-In this loss function, $X$ and $Y$ values are observed data, and {$\beta_0,\beta_1$} are unknown parameters. The goal of optimization is to find the set {$\beta_0,\beta_1$} coefficients that provides the minimum value of this function. Once this minima of this function is found, we can argue that the corresponding coefficients are our best solution for the regression model. 
+$$Loss = \sum_{i=1}^{N}(Y_{(i)} - (\beta_0+\beta_1X_{(i)}))^2$$
+In this loss function, $X$ and $Y$ values are observed data, and {$\beta_0,\beta_1$} are unknown parameters. The goal of optimization is to find the set {$\beta_0,\beta_1$} coefficients that provides the minimum value of this function. Once this minima of this function is found, we can argue that the corresponding coefficients are our best solution for the regression model.
 
 In this case, this is a good-looking surface with a single global minima, and it is not difficult to find the minimum of this loss function. We also have an analytical solution to find its minima because of its simplicity. Most of the time, the optimization problems are more difficult, and we solve them using numerical techniques such as steepest ascent (or descent), newton-raphson, quasi-newton, genetic algorithm and many more. 
 
 ## Matrix Solution
 
-For most regression problems, we can find the best set of coefficients with a simple matrix operations. Let's first see how we can represent the regression problem in matrix form. Suppose that I wrote the regression model presented in the earlier section for every single observation in a dataset with a sample size of N.
+For most regression problems, we can find the best set of coefficients with a simple matrix operation. Let's first see how we can represent the regression problem in matrix form. Suppose that I wrote the regression model presented in the earlier section for every single observation in a dataset with a sample size of N.
 
 
-$$Y_1 = \beta_0  + \beta_1X_{1} + \epsilon_1.$$
+$$Y_{(1)} = \beta_0  + \beta_1X_{(1)} + \epsilon_{(1)}.$$
 
-$$Y_2 = \beta_0  + \beta_1X_{2} + \epsilon_2.$$
-$$Y_3 = \beta_0  + \beta_1X_{3} + \epsilon_3.$$
+$$Y_{(2)} = \beta_0  + \beta_1X_{(2)} + \epsilon_{(2)}.$$
+$$Y_{(3)} = \beta_0  + \beta_1X_{(3)} + \epsilon_{(3)}.$$
 $$...$$
 $$...$$
 $$...$$
-$$Y_{20} = \beta_0  + \beta_1X_{20} + \epsilon_20.$$
+$$Y_{(20)} = \beta_0  + \beta_1X_{(20)} + \epsilon_{(20)}.$$
 We can write all of these equations in a much simpler format as
 
 $$ \mathbf{Y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}, $$
-such that $\mathbf{Y}$ is an N x 1 column vector of observed values for the outcome variable, $\mathbf{X}$ is an N x (P+1) design matrix of observed values for predictor variables, and $\boldsymbol{\beta}$ is an (P+1) x 1 column vector of regression coefficients, and  $\boldsymbol{\epsilon}$ is an N x 1 column vector of residuals. For the problem above with our small dataset, these matrix elements would look like the following.
+such that $\mathbf{Y}$ is an N x 1 column vector of observed values for the outcome variable, $\mathbf{X}$ is an N x (P+1) **design matrix* for the set of predictor variables including an intercept term, and $\boldsymbol{\beta}$ is an (P+1) x 1 column vector of regression coefficients, and  $\boldsymbol{\epsilon}$ is an N x 1 column vector of residuals. For the problem above with our small dataset, these matrix elements would look like the following.
 
 ```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
 
@@ -392,7 +392,7 @@ Note that the matrix formulation is generalized to a regression model for more t
 
 Let's assume that we would like to expand our model by adding the number of sentences as the second predictor. Our new model will be
 
-$$Y_i = \beta_0  + \beta_1X_{1i} + \beta_2X_{2i} + \epsilon_i.$$
+$$Y_{(i)} = \beta_0  + \beta_1X_{1(i)} + \beta_2X_{2(i)} + \epsilon_{(i)}.$$
 Note that I added a subscript for $X$ to differentiate different predictors. Let's say $X_1$ represents the mean word length and $X_2$ represents the total number of sentence length. Now, we are looking for the best set of three coefficients, {$\beta_0,\beta_1, \beta_2$} that would yield the least amount of error in predicting the readability. Now, our matrix elements will look like the following:
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
@@ -464,12 +464,11 @@ In earlier weeks, we discussed how to process text data and constructed more tha
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',
-                        header=TRUE)
+readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
 
 ```
 
-This dataset has 2834 rows and 1072 columns. Each row represents a reading passage. The last column is the outcome variable to predict (`target`), and the first 1071 columns are unprocessed numerical features we can potentially use as predictors. 
+This dataset has 2834 rows and 1072 columns. Each row represents a reading passage. The last column is the readability score, the outcome variable to predict (`target`), and the first 1071 columns are numerical features we can potentially use as predictors. 
 
 ## Initial Data Preparation
 
@@ -484,7 +483,7 @@ missing_ <- ff_glimpse(readability)$Continuous
 head(missing_)
 
 # Because there is more than 1000 variables, it is not practical to print them all
-# I filter the ones with missing data, and then pring
+# I filter the ones with missing data, and then print
 
 flag_na <- which(as.numeric(missing_$missing_percent) > 80)
 flag_na
@@ -495,9 +494,9 @@ readability <- readability[,-flag_na]
 
 ```
 
-Then, I will use the `recipes` package to create a recipe for this dataset. Note that all my features are numeric, and the last column is outcome variable while every other column is a predictor variable. This receipe
+Then, I will use the `recipes` package to create a recipe for this dataset. Note that all my features are numeric, and the last column is outcome variable while every other column is a predictor variable. This recipe
 
-- assigns the last column (`target`) as outcome and everythin else as predictor,
+- assigns the last column (`target`) as outcome and everything else as predictors,
 - removes any variable with zero variance or near-zero variance,
 - impute the missing values using the mean,
 - standardize all variables,
@@ -522,7 +521,7 @@ blueprint <- recipe(x     = readability,
 
 ## Train/Test Split
 
-In order to obtain a realistic measure of model performance, we will split the data into two subsamples: training and test. Due to the relatively small sample size, I will use a 90-10 split (typically a 80-20 or 70-30 split is used). 
+In order to obtain a realistic measure of model performance, we will split the data into two subsamples: training and test datasets. Due to the relatively small sample size, I will use a 90-10 split (typically a 80-20 or 70-30 split is used). 
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
@@ -554,7 +553,7 @@ The smaller test dataset will be used as a final hold-out set, and training data
 
 ## Model Fitting without Cross-validation
 
-First, I will fit the model to the training dataset using all predictors in the dataset without any cross validation. Note that we will very likely overfit with more than 900 predictors and relatively small sample size.
+First, I will fit the model to the training dataset using all predictors in the dataset without any cross validation. Note that we will very likely overfit with more than 800 predictors and relatively small sample size.
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
@@ -563,24 +562,30 @@ mod <- lm(formula(baked_tr[,c(888,1:887)]),data=baked_tr)
 summary(mod)$r.squared
 ```
 
-```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+predicted_tr <- predict(mod)
 
 ggplot()+
-  geom_point(aes(y=baked_tr$target,x=predict(mod)))+
+  geom_point(aes(y=baked_tr$target,x=predicted_tr))+
   xlab('Model Predictions')+
   ylab('Observed Readability Scores')+
   theme_bw()+
   ggtitle('Model Performance in the Training Dataset')
 ```  
 
-In the training dataset, the model explains about `paste0(round(summary(mod)$r.squared*100,2),'%')` of the total variance in the outcome variable (WOW!). We can also calculate the RMSE or MSE for the model predictions in the training dataset.
+In the training dataset, the model explains about 84% of the total variance in the outcome variable (WOW!). We can also calculate the MAE, MSE, and RMSE for the model predictions in the training dataset.
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-predicted_tr <- predict(mod)
-
 rsq_tr <- cor(baked_tr$target,predicted_tr)^2
 rsq_tr
+
+mae_tr <- mean(abs(baked_tr$target - predicted_tr))
+mae_tr
+
+mse_tr <- mean((baked_tr$target - predicted_tr)^2)
+mse_tr
 
 rmse_tr <- sqrt(mean((baked_tr$target - predicted_tr)^2))
 rmse_tr
@@ -590,11 +595,21 @@ Something is too good to be true! As we suspected, the model predictions are unu
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
+# first obtain the predictions according to the model for the observations
+# in the test dataset
 
 predicted_te <- predict(mod,newdata=baked_te)
 
+# Calculate the outcome metrics
+
 rsq_te <- cor(baked_te$target,predicted_te)^2
 rsq_te
+
+mae_te <- mean(abs(baked_te$target - predicted_te))
+mae_te
+
+mse_te <- mean((baked_te$target - predicted_te)^2)
+mse_te
 
 rmse_te <- sqrt(mean((baked_te$target - predicted_te)^2))
 rmse_te
@@ -610,7 +625,7 @@ ggplot()+
   ggtitle('Model Performance in the Test Dataset')
 ```  
 
-The model performance significantly dropped in the testing dataset. This is just another example of model variance (overfitting). We have a very complex model that does a great job in the training dataset but does not perform at the same level in a different dataset. If we are planning to use this dataset for any future task, it is much better to consider the performance on the test data as it will be a more realistic expectation. 
+The model performance significantly dropped in the testing dataset. This is a classic example of model variance (overfitting). We have a very complex model that does a great job in the training dataset but does not perform at the same level in a different dataset. If we are planning to use this model for any future prediction, it is much better to consider the performance on the test data as it will be a more realistic picture of model performance. 
 
 ## Model Fitting with 10-fold Cross-validation
 
@@ -630,7 +645,9 @@ folds = cut(seq(1,nrow(baked_tr)),breaks=10,labels=FALSE)
 
 # Create empty vectors for performance measures
 
-rsq <- c()
+rsq  <- c()
+mae  <- c()
+mse  <- c()
 rmse <- c()
 
 # Fit the model by excluding one of the folds, and then evaluate the performance
@@ -646,7 +663,9 @@ for(i in 1:10){
   pred <- predict(mod,newdata=data_te)
 
   rsq[i]  <- cor(data_te$target,pred)^2
-  rmse[i] <-  sqrt(mean((data_te$target - pred)^2))
+  mse[i]  <- mean(abs(data_te$target - pred))
+  mse[i]  <- mean((data_te$target - pred)^2)
+  rmse[i] <- sqrt(mean((data_te$target - pred)^2))
 
   #cat(paste0('Fold ',i,' is completed.'),'\n')
 }
@@ -662,7 +681,7 @@ The performance evaluations we obtain from k-fold cross validation is more simil
 
 ## Model Fitting Using the `caret` package
 
-It is not always the most pleasant experience to writing your own code to conduct k-fold cross validation. Packages like `caret` provides built-in functions for conducting cross-validation and also brings a number of user-friendly experiences in modeling. `caret` provides a standardized user experience for fitting a lot of different models beyond linear regression. So, one doesn't have to learn the nuances of all different types of functions to fit different types of models. Packages like `caret` provides a more consistent workflow while working with different types of models. On the other hand, this also brings less flexibility. During this class, I will try to demonstrate both how to work with direct functions and how to work with `caret` for fitting different types of models.
+It is not always the most pleasant experience to write your own code to conduct a k-fold cross validation. Packages like `caret` provides built-in functions for conducting cross-validation and also brings a number of user-friendly experiences in modeling. `caret` provides a standardized user experience for fitting a lot of different models beyond linear regression. So, one doesn't have to learn the nuances of all different types of functions to fit different types of models. Packages like `caret` provides a more consistent workflow while working with different types of models. On the other hand, this also brings less flexibility. During this class, I will try to demonstrate both how to work with direct functions and how to work with `caret` for fitting different types of models.
 
 Below is how one could implement the whole process using the `caret` package.
 
@@ -692,9 +711,9 @@ blueprint <- recipe(x     = readability,
 
 # For available methods in the train function
 
-names(getModelInfo())
+  # ?names(getModelInfo())
 
-getModelInfo()$lm
+  # ?getModelInfo()$lm
 
 # Cross validation settings
 
@@ -714,18 +733,22 @@ caret_mod <- caret::train(blueprint,
 caret_mod
 
 # Once you train the model, then you apply the same blueprint to the test dataset,
-# and then predict the values using the model 
+# and then can predict the outcome for the observations in the test dataset using
+# the model
 
 predicted_te <- predict(caret_mod, read_te)
 
 rsq_te <- cor(read_te$target,predicted_te)^2
 rsq_te
 
-rmse_te <- sqrt(mean((read_te$target - predicted_te)^2))
-rmse_te
-
 mae_te <- mean(abs(read_te$target - predicted_te))
 mae_te
+
+mse_te <- mean((read_te$target - predicted_te)^2)
+mse_te
+
+rmse_te <- sqrt(mean((read_te$target - predicted_te)^2))
+rmse_te
 
 ```
 
@@ -736,11 +759,17 @@ We now have a model to predict the readability scores using 887 features. We als
 
 Suppose, I have the following passage:
 
+
+
 |     Mittens sits in the grass. He is all alone. He is looking for some fun. Mittens hits his old ball. 
 |     Smack! He smells a worm. Sniff! Mittens flips his tail back and forth, back and forth. 
 |     Then he hears, Scratch! Scratch! What's that, Mittens? What's scratching behind the fence? 
 |     Mittens runs to the fence. He scratches in the dirt. Scratch! Scratch! Ruff! Ruff! What's that, 
 |     Mittens? What's barking behind the fence? Mittens meows by the fence. Meow! Meow!
+|
+
+
+
 
 What would be the predicted readability score for this reading passage?
 
@@ -903,7 +932,7 @@ new.text <- "Mittens sits in the grass. He is all alone. He is looking for some 
       input
 ```
 
-Here, we have a small issue to deal with. Our new input vector has `ncol(input` variables. On the other hand, our original data being used to develop the model had 991 variables. We can access to this information using the model object.
+Here, we have a small issue to deal with. Our new input vector has `r ncol(input)` variables. On the other hand, the original data we used to develop the model had 991 variables. We can access to this information using the model object.
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -911,8 +940,18 @@ caret_mod$recipe$var_info
 
 ```
 
-This happended because some of the features don't exist for our new text. They exist but the value for these features are zero, and they just don't appear in the new text. So, we have to append these missing features to the new text, and make their values to zero. Without these features, the model will look for them to apply the formula and return an error message when it can't find any information about these features in the new dataset. In addition, there were some extra features in the new text that doesn't exist in our model. However, we don't have to worry about them because our recipe is going to ignore any extra column in the new dataset that is not defined a role in the recipe.
-      
+This happended because some of the features don't exist for our new text. They exist but the value for these features are zero, and they just don't appear when we create features from the new text. So, we have to append these missing features to the new text, and make their values to zero. Without these features, the model will look for them to apply the formula and return an error message when it can't find any information about these features in the new dataset. In addition, there were some extra features in the new text that doesn't exist in our model. However, we don't have to worry about them because our recipe is going to ignore any extra column in the new dataset that doesn't have a defined role in the recipe.
+
+Try the following code and it should give an error message
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+  predict(caret_mod, input)
+
+```
+
+So, we have to do a little bit of work to make sure the new dataset have all the features the model expects.
+  
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
      
 # feature names from the model
@@ -936,6 +975,8 @@ This happended because some of the features don't exist for our new text. They e
   colnames(temp) <- my_feats[missing_feats]
    
   input <- cbind(input,temp)
+  
+  input
 ```
 
 Now, we are ready to apply our model to the new input data and predict the readability score.
@@ -1117,9 +1158,13 @@ predict(caret_mod, my.inputs2$input)
 
 # Feature Redundancy, Multicollinearity, and Variable Selection
 
-There are a number of things to consider a standard multiple regression with many variables. In our example above, we have a model with 887 predictors. The large number of predictors unnecessarily increases the complexity of model, and potentially increase model variance without much benefit of model bias. So, it is a typical case of overfitting. This reduces the usefullness of the model as it will less likely to provide good predictions for another dataset. When there are so many predictors in the regression model, it is important to check whether or not there are redundant features and quantify the degree of redundancy. Too many redundant features may also create computational issues due to singular or near-singular design matrix. In this section, we will first try to understand what feature redundancy is, then we will try to quantify it. At the end, we will talk some potential solutions and remedial strategies to deal with highly complex model with so many predictors.
+There are a number of things to consider when we wit a standard multiple regression mode with many predictors. In our example above, we have a model with 887 predictors. The large number of predictors unnecessarily increases the complexity of model, and potentially increase model variance. So, it is a typical case of overfitting. This reduces the usefulness of the model as it is less likely for the model to provide good predictions for another dataset. When there are so many predictors in the regression model, it is important to check whether or not there are redundant features and quantify the degree of redundancy. Too many redundant features may also create computational issues due to singular or near-singular design matrix. In this section, we will first try to understand what feature redundancy is, then we will try to quantify it. At the end, we will present some potential solutions and remedial strategies to deal with highly complex models with so many predictors.
 
 First, let's do a small example. Suppose we have a model with four predictors to predict the readability score. Our predictors are **number of sentences** (sents, X1), **average word length** (mean_wl, X2), **number of finite verbs** (morph_verbform_Fin, X3), and **78th dimension of word embeddings** (Dim78). First, let's do a quick check on the correlation matrix of these four predictors.
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
+```
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -1131,7 +1176,7 @@ You should notice there is relatively higher correlations among three predictors
 
 **Tolerance:**  the amount of variance that is unique to a the predictor that can not be explained by the rest of the predictors.
 
-In other words, if we fit a model such that the number of sentences is the outcome and other three variables are predictors and find the value of $R^2$, and then substract the $R^2$ from 1, that would give us a measure of unique variance in the variable number of sentences that couldn't be explained by other three predictors. Let's find the tolerance value for the variable number of sentences.
+In other words, if we fit a model such that the **number of sentences** is the outcome and other three variables are predictors and find the value of $R^2$, and then substract the $R^2$ from 1, that would give us a measure of unique variance in the **number of sentences** that couldn't be explained by other three predictors. Let's find the tolerance value for the **number of sentences**.
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -1145,11 +1190,11 @@ summary(tol_sents)$r.squared
 ```
 
 
-This indicates that about 76.65% of the variance in the variable number of sentences can be explained by the other three predictors. Therefore, only 23.35% of the variance in the variable number of sentences is unique. In other words, whatever the information is stored in the variable number of sentences, 76.65% of that information is also shared by other three predictors, or redundant. So, the tolerance value for the variable number of sentences is 0.2335 (1-.7665).
+This indicates that about 76.65% of the variance in the **number of sentences** can be explained by the other three predictors. Therefore, only 23.35% of the variance in the **number of sentences** is unique. In other words, whatever the information is stored in the **number of sentences**, 76.65% of that information is also shared by other three predictors, or redundant. So, the tolerance value for the **number of sentences** is 0.2335 (1-.7665).
 
 When tolerance is 0 or close to zero (when almost all of the variance in one predictor can be explained by other predictors), this is also known as **singularity**. In those situations, the least square solution is not unique, and most software will give you some sort of an error message about that. 
 
-The inverse of tolerance is known as something called **Variance Inflation Factor (VIF)**. For instance, VIF for the variable number of sentences would be 4.283 (1/0.2335). VIF can be considered as a measure of redundancy for a predictor in a model. Below is a plot showing VIF for a predictor as a function of variance in the predictor explained by remaining predictors in the model.
+The inverse of tolerance is known as something called **Variance Inflation Factor (VIF)**. For instance, VIF for the **number of sentences** would be 4.283 (1/0.2335). VIF can be considered as a measure of redundancy for a predictor in a model. Below is a plot showing VIF for a predictor as a function of variance in the predictor explained by remaining predictors in the model.
 
 ```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -1177,7 +1222,7 @@ require(car)
 vif(mod_ex)
 ```
 
-A VIF value indicates the degree of instability (sampling variance) for any regression coefficients. For instance, a VIF value of 4.283 for variable **sents** indicates that the standard error of the regression coefficient associated by this variable is 2.07 ($\sqrt(4.283)$) times larger than what it would be if this variable were uncorrelated with other three predictors in the model. This is important as the larger sampling variance for regression coefficients yield larger sampling variance of model predicted values. So, we don't like including variables with large VIF values in our models as they contribute to the model variance. There are arbitrary cut-off values for VIF depending on what textbook you read (VIF < 4 or VIF < 10).
+A VIF value indicates the degree of instability (sampling variance) for any regression coefficient. For instance, a VIF value of 4.283 for variable **sents** indicates that the standard error of the regression coefficient associated by this variable is 2.07 ($\sqrt(4.283)$) times larger than what it would be if this variable were uncorrelated with other three predictors in the model. This is important as the larger sampling variance for regression coefficients yield larger sampling variance of model predicted values. So, we don't like including variables with large VIF values in our models as they contribute to the model variance. There are arbitrary cut-off values for VIF depending on what textbook you read (VIF < 4 or VIF < 10).
 
 Let's see the range of VIF values in our model with 887 predictors.
 
@@ -1199,15 +1244,39 @@ for(i in 1:887){
 
 ```
 
-```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
 my.vifs <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/vifs.csv',header=TRUE)
 
+require(psych)
+
+describe(my.vifs$my.vifs)
+
+hist(my.vifs$my.vifs)
+
+# The variables with the 10 smallest variables
+
+head(my.vifs[order(my.vifs$my.vifs),],10)
+
+# The variables with the 10 highest variables
+
+head(my.vifs[order(my.vifs$my.vifs,decreasing=TRUE),],10)
+
 ```
 
+We clearly have problems in our model. It seems that there are so many redundant variables in our model that doesn't bring unique information when other variables are accounted in the model. That's also the main reason why our model didn't perform in the test dataset as well as it performed in the training dataset. All these redundant variables in the model contributed to the model variance. 
+
+There are a few approached to address this issue:
+
+- **Data reduction**: Data reduction techniques such as Principal Component Analysis (PCA) is an approach to find highly correlated variables and combine the information in these variables in new composite variables. For instance, in its most naive form, suppose Variable 1, Variable 2, Variable 3, and Variable 4 are highly correlated. We can create a new composite variable by taking the sum or mean of these four variables, and use the new composite variable in our model as predictor instead of using all four variables. PCA is a little more detailed version of this process where we first estimate a weight for each variable, and create a weighted sum of these variables as a composite variable. We can decide the number of composites needed to represent the information in all variables, and reduce the number of variables in the model by finding clusters of highly correlated variables and creating a single composite variable for them. Since PCA is a technique on its own and probably requires a few lectures, we will not get into the details of that.
 
 
+- **Variable selection**: Variable selection algorithms such as forward selection, backward elimination, or stepwise regression, or best subset are well known and taught in traditional statistics courses. These algorithms use certain model fit criteria (e.g., Mallows' $C_p$ statistic, AIC, BIC) to eliminate variables with the least information and come up with a simpler model. With very large number of variables, these algorithms can be computationally exhaustive and an efficient search for the best simplest model with adequate predictive power may not even be possible. In other words, there is no guarantee for an optimal solution with these approached when you have hundreds of potential predictors in the model.
 
+
+- **Regularization**: Regularization is adding penalty terms to avoid large coefficients and a trick to trade bias with variance when fitting a model. Some specific types of regularization (e.g., lasso) may indeed behave like a natural feature selection algorithm. They may produce simpler and more interpretable model. 
+
+In the following lecture, we will talk about different types of regularizations to apply while fitting a regression model and we will try to improve the performance of our unnecessarily complex linear regression model discussed above.
 
 
 
