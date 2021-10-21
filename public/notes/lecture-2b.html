@@ -356,7 +356,7 @@ University of Oregon | EDLD 654<br><h4 class="date">09/08/2021</h4>
   addClassKlippyTo("pre.r, pre.markdown");
   addKlippy('right', 'top', 'auto', '1', 'Copy code', 'Copied!');
 </script>
-<p>[Updated: Mon, Oct 04, 2021 - 16:43:06 ]</p>
+<p>[Updated: Thu, Oct 14, 2021 - 10:12:53 ]</p>
 <style>
 
 .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
@@ -727,7 +727,7 @@ docs    when the young people returned to ballroom  , it presented
 [1] &quot;B:/UO Teaching/EDLD 654/c4-ml-fall-2021/english-ewt-ud-2.5-191206.udpipe&quot;
 
 $model
-&lt;pointer: 0x000000001cf33a60&gt;
+&lt;pointer: 0x0000000013c14550&gt;
 
 attr(,&quot;class&quot;)
 [1] &quot;udpipe_model&quot;</code></pre>
@@ -1126,11 +1126,11 @@ Pass
 <pre><code>Registered S3 method overwritten by &#39;tune&#39;:
   method                   from   
   required_pkgs.model_spec parsnip</code></pre>
-<pre><code>[0;34mThis is text (version 0.9.13). 
+<pre><code>[0;34mThis is text (version 0.9.12). 
 [0m[0;32mText is new and still rapidly improving. 
 Newer versions may have improved functions and updated defaults to reflect current understandings of the state-of-the-art. 
 Please send us feedback based on your experience.[0m</code></pre>
-<pre><code>[1] &quot;my.python&quot;
+<pre><code>[1] &quot;my.python&quot;  &quot;my.python2&quot;
 Module(torch)
 Module(numpy)
 Module(transformers)
@@ -1335,159 +1335,164 @@ Module(tokenizers)</code></pre>
 <span id="cb117-18"><a href="#cb117-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb117-19"><a href="#cb117-19" aria-hidden="true" tabindex="-1"></a><span class="do">################################################################################</span></span>
 <span id="cb117-20"><a href="#cb117-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb117-21"><a href="#cb117-21" aria-hidden="true" tabindex="-1"></a>  readability <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv&#39;</span>,</span>
-<span id="cb117-22"><a href="#cb117-22" aria-hidden="true" tabindex="-1"></a>                          <span class="at">header=</span><span class="cn">TRUE</span>)</span>
-<span id="cb117-23"><a href="#cb117-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb117-24"><a href="#cb117-24" aria-hidden="true" tabindex="-1"></a>  input.list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&#39;list&#39;</span>,<span class="fu">nrow</span>(readability))</span>
-<span id="cb117-25"><a href="#cb117-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb117-26"><a href="#cb117-26" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(readability)){</span>
-<span id="cb117-27"><a href="#cb117-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb117-28"><a href="#cb117-28" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Assign the text to analyze</span></span>
-<span id="cb117-29"><a href="#cb117-29" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-30"><a href="#cb117-30" aria-hidden="true" tabindex="-1"></a>      text <span class="ot">&lt;-</span> readability[i,]<span class="sc">$</span>excerpt</span>
-<span id="cb117-31"><a href="#cb117-31" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-32"><a href="#cb117-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Tokenization and document-feature matrix</span></span>
-<span id="cb117-33"><a href="#cb117-33" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-34"><a href="#cb117-34" aria-hidden="true" tabindex="-1"></a>      tokenized <span class="ot">&lt;-</span> <span class="fu">tokens</span>(text,</span>
-<span id="cb117-35"><a href="#cb117-35" aria-hidden="true" tabindex="-1"></a>                          <span class="at">remove_punct =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb117-36"><a href="#cb117-36" aria-hidden="true" tabindex="-1"></a>                          <span class="at">remove_numbers =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb117-37"><a href="#cb117-37" aria-hidden="true" tabindex="-1"></a>                          <span class="at">remove_symbols =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb117-38"><a href="#cb117-38" aria-hidden="true" tabindex="-1"></a>                          <span class="at">remove_separators =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb117-39"><a href="#cb117-39" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-40"><a href="#cb117-40" aria-hidden="true" tabindex="-1"></a>      dm <span class="ot">&lt;-</span> <span class="fu">dfm</span>(tokenized)</span>
-<span id="cb117-41"><a href="#cb117-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb117-42"><a href="#cb117-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># basic text stats</span></span>
-<span id="cb117-43"><a href="#cb117-43" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-44"><a href="#cb117-44" aria-hidden="true" tabindex="-1"></a>      text_sm <span class="ot">&lt;-</span> <span class="fu">textstat_summary</span>(dm)</span>
-<span id="cb117-45"><a href="#cb117-45" aria-hidden="true" tabindex="-1"></a>      text_sm<span class="sc">$</span>sents <span class="ot">&lt;-</span> <span class="fu">nsentence</span>(text)</span>
-<span id="cb117-46"><a href="#cb117-46" aria-hidden="true" tabindex="-1"></a>      text_sm<span class="sc">$</span>chars <span class="ot">&lt;-</span> <span class="fu">nchar</span>(text)</span>
-<span id="cb117-47"><a href="#cb117-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb117-48"><a href="#cb117-48" aria-hidden="true" tabindex="-1"></a>        <span class="co"># text_sm[2:length(text_sm)]</span></span>
-<span id="cb117-49"><a href="#cb117-49" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb117-50"><a href="#cb117-50" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Word-length features</span></span>
-<span id="cb117-51"><a href="#cb117-51" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-52"><a href="#cb117-52" aria-hidden="true" tabindex="-1"></a>      wl <span class="ot">&lt;-</span> <span class="fu">nchar</span>(tokenized[[<span class="dv">1</span>]])</span>
-<span id="cb117-53"><a href="#cb117-53" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-54"><a href="#cb117-54" aria-hidden="true" tabindex="-1"></a>      wl.tab <span class="ot">&lt;-</span> <span class="fu">table</span>(wl)</span>
-<span id="cb117-55"><a href="#cb117-55" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-56"><a href="#cb117-56" aria-hidden="true" tabindex="-1"></a>      wl.features <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">matrix</span>(<span class="dv">0</span>,<span class="at">nrow=</span><span class="dv">1</span>,<span class="at">nco=</span><span class="dv">30</span>))</span>
-<span id="cb117-57"><a href="#cb117-57" aria-hidden="true" tabindex="-1"></a>      <span class="fu">colnames</span>(wl.features) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&#39;wl.&#39;</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">30</span>)</span>
-<span id="cb117-58"><a href="#cb117-58" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-59"><a href="#cb117-59" aria-hidden="true" tabindex="-1"></a>      ind <span class="ot">&lt;-</span> <span class="fu">colnames</span>(wl.features)<span class="sc">%in%</span><span class="fu">paste0</span>(<span class="st">&#39;wl.&#39;</span>,<span class="fu">names</span>(wl.tab))</span>
-<span id="cb117-60"><a href="#cb117-60" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-61"><a href="#cb117-61" aria-hidden="true" tabindex="-1"></a>      wl.features[,ind] <span class="ot">&lt;-</span> wl.tab</span>
-<span id="cb117-62"><a href="#cb117-62" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-63"><a href="#cb117-63" aria-hidden="true" tabindex="-1"></a>      wl.features<span class="sc">$</span>mean.wl  <span class="ot">&lt;-</span>   <span class="fu">mean</span>(wl)</span>
-<span id="cb117-64"><a href="#cb117-64" aria-hidden="true" tabindex="-1"></a>      wl.features<span class="sc">$</span>sd.wl    <span class="ot">&lt;-</span>   <span class="fu">sd</span>(wl)</span>
-<span id="cb117-65"><a href="#cb117-65" aria-hidden="true" tabindex="-1"></a>      wl.features<span class="sc">$</span>min.wl   <span class="ot">&lt;-</span>   <span class="fu">min</span>(wl)</span>
-<span id="cb117-66"><a href="#cb117-66" aria-hidden="true" tabindex="-1"></a>      wl.features<span class="sc">$</span>max.wl   <span class="ot">&lt;-</span>   <span class="fu">max</span>(wl)</span>
-<span id="cb117-67"><a href="#cb117-67" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-68"><a href="#cb117-68" aria-hidden="true" tabindex="-1"></a>      <span class="co"># wl.features</span></span>
-<span id="cb117-69"><a href="#cb117-69" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-70"><a href="#cb117-70" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Text entropy/Max entropy ratio</span></span>
-<span id="cb117-71"><a href="#cb117-71" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-72"><a href="#cb117-72" aria-hidden="true" tabindex="-1"></a>      t.ent <span class="ot">&lt;-</span> <span class="fu">textstat_entropy</span>(dm)</span>
-<span id="cb117-73"><a href="#cb117-73" aria-hidden="true" tabindex="-1"></a>      n     <span class="ot">&lt;-</span>  <span class="fu">sum</span>(<span class="fu">featfreq</span>(dm))</span>
-<span id="cb117-74"><a href="#cb117-74" aria-hidden="true" tabindex="-1"></a>      p     <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">/</span>n,n)</span>
-<span id="cb117-75"><a href="#cb117-75" aria-hidden="true" tabindex="-1"></a>      m.ent <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">sum</span>(p<span class="sc">*</span><span class="fu">log</span>(p,<span class="at">base=</span><span class="dv">2</span>))</span>
-<span id="cb117-76"><a href="#cb117-76" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-77"><a href="#cb117-77" aria-hidden="true" tabindex="-1"></a>      ent <span class="ot">&lt;-</span> t.ent<span class="sc">$</span>entropy<span class="sc">/</span>m.ent</span>
-<span id="cb117-78"><a href="#cb117-78" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-79"><a href="#cb117-79" aria-hidden="true" tabindex="-1"></a>      <span class="co"># ent</span></span>
-<span id="cb117-80"><a href="#cb117-80" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-81"><a href="#cb117-81" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Lexical diversity</span></span>
-<span id="cb117-82"><a href="#cb117-82" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-83"><a href="#cb117-83" aria-hidden="true" tabindex="-1"></a>      text_lexdiv <span class="ot">&lt;-</span> <span class="fu">textstat_lexdiv</span>(tokenized,</span>
-<span id="cb117-84"><a href="#cb117-84" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">remove_numbers =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb117-85"><a href="#cb117-85" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">remove_punct   =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb117-86"><a href="#cb117-86" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">remove_symbols =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb117-87"><a href="#cb117-87" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">measure        =</span> <span class="st">&#39;all&#39;</span>)</span>
-<span id="cb117-88"><a href="#cb117-88" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-89"><a href="#cb117-89" aria-hidden="true" tabindex="-1"></a>      <span class="co"># text_lexdiv[,2:ncol(text_lexdiv)]</span></span>
-<span id="cb117-90"><a href="#cb117-90" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-91"><a href="#cb117-91" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Measures of readability</span></span>
-<span id="cb117-92"><a href="#cb117-92" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-93"><a href="#cb117-93" aria-hidden="true" tabindex="-1"></a>      text_readability <span class="ot">&lt;-</span> <span class="fu">textstat_readability</span>(text,<span class="at">measure=</span><span class="st">&#39;all&#39;</span>)</span>
-<span id="cb117-94"><a href="#cb117-94" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-95"><a href="#cb117-95" aria-hidden="true" tabindex="-1"></a>      <span class="co"># text_readability[,2:ncol(text_readability)]</span></span>
-<span id="cb117-96"><a href="#cb117-96" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-97"><a href="#cb117-97" aria-hidden="true" tabindex="-1"></a>    <span class="co"># POS tag frequency</span></span>
-<span id="cb117-98"><a href="#cb117-98" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-99"><a href="#cb117-99" aria-hidden="true" tabindex="-1"></a>      annotated <span class="ot">&lt;-</span> <span class="fu">udpipe_annotate</span>(ud_eng, <span class="at">x =</span> text)</span>
-<span id="cb117-100"><a href="#cb117-100" aria-hidden="true" tabindex="-1"></a>      annotated <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(annotated)</span>
-<span id="cb117-101"><a href="#cb117-101" aria-hidden="true" tabindex="-1"></a>      annotated <span class="ot">&lt;-</span> <span class="fu">cbind_morphological</span>(annotated)</span>
-<span id="cb117-102"><a href="#cb117-102" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-103"><a href="#cb117-103" aria-hidden="true" tabindex="-1"></a>      pos_tags <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">table</span>(annotated<span class="sc">$</span>upos),<span class="fu">table</span>(annotated<span class="sc">$</span>xpos))</span>
-<span id="cb117-104"><a href="#cb117-104" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb117-105"><a href="#cb117-105" aria-hidden="true" tabindex="-1"></a>      <span class="co"># pos.tags</span></span>
-<span id="cb117-106"><a href="#cb117-106" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-107"><a href="#cb117-107" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Syntactic relations</span></span>
-<span id="cb117-108"><a href="#cb117-108" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-109"><a href="#cb117-109" aria-hidden="true" tabindex="-1"></a>      dep_rel <span class="ot">&lt;-</span> <span class="fu">table</span>(annotated<span class="sc">$</span>dep_rel)</span>
-<span id="cb117-110"><a href="#cb117-110" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-111"><a href="#cb117-111" aria-hidden="true" tabindex="-1"></a>        <span class="co">#dep_rel</span></span>
-<span id="cb117-112"><a href="#cb117-112" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-113"><a href="#cb117-113" aria-hidden="true" tabindex="-1"></a>    <span class="co"># morphological features</span></span>
-<span id="cb117-114"><a href="#cb117-114" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-115"><a href="#cb117-115" aria-hidden="true" tabindex="-1"></a>      feat_names <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;morph_abbr&#39;</span>,<span class="st">&#39;morph_animacy&#39;</span>,<span class="st">&#39;morph_aspect&#39;</span>,<span class="st">&#39;morph_case&#39;</span>,</span>
-<span id="cb117-116"><a href="#cb117-116" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_clusivity&#39;</span>,<span class="st">&#39;morph_definite&#39;</span>,<span class="st">&#39;morph_degree&#39;</span>,</span>
-<span id="cb117-117"><a href="#cb117-117" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_evident&#39;</span>,<span class="st">&#39;morph_foreign&#39;</span>,<span class="st">&#39;morph_gender&#39;</span>,<span class="st">&#39;morph_mood&#39;</span>,</span>
-<span id="cb117-118"><a href="#cb117-118" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_nounclass&#39;</span>,<span class="st">&#39;morph_number&#39;</span>,<span class="st">&#39;morph_numtype&#39;</span>,</span>
-<span id="cb117-119"><a href="#cb117-119" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_person&#39;</span>,<span class="st">&#39;morph_polarity&#39;</span>,<span class="st">&#39;morph_polite&#39;</span>,<span class="st">&#39;morph_poss&#39;</span>,</span>
-<span id="cb117-120"><a href="#cb117-120" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_prontype&#39;</span>,<span class="st">&#39;morph_reflex&#39;</span>,<span class="st">&#39;morph_tense&#39;</span>,<span class="st">&#39;morph_typo&#39;</span>,</span>
-<span id="cb117-121"><a href="#cb117-121" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_verbform&#39;</span>,<span class="st">&#39;morph_voice&#39;</span>)</span>
-<span id="cb117-122"><a href="#cb117-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb117-123"><a href="#cb117-123" aria-hidden="true" tabindex="-1"></a>      feat_vec <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
-<span id="cb117-124"><a href="#cb117-124" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb117-125"><a href="#cb117-125" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(feat_names)){</span>
-<span id="cb117-126"><a href="#cb117-126" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb117-127"><a href="#cb117-127" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span>(feat_names[j]<span class="sc">%in%</span><span class="fu">colnames</span>(annotated)){</span>
-<span id="cb117-128"><a href="#cb117-128" aria-hidden="true" tabindex="-1"></a>          morph_tmp   <span class="ot">&lt;-</span> <span class="fu">table</span>(annotated[,feat_names[j]])</span>
-<span id="cb117-129"><a href="#cb117-129" aria-hidden="true" tabindex="-1"></a>          names_tmp   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(feat_names[j],<span class="st">&#39;_&#39;</span>,<span class="fu">names</span>(morph_tmp))</span>
-<span id="cb117-130"><a href="#cb117-130" aria-hidden="true" tabindex="-1"></a>          morph_tmp   <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(morph_tmp)</span>
-<span id="cb117-131"><a href="#cb117-131" aria-hidden="true" tabindex="-1"></a>          <span class="fu">names</span>(morph_tmp) <span class="ot">&lt;-</span> names_tmp</span>
-<span id="cb117-132"><a href="#cb117-132" aria-hidden="true" tabindex="-1"></a>          feat_vec  <span class="ot">&lt;-</span> <span class="fu">c</span>(feat_vec,morph_tmp)</span>
-<span id="cb117-133"><a href="#cb117-133" aria-hidden="true" tabindex="-1"></a>        }</span>
-<span id="cb117-134"><a href="#cb117-134" aria-hidden="true" tabindex="-1"></a>      }</span>
-<span id="cb117-135"><a href="#cb117-135" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb117-136"><a href="#cb117-136" aria-hidden="true" tabindex="-1"></a>        <span class="co"># feat_vec</span></span>
-<span id="cb117-137"><a href="#cb117-137" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb117-138"><a href="#cb117-138" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Sentence Embeddings</span></span>
-<span id="cb117-139"><a href="#cb117-139" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb117-140"><a href="#cb117-140" aria-hidden="true" tabindex="-1"></a>      embeds <span class="ot">&lt;-</span> <span class="fu">textEmbed</span>(<span class="at">x     =</span> text,</span>
-<span id="cb117-141"><a href="#cb117-141" aria-hidden="true" tabindex="-1"></a>                          <span class="at">model =</span> <span class="st">&#39;roberta-base&#39;</span>,</span>
-<span id="cb117-142"><a href="#cb117-142" aria-hidden="true" tabindex="-1"></a>                          <span class="at">layers =</span> <span class="dv">12</span>,</span>
-<span id="cb117-143"><a href="#cb117-143" aria-hidden="true" tabindex="-1"></a>                          <span class="at">context_aggregation_layers =</span> <span class="st">&#39;concatenate&#39;</span>)</span>
-<span id="cb117-144"><a href="#cb117-144" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb117-145"><a href="#cb117-145" aria-hidden="true" tabindex="-1"></a>      embeds<span class="sc">$</span>x</span>
-<span id="cb117-146"><a href="#cb117-146" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb117-147"><a href="#cb117-147" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb117-148"><a href="#cb117-148" aria-hidden="true" tabindex="-1"></a>    <span class="co"># combine them all into one vector and store in the list object</span></span>
-<span id="cb117-149"><a href="#cb117-149" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb117-150"><a href="#cb117-150" aria-hidden="true" tabindex="-1"></a>      input.list[[i]] <span class="ot">&lt;-</span> <span class="fu">cbind</span>(text_sm[<span class="dv">2</span><span class="sc">:</span><span class="fu">length</span>(text_sm)],</span>
-<span id="cb117-151"><a href="#cb117-151" aria-hidden="true" tabindex="-1"></a>                               wl.features,</span>
-<span id="cb117-152"><a href="#cb117-152" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">as.data.frame</span>(ent),</span>
-<span id="cb117-153"><a href="#cb117-153" aria-hidden="true" tabindex="-1"></a>                               text_lexdiv[,<span class="dv">2</span><span class="sc">:</span><span class="fu">ncol</span>(text_lexdiv)],</span>
-<span id="cb117-154"><a href="#cb117-154" aria-hidden="true" tabindex="-1"></a>                               text_readability[,<span class="dv">2</span><span class="sc">:</span><span class="fu">ncol</span>(text_readability)],</span>
-<span id="cb117-155"><a href="#cb117-155" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">t</span>(<span class="fu">as.data.frame</span>(pos_tags)),</span>
-<span id="cb117-156"><a href="#cb117-156" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">t</span>(<span class="fu">as.data.frame</span>(<span class="fu">c</span>(dep_rel))),</span>
-<span id="cb117-157"><a href="#cb117-157" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">t</span>(<span class="fu">as.data.frame</span>(feat_vec)),</span>
-<span id="cb117-158"><a href="#cb117-158" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">as.data.frame</span>(embeds<span class="sc">$</span>x)</span>
-<span id="cb117-159"><a href="#cb117-159" aria-hidden="true" tabindex="-1"></a>                               )</span>
-<span id="cb117-160"><a href="#cb117-160" aria-hidden="true" tabindex="-1"></a>      </span>
-<span id="cb117-161"><a href="#cb117-161" aria-hidden="true" tabindex="-1"></a>      <span class="fu">print</span>(i)</span>
-<span id="cb117-162"><a href="#cb117-162" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb117-21"><a href="#cb117-21" aria-hidden="true" tabindex="-1"></a>  readability <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv&#39;</span>,<span class="at">header=</span><span class="cn">TRUE</span>)</span>
+<span id="cb117-22"><a href="#cb117-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb117-23"><a href="#cb117-23" aria-hidden="true" tabindex="-1"></a>  input.list <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&#39;list&#39;</span>,<span class="fu">nrow</span>(readability))</span>
+<span id="cb117-24"><a href="#cb117-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb117-25"><a href="#cb117-25" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(readability)){</span>
+<span id="cb117-26"><a href="#cb117-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb117-27"><a href="#cb117-27" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Assign the text to analyze</span></span>
+<span id="cb117-28"><a href="#cb117-28" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-29"><a href="#cb117-29" aria-hidden="true" tabindex="-1"></a>      text <span class="ot">&lt;-</span> readability[i,]<span class="sc">$</span>excerpt</span>
+<span id="cb117-30"><a href="#cb117-30" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-31"><a href="#cb117-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Tokenization and document-feature matrix</span></span>
+<span id="cb117-32"><a href="#cb117-32" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-33"><a href="#cb117-33" aria-hidden="true" tabindex="-1"></a>      tokenized <span class="ot">&lt;-</span> <span class="fu">tokens</span>(text,</span>
+<span id="cb117-34"><a href="#cb117-34" aria-hidden="true" tabindex="-1"></a>                          <span class="at">remove_punct =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb117-35"><a href="#cb117-35" aria-hidden="true" tabindex="-1"></a>                          <span class="at">remove_numbers =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb117-36"><a href="#cb117-36" aria-hidden="true" tabindex="-1"></a>                          <span class="at">remove_symbols =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb117-37"><a href="#cb117-37" aria-hidden="true" tabindex="-1"></a>                          <span class="at">remove_separators =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb117-38"><a href="#cb117-38" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-39"><a href="#cb117-39" aria-hidden="true" tabindex="-1"></a>      dm <span class="ot">&lt;-</span> <span class="fu">dfm</span>(tokenized)</span>
+<span id="cb117-40"><a href="#cb117-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb117-41"><a href="#cb117-41" aria-hidden="true" tabindex="-1"></a>    <span class="co"># basic text stats</span></span>
+<span id="cb117-42"><a href="#cb117-42" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-43"><a href="#cb117-43" aria-hidden="true" tabindex="-1"></a>      text_sm <span class="ot">&lt;-</span> <span class="fu">textstat_summary</span>(dm)</span>
+<span id="cb117-44"><a href="#cb117-44" aria-hidden="true" tabindex="-1"></a>      text_sm<span class="sc">$</span>sents <span class="ot">&lt;-</span> <span class="fu">nsentence</span>(text)</span>
+<span id="cb117-45"><a href="#cb117-45" aria-hidden="true" tabindex="-1"></a>      text_sm<span class="sc">$</span>chars <span class="ot">&lt;-</span> <span class="fu">nchar</span>(text)</span>
+<span id="cb117-46"><a href="#cb117-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb117-47"><a href="#cb117-47" aria-hidden="true" tabindex="-1"></a>        <span class="co"># text_sm[2:length(text_sm)]</span></span>
+<span id="cb117-48"><a href="#cb117-48" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb117-49"><a href="#cb117-49" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Word-length features</span></span>
+<span id="cb117-50"><a href="#cb117-50" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-51"><a href="#cb117-51" aria-hidden="true" tabindex="-1"></a>      wl <span class="ot">&lt;-</span> <span class="fu">nchar</span>(tokenized[[<span class="dv">1</span>]])</span>
+<span id="cb117-52"><a href="#cb117-52" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-53"><a href="#cb117-53" aria-hidden="true" tabindex="-1"></a>      wl.tab <span class="ot">&lt;-</span> <span class="fu">table</span>(wl)</span>
+<span id="cb117-54"><a href="#cb117-54" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-55"><a href="#cb117-55" aria-hidden="true" tabindex="-1"></a>      wl.features <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">matrix</span>(<span class="dv">0</span>,<span class="at">nrow=</span><span class="dv">1</span>,<span class="at">nco=</span><span class="dv">30</span>))</span>
+<span id="cb117-56"><a href="#cb117-56" aria-hidden="true" tabindex="-1"></a>      <span class="fu">colnames</span>(wl.features) <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">&#39;wl.&#39;</span>,<span class="dv">1</span><span class="sc">:</span><span class="dv">30</span>)</span>
+<span id="cb117-57"><a href="#cb117-57" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-58"><a href="#cb117-58" aria-hidden="true" tabindex="-1"></a>      ind <span class="ot">&lt;-</span> <span class="fu">colnames</span>(wl.features)<span class="sc">%in%</span><span class="fu">paste0</span>(<span class="st">&#39;wl.&#39;</span>,<span class="fu">names</span>(wl.tab))</span>
+<span id="cb117-59"><a href="#cb117-59" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-60"><a href="#cb117-60" aria-hidden="true" tabindex="-1"></a>      wl.features[,ind] <span class="ot">&lt;-</span> wl.tab</span>
+<span id="cb117-61"><a href="#cb117-61" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-62"><a href="#cb117-62" aria-hidden="true" tabindex="-1"></a>      wl.features<span class="sc">$</span>mean.wl  <span class="ot">&lt;-</span>   <span class="fu">mean</span>(wl)</span>
+<span id="cb117-63"><a href="#cb117-63" aria-hidden="true" tabindex="-1"></a>      wl.features<span class="sc">$</span>sd.wl    <span class="ot">&lt;-</span>   <span class="fu">sd</span>(wl)</span>
+<span id="cb117-64"><a href="#cb117-64" aria-hidden="true" tabindex="-1"></a>      wl.features<span class="sc">$</span>min.wl   <span class="ot">&lt;-</span>   <span class="fu">min</span>(wl)</span>
+<span id="cb117-65"><a href="#cb117-65" aria-hidden="true" tabindex="-1"></a>      wl.features<span class="sc">$</span>max.wl   <span class="ot">&lt;-</span>   <span class="fu">max</span>(wl)</span>
+<span id="cb117-66"><a href="#cb117-66" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-67"><a href="#cb117-67" aria-hidden="true" tabindex="-1"></a>      <span class="co"># wl.features</span></span>
+<span id="cb117-68"><a href="#cb117-68" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-69"><a href="#cb117-69" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Text entropy/Max entropy ratio</span></span>
+<span id="cb117-70"><a href="#cb117-70" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-71"><a href="#cb117-71" aria-hidden="true" tabindex="-1"></a>      t.ent <span class="ot">&lt;-</span> <span class="fu">textstat_entropy</span>(dm)</span>
+<span id="cb117-72"><a href="#cb117-72" aria-hidden="true" tabindex="-1"></a>      n     <span class="ot">&lt;-</span>  <span class="fu">sum</span>(<span class="fu">featfreq</span>(dm))</span>
+<span id="cb117-73"><a href="#cb117-73" aria-hidden="true" tabindex="-1"></a>      p     <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="dv">1</span><span class="sc">/</span>n,n)</span>
+<span id="cb117-74"><a href="#cb117-74" aria-hidden="true" tabindex="-1"></a>      m.ent <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">sum</span>(p<span class="sc">*</span><span class="fu">log</span>(p,<span class="at">base=</span><span class="dv">2</span>))</span>
+<span id="cb117-75"><a href="#cb117-75" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-76"><a href="#cb117-76" aria-hidden="true" tabindex="-1"></a>      ent <span class="ot">&lt;-</span> t.ent<span class="sc">$</span>entropy<span class="sc">/</span>m.ent</span>
+<span id="cb117-77"><a href="#cb117-77" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-78"><a href="#cb117-78" aria-hidden="true" tabindex="-1"></a>      <span class="co"># ent</span></span>
+<span id="cb117-79"><a href="#cb117-79" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-80"><a href="#cb117-80" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Lexical diversity</span></span>
+<span id="cb117-81"><a href="#cb117-81" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-82"><a href="#cb117-82" aria-hidden="true" tabindex="-1"></a>      text_lexdiv <span class="ot">&lt;-</span> <span class="fu">textstat_lexdiv</span>(tokenized,</span>
+<span id="cb117-83"><a href="#cb117-83" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">remove_numbers =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb117-84"><a href="#cb117-84" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">remove_punct   =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb117-85"><a href="#cb117-85" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">remove_symbols =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb117-86"><a href="#cb117-86" aria-hidden="true" tabindex="-1"></a>                                     <span class="at">measure        =</span> <span class="st">&#39;all&#39;</span>)</span>
+<span id="cb117-87"><a href="#cb117-87" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-88"><a href="#cb117-88" aria-hidden="true" tabindex="-1"></a>      <span class="co"># text_lexdiv[,2:ncol(text_lexdiv)]</span></span>
+<span id="cb117-89"><a href="#cb117-89" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-90"><a href="#cb117-90" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Measures of readability</span></span>
+<span id="cb117-91"><a href="#cb117-91" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-92"><a href="#cb117-92" aria-hidden="true" tabindex="-1"></a>      text_readability <span class="ot">&lt;-</span> <span class="fu">textstat_readability</span>(text,<span class="at">measure=</span><span class="st">&#39;all&#39;</span>)</span>
+<span id="cb117-93"><a href="#cb117-93" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-94"><a href="#cb117-94" aria-hidden="true" tabindex="-1"></a>      <span class="co"># text_readability[,2:ncol(text_readability)]</span></span>
+<span id="cb117-95"><a href="#cb117-95" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-96"><a href="#cb117-96" aria-hidden="true" tabindex="-1"></a>    <span class="co"># POS tag frequency</span></span>
+<span id="cb117-97"><a href="#cb117-97" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-98"><a href="#cb117-98" aria-hidden="true" tabindex="-1"></a>      annotated <span class="ot">&lt;-</span> <span class="fu">udpipe_annotate</span>(ud_eng, <span class="at">x =</span> text)</span>
+<span id="cb117-99"><a href="#cb117-99" aria-hidden="true" tabindex="-1"></a>      annotated <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(annotated)</span>
+<span id="cb117-100"><a href="#cb117-100" aria-hidden="true" tabindex="-1"></a>      annotated <span class="ot">&lt;-</span> <span class="fu">cbind_morphological</span>(annotated)</span>
+<span id="cb117-101"><a href="#cb117-101" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-102"><a href="#cb117-102" aria-hidden="true" tabindex="-1"></a>      pos_tags <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">table</span>(annotated<span class="sc">$</span>upos),<span class="fu">table</span>(annotated<span class="sc">$</span>xpos))</span>
+<span id="cb117-103"><a href="#cb117-103" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb117-104"><a href="#cb117-104" aria-hidden="true" tabindex="-1"></a>      <span class="co"># pos.tags</span></span>
+<span id="cb117-105"><a href="#cb117-105" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-106"><a href="#cb117-106" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Syntactic relations</span></span>
+<span id="cb117-107"><a href="#cb117-107" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-108"><a href="#cb117-108" aria-hidden="true" tabindex="-1"></a>      dep_rel <span class="ot">&lt;-</span> <span class="fu">table</span>(annotated<span class="sc">$</span>dep_rel)</span>
+<span id="cb117-109"><a href="#cb117-109" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-110"><a href="#cb117-110" aria-hidden="true" tabindex="-1"></a>        <span class="co">#dep_rel</span></span>
+<span id="cb117-111"><a href="#cb117-111" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-112"><a href="#cb117-112" aria-hidden="true" tabindex="-1"></a>    <span class="co"># morphological features</span></span>
+<span id="cb117-113"><a href="#cb117-113" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-114"><a href="#cb117-114" aria-hidden="true" tabindex="-1"></a>      feat_names <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&#39;morph_abbr&#39;</span>,<span class="st">&#39;morph_animacy&#39;</span>,<span class="st">&#39;morph_aspect&#39;</span>,<span class="st">&#39;morph_case&#39;</span>,</span>
+<span id="cb117-115"><a href="#cb117-115" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_clusivity&#39;</span>,<span class="st">&#39;morph_definite&#39;</span>,<span class="st">&#39;morph_degree&#39;</span>,</span>
+<span id="cb117-116"><a href="#cb117-116" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_evident&#39;</span>,<span class="st">&#39;morph_foreign&#39;</span>,<span class="st">&#39;morph_gender&#39;</span>,<span class="st">&#39;morph_mood&#39;</span>,</span>
+<span id="cb117-117"><a href="#cb117-117" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_nounclass&#39;</span>,<span class="st">&#39;morph_number&#39;</span>,<span class="st">&#39;morph_numtype&#39;</span>,</span>
+<span id="cb117-118"><a href="#cb117-118" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_person&#39;</span>,<span class="st">&#39;morph_polarity&#39;</span>,<span class="st">&#39;morph_polite&#39;</span>,<span class="st">&#39;morph_poss&#39;</span>,</span>
+<span id="cb117-119"><a href="#cb117-119" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_prontype&#39;</span>,<span class="st">&#39;morph_reflex&#39;</span>,<span class="st">&#39;morph_tense&#39;</span>,<span class="st">&#39;morph_typo&#39;</span>,</span>
+<span id="cb117-120"><a href="#cb117-120" aria-hidden="true" tabindex="-1"></a>                      <span class="st">&#39;morph_verbform&#39;</span>,<span class="st">&#39;morph_voice&#39;</span>)</span>
+<span id="cb117-121"><a href="#cb117-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb117-122"><a href="#cb117-122" aria-hidden="true" tabindex="-1"></a>      feat_vec <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb117-123"><a href="#cb117-123" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb117-124"><a href="#cb117-124" aria-hidden="true" tabindex="-1"></a>      <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(feat_names)){</span>
+<span id="cb117-125"><a href="#cb117-125" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb117-126"><a href="#cb117-126" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span>(feat_names[j]<span class="sc">%in%</span><span class="fu">colnames</span>(annotated)){</span>
+<span id="cb117-127"><a href="#cb117-127" aria-hidden="true" tabindex="-1"></a>          morph_tmp   <span class="ot">&lt;-</span> <span class="fu">table</span>(annotated[,feat_names[j]])</span>
+<span id="cb117-128"><a href="#cb117-128" aria-hidden="true" tabindex="-1"></a>          names_tmp   <span class="ot">&lt;-</span> <span class="fu">paste0</span>(feat_names[j],<span class="st">&#39;_&#39;</span>,<span class="fu">names</span>(morph_tmp))</span>
+<span id="cb117-129"><a href="#cb117-129" aria-hidden="true" tabindex="-1"></a>          morph_tmp   <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(morph_tmp)</span>
+<span id="cb117-130"><a href="#cb117-130" aria-hidden="true" tabindex="-1"></a>          <span class="fu">names</span>(morph_tmp) <span class="ot">&lt;-</span> names_tmp</span>
+<span id="cb117-131"><a href="#cb117-131" aria-hidden="true" tabindex="-1"></a>          feat_vec  <span class="ot">&lt;-</span> <span class="fu">c</span>(feat_vec,morph_tmp)</span>
+<span id="cb117-132"><a href="#cb117-132" aria-hidden="true" tabindex="-1"></a>        }</span>
+<span id="cb117-133"><a href="#cb117-133" aria-hidden="true" tabindex="-1"></a>      }</span>
+<span id="cb117-134"><a href="#cb117-134" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb117-135"><a href="#cb117-135" aria-hidden="true" tabindex="-1"></a>        <span class="co"># feat_vec</span></span>
+<span id="cb117-136"><a href="#cb117-136" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb117-137"><a href="#cb117-137" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Sentence Embeddings</span></span>
+<span id="cb117-138"><a href="#cb117-138" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb117-139"><a href="#cb117-139" aria-hidden="true" tabindex="-1"></a>      embeds <span class="ot">&lt;-</span> <span class="fu">textEmbed</span>(<span class="at">x     =</span> text,</span>
+<span id="cb117-140"><a href="#cb117-140" aria-hidden="true" tabindex="-1"></a>                          <span class="at">model =</span> <span class="st">&#39;roberta-base&#39;</span>,</span>
+<span id="cb117-141"><a href="#cb117-141" aria-hidden="true" tabindex="-1"></a>                          <span class="at">layers =</span> <span class="dv">12</span>,</span>
+<span id="cb117-142"><a href="#cb117-142" aria-hidden="true" tabindex="-1"></a>                          <span class="at">context_aggregation_layers =</span> <span class="st">&#39;concatenate&#39;</span>)</span>
+<span id="cb117-143"><a href="#cb117-143" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb117-144"><a href="#cb117-144" aria-hidden="true" tabindex="-1"></a>      embeds<span class="sc">$</span>x</span>
+<span id="cb117-145"><a href="#cb117-145" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb117-146"><a href="#cb117-146" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb117-147"><a href="#cb117-147" aria-hidden="true" tabindex="-1"></a>    <span class="co"># combine them all into one vector and store in the list object</span></span>
+<span id="cb117-148"><a href="#cb117-148" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb117-149"><a href="#cb117-149" aria-hidden="true" tabindex="-1"></a>      input.list[[i]] <span class="ot">&lt;-</span> <span class="fu">cbind</span>(text_sm[<span class="dv">2</span><span class="sc">:</span><span class="fu">length</span>(text_sm)],</span>
+<span id="cb117-150"><a href="#cb117-150" aria-hidden="true" tabindex="-1"></a>                               wl.features,</span>
+<span id="cb117-151"><a href="#cb117-151" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">as.data.frame</span>(ent),</span>
+<span id="cb117-152"><a href="#cb117-152" aria-hidden="true" tabindex="-1"></a>                               text_lexdiv[,<span class="dv">2</span><span class="sc">:</span><span class="fu">ncol</span>(text_lexdiv)],</span>
+<span id="cb117-153"><a href="#cb117-153" aria-hidden="true" tabindex="-1"></a>                               text_readability[,<span class="dv">2</span><span class="sc">:</span><span class="fu">ncol</span>(text_readability)],</span>
+<span id="cb117-154"><a href="#cb117-154" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">t</span>(<span class="fu">as.data.frame</span>(pos_tags)),</span>
+<span id="cb117-155"><a href="#cb117-155" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">t</span>(<span class="fu">as.data.frame</span>(<span class="fu">c</span>(dep_rel))),</span>
+<span id="cb117-156"><a href="#cb117-156" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">t</span>(<span class="fu">as.data.frame</span>(feat_vec)),</span>
+<span id="cb117-157"><a href="#cb117-157" aria-hidden="true" tabindex="-1"></a>                               <span class="fu">as.data.frame</span>(embeds<span class="sc">$</span>x)</span>
+<span id="cb117-158"><a href="#cb117-158" aria-hidden="true" tabindex="-1"></a>                               )</span>
+<span id="cb117-159"><a href="#cb117-159" aria-hidden="true" tabindex="-1"></a>      </span>
+<span id="cb117-160"><a href="#cb117-160" aria-hidden="true" tabindex="-1"></a>      <span class="fu">print</span>(i)</span>
+<span id="cb117-161"><a href="#cb117-161" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb117-162"><a href="#cb117-162" aria-hidden="true" tabindex="-1"></a>  </span>
 <span id="cb117-163"><a href="#cb117-163" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-164"><a href="#cb117-164" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-165"><a href="#cb117-165" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Combine all elements of list in a single data frame</span></span>
-<span id="cb117-166"><a href="#cb117-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb117-167"><a href="#cb117-167" aria-hidden="true" tabindex="-1"></a>  <span class="fu">require</span>(gtools)</span>
-<span id="cb117-168"><a href="#cb117-168" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-169"><a href="#cb117-169" aria-hidden="true" tabindex="-1"></a>  readability_features <span class="ot">&lt;-</span> <span class="fu">smartbind</span>(<span class="at">list =</span> input.list)</span>
-<span id="cb117-170"><a href="#cb117-170" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb117-171"><a href="#cb117-171" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write.csv</span>(readability_features, </span>
-<span id="cb117-172"><a href="#cb117-172" aria-hidden="true" tabindex="-1"></a>            <span class="fu">here</span>(<span class="st">&#39;data/readability_features.csv&#39;</span>),</span>
-<span id="cb117-173"><a href="#cb117-173" aria-hidden="true" tabindex="-1"></a>            <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<span id="cb117-164"><a href="#cb117-164" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Combine all elements of list in a single data frame</span></span>
+<span id="cb117-165"><a href="#cb117-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb117-166"><a href="#cb117-166" aria-hidden="true" tabindex="-1"></a>  <span class="fu">require</span>(gtools)</span>
+<span id="cb117-167"><a href="#cb117-167" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-168"><a href="#cb117-168" aria-hidden="true" tabindex="-1"></a>  readability_features <span class="ot">&lt;-</span> <span class="fu">smartbind</span>(<span class="at">list =</span> input.list)</span>
+<span id="cb117-169"><a href="#cb117-169" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-170"><a href="#cb117-170" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Add the target score to the feature matrix</span></span>
+<span id="cb117-171"><a href="#cb117-171" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-172"><a href="#cb117-172" aria-hidden="true" tabindex="-1"></a>  readability_features<span class="sc">$</span>target <span class="ot">&lt;-</span> readability<span class="sc">$</span>target</span>
+<span id="cb117-173"><a href="#cb117-173" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-174"><a href="#cb117-174" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Export the final data with features</span></span>
+<span id="cb117-175"><a href="#cb117-175" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb117-176"><a href="#cb117-176" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write.csv</span>(readability_features, </span>
+<span id="cb117-177"><a href="#cb117-177" aria-hidden="true" tabindex="-1"></a>            <span class="fu">here</span>(<span class="st">&#39;data/readability_features.csv&#39;</span>),</span>
+<span id="cb117-178"><a href="#cb117-178" aria-hidden="true" tabindex="-1"></a>            <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <div class="sourceCode" id="cb118"><pre class="sourceCode r fold-show"><code class="sourceCode r"><span id="cb118-1"><a href="#cb118-1" aria-hidden="true" tabindex="-1"></a>readability <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv&#39;</span>,</span>
 <span id="cb118-2"><a href="#cb118-2" aria-hidden="true" tabindex="-1"></a>                        <span class="at">header=</span><span class="cn">TRUE</span>)</span>
 <span id="cb118-3"><a href="#cb118-3" aria-hidden="true" tabindex="-1"></a></span>

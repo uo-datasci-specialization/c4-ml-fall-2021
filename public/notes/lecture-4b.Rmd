@@ -1,0 +1,258 @@
+---
+title: Regularization in Linear Regression
+subtitle: Applied Machine Learning for Educational Data Science
+author:
+  name: Cengiz Zopluoglu
+  affiliation: University of Oregon | EDLD 654
+date: 10/20/2021 ## Or "Lecture no."
+runtime: shiny
+output: 
+  html_document:
+    keep_md: false
+    theme: journal
+    highlight: haddock
+    code_folding: hide
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+#  pdf_document:
+#    extra_dependencies: ["amssymb","animate","upgreek","amsmath"]
+#    keep_tex: false ## Change to true if want keep intermediate .tex file
+#    toc: true
+#    toc_depth: 3
+#    dev: cairo_pdf
+always_allow_html: true
+urlcolor: blue
+mainfont: cochineal
+sansfont: Fira Sans
+monofont: Fira Code ## Although, see: https://tex.stackexchange.com/q/294362
+
+## Automatically knit to both formats:
+knit: (function(inputFile, encoding) {
+ rmarkdown::render(inputFile, encoding = encoding, 
+ output_format = 'all') 
+ })
+---
+
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position=c('top','right'))
+```
+
+`r paste('[Updated:',format(Sys.time(),'%a, %b %d, %Y - %H:%M:%S'),']')`
+
+<style>
+  
+  .list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    z-index: 2;
+    color: #fff;
+      background-color: #FC4445;
+      border-color: #97CAEF;
+  }
+
+#infobox {
+padding: 1em 1em 1em 4em;
+margin-bottom: 10px;
+border: 2px solid black;
+border-radius: 10px;
+background: #E6F6DC 5px center/3em no-repeat;
+  }
+
+</style>
+  
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = "",fig.align='center')
+require(here)
+require(ggplot2)
+require(plot3D)
+require(kableExtra)
+require(knitr)
+require(giski)
+require(magick)
+require(gridExtra)
+require(plotly)
+options(scipen=99)
+
+
+# Resources:
+
+# https://bradleyboehmke.github.io/HOML/linear-regression.html
+# https://bradleyboehmke.github.io/HOML/regularized-regression.html
+# James et al. Ch 3 and Ch 6.2
+# Applied Predictive Modeling, Chapter 6
+```
+
+# Regularization
+
+Regularization is a general strategy to incorporate additional penalty terms into the model fitting process and used not just for regression but a variety of other types of models. The idea behind the regularization is to constrain the size of regression coefficients with the purpose of reducing their sampling variation and, hence, reducing the variance of model predictions. These constrains are typically incorporated into the loss function to be optimized. There are two commonly used regularization strategy: **ridge penalty** and **lasso penalty**. In addition, there is also **elastic net**, a mixture of these two strategies.
+
+## Ridge Penalty
+
+Remember that we formulated the loss function for the linear regression as the sum of squared residuals across all observations. For ridge regression, we add a penalty term to this loss function and this penalty term is a function of all the regression coefficients in the model. Assuming that there are P regression coefficients in the model, the penalty term for the ridge regression would be 
+
+$$\lambda \sum_{i=1}^{P}\beta_p^2,$$
+where $\lambda$ is a parameter that penalizes the regression coefficients when they get larger. Therefore, when we fit a regression model with ridge penalty, the loss function to minimize becomes
+
+$$Loss = \sum_{i=1}^{N}\epsilon_{(i)}^2 + \lambda \sum_{i=1}^{P}\beta_p^2,$$
+$$Loss = SSR + \lambda \sum_{i=1}^{P}\beta_p^2.$$
+
+Let's consider the same example from the previous class. Suppose we fit a simple linear regression model such that the readability score is the outcome ($Y$) and average word length is the predictor($X$). Our regression model is
+
+$$Y = \beta_0  + \beta_1X + \epsilon,$$
+and let's assume the set of coefficients are {$\beta_0,\beta_1$} = {7.5,-2}, so my model is
+$$Y = 7.5  - 2X + \epsilon.$$
+Then, the value of the loss function when $\lambda=0.2$ would be equal to 27.433.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+readability_sub <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_feat_sub.csv',header=TRUE)
+
+d <-  readability_sub[,c('mean.wl','target')]
+
+b0 = 7.5
+b1 = -2
+
+d$predicted <- b0 + b1*d$mean.wl
+d$error     <- d$target - d$predicted
+
+d
+
+lambda = 0.2
+
+loss <- sum((d$error)^2) + lambda*(b0^2 + b1^2)
+
+loss 
+```
+
+Notice that when $\lambda$ is equal to 0, the loss function is identical to SSR; therefore, it becomes a linear regression with no regularization. As the value of $\lambda$ increases, the degree of penalty linearly increases. Technically, the  $\lambda$ can take any positive value between 0 and $\infty$.
+
+As we did in the previous lecture, imagine that we computed the loss function with the ridge penalty term for every possible combination of the intercept ($\beta_0$) and the slope ($\beta_1$). Let's say the plausible range for the intercept is from -10 to 10 and the plausible range for the slope is from -2 to 2. Now, we also have to think different values of $\lambda$ because the surface we try to minimize is dependent on the value $\lambda$ and different values of $\lambda$ yield different estimates of $\beta_0$ and and $\beta_1$. 
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+setwd('B:/UO Teaching/EDLD 654/c4-ml-fall-2021/website-data/animations/ridge')
+
+require(plotly)
+
+lambda = seq(0,100,.05)
+
+b0 <- c()
+b1 <- c()
+
+for(i in 1:length(lambda)){
+  
+     grid    <- expand.grid(b0=seq(-10,10,.1),b1=seq(-5,5,.01))           
+     grid$SSR <- NA
+      
+      B1    <- matrix(grid$b1,ncol=20,nrow=nrow(grid),byrow=FALSE)
+      B0    <- matrix(grid$b0,ncol=20,nrow=nrow(grid),byrow=FALSE)
+      X     <- matrix(d$mean.wl,ncol=20,nrow=nrow(grid),byrow=TRUE)
+      Y_hat <- B0 + X*B1
+      Y     <- matrix(d$target,ncol=20,nrow=nrow(grid),byrow=TRUE)
+      P     <- lambda[i]*(grid$b0^2 + grid$b1^2)
+      grid$SSR <- rowSums((Y - Y_hat)^2) + P
+
+      fig <- plot_ly(grid, x = ~b0, y = ~b1, z = ~SSR, 
+              marker = list(color = ~SSR,
+                            showscale = FALSE,
+                            cmin=min(grid$SSR),
+                            cmax=max(grid$SSR),cauto=F),
+              width=1200,height=1200) %>% 
+        add_markers() %>%
+        layout(title = paste0("lambda = ",lambda[i]))%>%
+        layout(scene = list(xaxis=list(title = 'Beta0'),
+                            yaxis=list(title = 'Beta1'),
+                            camera = list(eye = list(x = 2, y = 0.5, z = 0.5),
+                                          up  = list(x=0,y=0.5,z=0.5)))) %>% 
+        config(mathjax = 'cdn')
+      
+
+      orca(fig,paste0('plot',i,'.png'))
+      
+      
+      b0[i] <- grid[which.min(grid$SSR),]$b0
+      b1[i] <- grid[which.min(grid$SSR),]$b1
+      
+      
+      p1 <- ggplot() +
+        geom_point(aes(x=lambda[1:i],y=b0),cex=0.5) +
+        geom_line(aes(x=lambda[1:i],y=b0),size=0.25) +
+        xlim(c(0,100))+
+        ylim(c(0,5)) +
+        xlab('lambda')+
+        ylab('Beta0')+
+        theme_bw()
+        
+      p2 <- ggplot() +
+        geom_point(aes(x=lambda[1:i],y=b1),cex=0.5) +
+        geom_line(aes(x=lambda[1:i],y=b1),size=0.25) +
+        xlim(c(0,100))+
+        ylim(c(-1.5,0)) +
+        xlab('lambda')+
+        ylab('Beta1')+
+        theme_bw()
+      
+      ggsave(paste0('b0plot',i,'.png'),p1,width = 1200,height=600,unit='px')
+      ggsave(paste0('b1plot',i,'.png'),p2,width = 1200,height=600,unit='px')
+      
+}
+
+require(magick)
+
+for(i in 1:2001){
+
+  a = image_read(paste0('b0plot',i,'.png'))
+  b = image_read(paste0('b1plot',i,'.png'))
+  p = image_read(paste0('plot',i,'.png'))
+
+  all <- image_append(c(p,image_append(c(a,b),stack=TRUE)))
+
+  image_write(all,
+              path = paste0('image',i,'.png'),
+              format='png',
+              quality=100,
+              depth=16)
+  print(i)
+}
+
+imgs <- list.files(full.names=TRUE)
+loc <- grep('./image',imgs)
+imgs <- imgs[loc]
+
+imgs <- imgs[order(as.numeric(substring(imgs,
+                                        str_locate(imgs,'./image')[,2]+1,
+                                        str_locate(imgs,'.png')[,1]-1)))]
+
+imgs <- imgs[c(1:50,seq(51,2001,100))]
+
+img_list <- lapply(imgs, image_read)
+img_joined <- image_join(img_list)
+img_animated <- image_animate(img_joined, fps = 10)
+#img_animated
+image_write(image = img_animated,
+            path = 'ridge.gif')
+```
+
+<iframe src="https://cengiz-shiny.app/shiny/ridge/" class="l-screen-inset shaded" width="1000px" height="1000px"></iframe>
+
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
+
+knitr::include_graphics(here('website-data/animations/ridge/ridge.gif'))
+
+```
+## Lasso Penalty
+
+## Elastic Net
+
+
+
+
+
+
+
+
+
+
+
+

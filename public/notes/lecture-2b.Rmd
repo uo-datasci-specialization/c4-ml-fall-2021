@@ -810,8 +810,7 @@ This lecture provided different types of information we can extract from any giv
 
 ################################################################################
 
-  readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',
-                          header=TRUE)
+  readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',header=TRUE)
 
   input.list <- vector('list',nrow(readability))
 
@@ -960,6 +959,12 @@ This lecture provided different types of information we can extract from any giv
   
   readability_features <- smartbind(list = input.list)
   
+  # Add the target score to the feature matrix
+  
+  readability_features$target <- readability$target
+  
+  # Export the final data with features
+  
   write.csv(readability_features, 
             here('data/readability_features.csv'),
             row.names = FALSE)
@@ -977,38 +982,36 @@ colnames(readability)
 
 ```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-out_ <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability.csv',
-                        header=TRUE)
-
+out_ <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
 
 n.na <- c()
 
-for(i in 1:ncol(readability)){
+for(i in 1:ncol(out_)){
   
-  n.na[i] <- sum(is.na(readability[,i]))
+  n.na[i] <- sum(is.na(out_[,i]))
 
 }
 
-readability <- readability[,-which(n.na > 1500)]
+out_ <- out_[,-which(n.na > 1500)]
 
-for(i in 1:ncol(readability)){
+for(i in 1:ncol(out_)){
   
-  loc <- (is.na(readability[,i]))*1
+  loc <- (is.na(out_[,i]))*1
   
-  readability[loc==1,i] = mean(readability[loc==0,i])
+  out_[loc==1,i] = mean(out_[loc==0,i])
 
 }
 
 
 set.seed(05012021)
 
-vec <- 1:nrow(readability)
+vec <- 1:nrow(out_)
 loc1 <- sample(vec,500)
 loc2 <- vec[!vec%in%loc1]
 
 
-test  <- readability[loc1,]
-train <- readability[loc2,]
+test  <- out_[loc1,-967]
+train <- out_[loc2,-967]
 
 out2 <- out_[loc1,]$target
 out1 <- out_[loc2,]$target

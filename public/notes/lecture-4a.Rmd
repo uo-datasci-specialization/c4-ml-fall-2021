@@ -1,0 +1,1286 @@
+---
+title: An Overview of the Linear Regression
+subtitle: Applied Machine Learning for Educational Data Science
+author:
+  name: Cengiz Zopluoglu
+  affiliation: University of Oregon | EDLD 654
+date: 10/12/2021 ## Or "Lecture no."
+output: 
+  html_document:
+    keep_md: false
+    theme: journal
+    highlight: haddock
+    code_folding: hide
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+  pdf_document:
+    extra_dependencies: ["amssymb","animate","upgreek","amsmath"]
+    keep_tex: false ## Change to true if want keep intermediate .tex file
+    toc: true
+    toc_depth: 3
+    dev: cairo_pdf
+always_allow_html: true
+urlcolor: blue
+mainfont: cochineal
+sansfont: Fira Sans
+monofont: Fira Code ## Although, see: https://tex.stackexchange.com/q/294362
+
+## Automatically knit to both formats:
+knit: (function(inputFile, encoding) {
+ rmarkdown::render(inputFile, encoding = encoding, 
+ output_format = 'all') 
+ })
+---
+
+```{r klippy, echo=FALSE, include=TRUE}
+klippy::klippy(position=c('top','right'))
+```
+
+`r paste('[Updated:',format(Sys.time(),'%a, %b %d, %Y - %H:%M:%S'),']')`
+
+<style>
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {
+    z-index: 2;
+    color: #fff;
+    background-color: #FC4445;
+    border-color: #97CAEF;
+}
+
+#infobox {
+  padding: 1em 1em 1em 4em;
+  margin-bottom: 10px;
+  border: 2px solid black;
+  border-radius: 10px;
+  background: #E6F6DC 5px center/3em no-repeat;
+}
+
+</style>
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(comment = "",fig.align='center')
+require(here)
+require(ggplot2)
+require(plot3D)
+require(kableExtra)
+require(knitr)
+require(giski)
+require(magick)
+require(gridExtra)
+require(plotly)
+options(scipen=99)
+
+
+# Resources:
+
+  # https://bradleyboehmke.github.io/HOML/linear-regression.html
+  # https://bradleyboehmke.github.io/HOML/regularized-regression.html
+  # James et al. Ch 3 and Ch 6.2
+  # Applied Predictive Modeling, Chapter 6
+```
+
+In the machine learning literature, the prediction algorithms are classified into two main categories: *supervised* and *unsupervised*. Supervised algorithms are being used when the dataset has an actual outcome of interest to predict (labels), and the goal is to build the "best" model predicting the outcome of interest that exists in the data. On the other side, unsupervised algorithms are being used when the dataset doesn't have an outcome of interest, and the goal is typically to identify similar groups of observations (rows of data) or similar groups of variables (columns of data) in data. In this course, we plan to cover a number of *supervised* algorithms. Linear regression is one of the simplest approach among supervised algorithms, and also one of the easiest to interpret. 
+
+# Model Description
+
+In most general terms, the linear regression model with $P$ predictors ($X_1$,$X_2$,$X_3$,...,$X_p$) to predict an outcome (Y) can be written as the following:
+
+$$ Y = \beta_0  + \sum_{p=1}^{P} \beta_pX_{p} + \epsilon.$$
+In this model, $Y$ represents the observed value for the outcome for an observation, $X_{p}$ represents the observed value of the $p^{th}$ variable for the same observation, and $\beta_p$ is the associated model parameter for the $p^{th}$ variable. $\epsilon$ is the model error (residual) for the observation.
+
+This model includes only the main effects of each predictor and can be easily extended by including a quadratic or higher-order polynomial terms for all (or a specific subset of) predictors. For instance, the model below includes all first-order, second-order, and third-order polynomial terms for all predictors. 
+
+$$ Y = \beta_0  + \sum_{p=1}^{P} \beta_pX_{p} + \sum_{k=1}^{P} \beta_{k+P}X_{k}^2 + \sum_{m=1}^{P} \beta_{m+2P}X_{m}^3 + \epsilon.$$
+The simple first-order, second-order, and third-order polynomial terms can also be replaced by corresponding terms obtained from B-splines or natural splines.
+
+Sometimes, the effect of predictor variables on the outcome variable are not additive, and the effect of one predictor on the response variable can depend on the levels of another predictor. These non-additive effects are also called interaction effects. The interaction effects can also be a first-order interaction (interaction between two variables, e.g., $X_1*X_2$), second-order interaction ($X_1*X_2*X_3$), or higher orders.  It is also possible to add the interaction effects to the model. For instance, the model below also adds the first-order interactions.
+
+$$ Y = \beta_0  + \sum_{p=1}^{P} \beta_pX_{p} + \sum_{k=1}^{P} \beta_{k+P}X_{k}^2 + \sum_{m=1}^{P} \beta_{m+2P}X_{m}^3 + \sum_{i=1}^{P}\sum_{j=i+1}^{P}\beta_{i,j}X_iX_j + \epsilon.$$
+If you are not comfortable or confused with notational representation, below is an example for different models you can write with 5 predictors ($X_1,X_2,X_3$).
+
+A model with only main-effects:
+
+$$ Y = \beta_0  + \beta_1X_{1} + \beta_2X_{2} + \beta_3X_{3}+ \epsilon.$$
+
+A model with polynomial terms up to the 3rd degree added:
+
+$$Y = \beta_0  + \beta_1X_1 + \beta_2X_2 + \beta_3X_3 + \\ \beta_4X_1^2 + \beta_5X_2^2 + \beta_6X_3^2+ \\ \beta_{7}X_1^3 + \beta_{8}X_2^3 + \beta_{9}X_3^3$$
+
+A model with both interaction terms and polynomial terms up to the 3rd degree added:
+
+$$Y = \beta_0  + \beta_1X_1 + \beta_2X_2 + \beta_3X_3 + \\ \beta_4X_1^2 + \beta_5X_2^2 + \beta_6X_3^2+ \\ \beta_{7}X_1^3 + \beta_{8}X_2^3 + \beta_{9}X_3^3+ \\ \beta_{1,2}X_1X_2+ \beta_{1,3}X_1X_3 + \beta_{2,3}X_2X_3 + \epsilon$$
+
+# Model Estimation
+
+Suppose that we would like to predict the target readability score for a given text from average word length in the text. Below is a scatterplot to show the relationship between these two variables for a random sample of 20 observations. There seems to be a moderate negative correlation. So, we can tell that the higher the average word length is in a given text, the lower the readability score (more difficult to read).
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+readability_sub <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_feat_sub.csv',header=TRUE)
+
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
+  geom_point()+
+  xlab('Average Word Length')+
+  ylab('Readability Score')+
+  theme_bw()+
+  xlim(c(3,6))+
+  ylim(c(-4,2))
+
+```
+
+Let's consider a simple linear regression model such that the readability score is the outcome ($Y$) and average word length is the predictor($X$). Our regression model would be
+
+$$Y = \beta_0  + \beta_1X + \epsilon.$$
+In this case, the set of coefficients, {$\beta_0,\beta_1$}, represents a linear line. We can come up with any set of {$\beta_0,\beta_1$} coefficients and use it as our model. For instance, suppose I guesstimate that these coefficients are {$\beta_0,\beta_1$} = {7.5,-2}. Then, my model would be
+
+$$Y = 7.5  - 2X + \epsilon.$$
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
+  geom_point()+
+  xlab('Average Word Length')+
+  ylab('Readability Score')+
+  theme_bw()+
+  xlim(c(3,6))+
+  ylim(c(-4,2))+
+  geom_abline(intercept=7.5,slope=-2,lty=2)
+  
+```
+
+Using this model, I can predict the target readability score for any observation in my dataset. For instance, the average word length is 4.604 for the first reading passage. Then, my prediction of readability score based on this model would be -1.708. On the other side, the observed value of the readbility score for this observation is -2.586. This discrepancy between the observed value and the model prediction is the model error (residual) for the first observation and captured in the $\epsilon$ term in the model.
+
+$$Y_{(1)} = 7.5  - 2X_{(1)} + \epsilon_{(1)}.$$
+$$\hat{Y}_{(1)} = 7.5  - 2*4.604 = -1.708 $$
+$$\hat{\epsilon}_{(1)} = -2.586 - (-1.708) =  -0.878 $$
+We can visualize this in the plot. The black dot represents the observed data point, and the blue dot on the line represents the model prediction for a given $X$ value. The vertical distance between these two data points is the model error for this particular observation.
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+x1 = readability_sub[1,c('mean.wl')]
+y1 = readability_sub[1,c('mean.wl')]*-2 + 7.5
+
+ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
+  geom_point(col='gray')+
+  xlab('Average Word Length')+
+  ylab('Readability Score')+
+  theme_bw()+
+  xlim(c(3,6))+
+  ylim(c(-4,2))+
+  geom_abline(intercept=7.5,slope=-2,lty=2)+
+  geom_point(x=x1,y=y1,color='blue',cex=2)+
+  geom_point(x=readability_sub[1,c('mean.wl')],y=readability_sub[1,c('target')],color='black',cex=2)+
+  geom_segment(x=x1,y=y1,xend=x1,yend=readability_sub[1,c('target')])
+  
+  
+```
+
+We can do the same thing for the second observation. The average word length is 3.830 for the second reading passage. The model predicts a readability score of be -0.161. Observed value of the readability score for this observation is 0.459. Therefore the model error for the second observation would be 0.62.
+
+
+$$Y_{(2)} = 7.5  - 2X_{(2)} + \epsilon_{(2)}.$$
+$$\hat{Y}_{(2)} = 7.5  - 2*3.830 = -0.161 $$
+$$\hat{\epsilon}_{(2)} = 0.459 - (-0.161) =  0.62 $$
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+x1 = readability_sub[2,c('mean.wl')]
+y1 = readability_sub[2,c('mean.wl')]*-2 + 7.5
+
+ggplot(data=readability_sub,aes(x=mean.wl,y=target))+
+  geom_point(col='gray')+
+  xlab('Average Word Length')+
+  ylab('Readability Score')+
+  theme_bw()+
+  xlim(c(3,6))+
+  ylim(c(-4,2))+
+  geom_abline(intercept=7.5,slope=-2,lty=2)+
+  geom_point(x=x1,y=y1,color='blue',cex=2)+
+  geom_point(x=readability_sub[2,c('mean.wl')],y=readability_sub[2,c('target')],color='black',cex=2)+
+  geom_segment(x=x1,y=y1,xend=x1,yend=readability_sub[2,c('target')])
+  
+```
+
+Using a similar approach, we can calculate the model error for every single observation.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+d <-  readability_sub[,c('mean.wl','target')]
+
+d$predicted <- d$mean.wl*-2 + 7.5
+d$error     <- d$target - d$predicted
+
+d
+ 
+```
+
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+p <- ggplot(data=d,aes(x=mean.wl,y=target))+
+  geom_point()+
+  xlab('Average Word Length')+
+  ylab('Readability Score')+
+  theme_bw()+
+  xlim(c(3,6))+
+  ylim(c(-4,2))+
+  geom_abline(intercept=7.5,slope=-2,lty=2,color='gray')
+ 
+for(i in 1:nrow(d)){
+ p <- p + geom_segment(x=d[i,1],y=d[i,2],xend=d[i,1],yend=d[i,3],lty=2)
+}  
+
+p
+```
+
+While it is helpful to see the model error for every single observation, we will need to aggregate them in some way to form an overall measure of the total amount of error for this model. Some alternatives for aggregating these individual errors could be using 
+
+a. the sum of the residuals (SR),
+b. the sum of absolute value of residuals (SAR), or
+c. the sum of squared residuals (SSR)
+
+Among these alternatives, (a) is not a useful aggregation as the positive residuals and negative residuals will cancel each other and (a) may misrepresent the total amount of error for all observations. Both (b) and (c) are plausible alternatives and can be used. On the other hand, (b) is less desirable because the absolute values are mathematically more difficult to deal with (ask a calculus professor!). So, (c) seems to be a good way of aggregating the total amount of error, and it is mathematically easier to work with. We can show (c) in a mathematical notation as the following.
+
+$$SSR = \sum_{i=1}^{N}(Y_{(i)} - (\beta_0+\beta_1X_{(i)}))^2$$
+$$SSR = \sum_{i=1}^{N}(Y_{(i)} - \hat{Y_{(i)}})^2$$
+$$SSR = \sum_{i=1}^{N}\epsilon_{(i)}^2$$
+For our model, the sum of squared residuals would be 15.384.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+sum(d$error^2)
+ 
+```
+
+Now, how do we know that the set of coefficients we guesstimate ,{$\beta_0,\beta_1$} = {7.5,-2}, is a good model? Is there any other set of coefficients that would provide less error than this model? The only way of knowing this is to try a bunch of different models and see if we can find a better one that gives us better predictions (smaller residuals). But, there is literally infinite pairs of {$\beta_0,\beta_1$} coefficients, so which ones we should try?
+
+Below, I will do a quick exploration. For instance, suppose the potential range for my intercept ($\beta_0$) is from -10 to 10 and I will consider every single possible value from -10 t 10 with increments of .1. Also, suppose the potential range for my slope ($\beta_1$) is from -2 to 2 and I will consider every single possible value from -2 to 2 with increments of .01. Given that every single combination of $\beta_0$ and $\beta_1$ indicates a different model, these settings suggest a total of 80,601 models to explore. If you are crazy enough, you can try every single model and compute the SSR. Then, we can plot them in a 3D by putting $\beta_0$ on the X-axis, $\beta_1$ on the Y-axis, and SSR on the Z-axis. Check the plot below and tell me if you can explore and find the minimum of this surface.
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+grid    <- expand.grid(b0=seq(-10,10,.1),b1=seq(-5,5,.01))           
+grid$SSR <- NA
+
+for(i in 1:nrow(grid)){
+  predicted    <- readability_sub$mean.wl*grid[i,]$b1 + grid[i,]$b0
+  grid[i,]$SSR <- sum((readability_sub$target - predicted)^2)
+  print(i)
+}
+
+  
+  write.csv(grid, 
+            here('data/grid_regression.csv'),
+            row.names = FALSE)
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+grid <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/grid_regression.csv',header=TRUE)
+
+plot_ly(grid, x = ~b0, y = ~b1, z = ~SSR, 
+        marker = list(color = ~SSR,
+                      showscale = TRUE,
+                      cmin=min(grid$SSR)*5,
+                      cmax=min(grid$SSR),cauto=F),
+        width=600,height=600) %>% 
+  add_markers()
+
+
+```
+
+
+Finding the best set of {$\beta_0,\beta_1$} coefficients that minimizes the sum of squared residuals is an optimization problem. For any optimization problem, there is a **loss function** we either try to minimize or maximize. In this case, our loss function is the sum of squared residuals.
+
+$$Loss = \sum_{i=1}^{N}(Y_{(i)} - (\beta_0+\beta_1X_{(i)}))^2$$
+In this loss function, $X$ and $Y$ values are observed data, and {$\beta_0,\beta_1$} are unknown parameters. The goal of optimization is to find the set {$\beta_0,\beta_1$} coefficients that provides the minimum value of this function. Once this minima of this function is found, we can argue that the corresponding coefficients are our best solution for the regression model.
+
+In this case, this is a good-looking surface with a single global minima, and it is not difficult to find the minimum of this loss function. We also have an analytical solution to find its minima because of its simplicity. Most of the time, the optimization problems are more difficult, and we solve them using numerical techniques such as steepest ascent (or descent), newton-raphson, quasi-newton, genetic algorithm and many more. 
+
+## Matrix Solution
+
+For most regression problems, we can find the best set of coefficients with a simple matrix operation. Let's first see how we can represent the regression problem in matrix form. Suppose that I wrote the regression model presented in the earlier section for every single observation in a dataset with a sample size of N.
+
+
+$$Y_{(1)} = \beta_0  + \beta_1X_{(1)} + \epsilon_{(1)}.$$
+
+$$Y_{(2)} = \beta_0  + \beta_1X_{(2)} + \epsilon_{(2)}.$$
+$$Y_{(3)} = \beta_0  + \beta_1X_{(3)} + \epsilon_{(3)}.$$
+$$...$$
+$$...$$
+$$...$$
+$$Y_{(20)} = \beta_0  + \beta_1X_{(20)} + \epsilon_{(20)}.$$
+We can write all of these equations in a much simpler format as
+
+$$ \mathbf{Y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}, $$
+such that $\mathbf{Y}$ is an N x 1 column vector of observed values for the outcome variable, $\mathbf{X}$ is an N x (P+1) **design matrix* for the set of predictor variables including an intercept term, and $\boldsymbol{\beta}$ is an (P+1) x 1 column vector of regression coefficients, and  $\boldsymbol{\epsilon}$ is an N x 1 column vector of residuals. For the problem above with our small dataset, these matrix elements would look like the following.
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
+
+knitr::include_graphics(here('static/notes/images/regression_matrix.gif'))
+
+```
+
+```{r, echo=FALSE,eval=knitr::is_latex_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
+
+knitr::include_graphics(here('static/notes/images/regression_matrix.png'))
+
+```
+
+Or, more specifically, we can replace the observed values of $\mathbf{X}$  and $\mathbf{Y}$ with the corresponding elements. 
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
+
+knitr::include_graphics(here('static/notes/images/data_regression_matrix.gif'))
+
+```
+
+```{r, echo=FALSE,eval=knitr::is_latex_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
+
+knitr::include_graphics(here('static/notes/images/data_regression_matrix.png'))
+
+```
+
+It can be shown that the set of {$\beta_0,\beta_1$} coefficients that yields the minimum sum of squared residuals for this model can be analytically found using the following matrix operation.
+
+$$\hat{\boldsymbol{\beta}} = (\mathbf{X^T}\mathbf{X})^{-1}\mathbf{X^T}\mathbf{Y}$$
+
+If we apply this matrix operation to our small datasets, we will find that the best set of  {$\beta_0,\beta_1$} coefficients to predict the readability score with the least amount of error using the average word length as a predictor is {$\beta_0,\beta_1$} = {4.494,-1.290}. These estimates are also known as the **least square estimates**, and the best linear unbiased estimators (BLUE) for the given regression model.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+Y <-  as.matrix(readability_sub$target)
+X <-  as.matrix(cbind(1,readability_sub$mean.wl))
+
+Y
+X
+
+beta <- solve(t(X)%*%X)%*%t(X)%*%Y
+
+beta 
+```
+
+Once we find the best estimates for the model coefficients, we can also calculate the model predicted values and residual sum of squares for the given model and dataset.
+
+$$\boldsymbol{\hat{Y}} = \mathbf{X} \hat{\boldsymbol{\beta}} $$
+
+$$ \boldsymbol{\hat{\epsilon}} = \boldsymbol{Y} - \hat{\boldsymbol{Y}} $$
+$$ RSS = \boldsymbol{\hat{\epsilon}^T} \boldsymbol{\hat{\epsilon}} $$
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+Y_hat <-  X%*%beta
+
+Y_hat
+
+E <- Y - Y_hat
+E
+
+RSS <- t(E)%*%E
+
+RSS
+```
+
+Note that the matrix formulation is generalized to a regression model for more than one predictor. When there are more predictors in the model, the dimensions of the design matrix ($\mathbf{X}$) and regression coefficient matrix ($\boldsymbol{\beta}$) will be different, but the matrix calculations will be identical. It is difficult to visualize the surface we are trying to minimize beyond two coefficients, but we know that the matrix solution will always provide us the set of coefficients that yields the least amount of error in our predictions.
+
+Let's assume that we would like to expand our model by adding the number of sentences as the second predictor. Our new model will be
+
+$$Y_{(i)} = \beta_0  + \beta_1X_{1(i)} + \beta_2X_{2(i)} + \epsilon_{(i)}.$$
+Note that I added a subscript for $X$ to differentiate different predictors. Let's say $X_1$ represents the mean word length and $X_2$ represents the total number of sentence length. Now, we are looking for the best set of three coefficients, {$\beta_0,\beta_1, \beta_2$} that would yield the least amount of error in predicting the readability. Now, our matrix elements will look like the following:
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+Y <-  as.matrix(readability_sub$target)
+X <-  as.matrix(cbind(1,readability_sub[,c('mean.wl','sents')]))
+
+Y
+X
+```
+
+We will get the following estimates for {$\beta_0,\beta_1, \beta_2$} = {1.821, -.929, .090} yielding a value of 7.365 for the residual sum of squares.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+beta <- solve(t(X)%*%X)%*%t(X)%*%Y
+
+beta 
+
+Y_hat <-  X%*%beta
+
+E <- Y - Y_hat
+
+RSS <- t(E)%*%E
+
+RSS
+```
+
+
+## `lm()` function
+
+While it is always exciting to learn the inner mechanics of how numbers work behind the scene, it is handy to use already existing packages and tools to do all these computations. A simple go-to function for fitting linear regression to predict a continuous outcome is the `lm()` function.
+
+Let's fit the models we talked about in earlier section using the `lm()` function and see if we get the same regression coefficients.
+
+
+**Model 1: Predicting readability scores from average word length **
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+mod <- lm(target ~ 1 + mean.wl,data=readability_sub)
+
+summary(mod)
+
+```
+
+In the **Coefficients** table, the numbers under the **Estimate** column are the estimated regression coefficients, and they are identical to the numbers we obtained before using matrix calculations. We ignore the other numbers in this table since our focus in this class is not significance testing. Another number in this table is **Residual Standard Error (RSE)**, and this number is directly related to the Residual Sum of Squares (RSS) for this model. Note that we obtained a value of 13.811 for RSS when we fitted the model. The relationship between RSS and RSE is
+
+$$RSE = \sqrt{\frac{RSS}{df_{regression}}} = \sqrt{\frac{RSS}{N-k}}, $$
+where the degrees of freedom for the regression model in this case is equal to the difference between the number of observations ($N$) and the number of coefficients in the model ($k$). 
+
+$$RSE = \sqrt{\frac{13.811}{20-2}} = 0.8759 $$
+
+RSE is a measure that summarizes the amount of uncertainty for individual predictions. Another relavant number reported is the R-squared (0.2596) which is simply the square of the correlation between predicted values observed values.
+
+**Model 2: Predicting readability scores from average word length and number of sentences**
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+mod <- lm(target ~ 1 + mean.wl + sents,data=readability_sub)
+
+summary(mod)
+
+```
+
+# Building a Prediction Model for Readability Scores
+
+In earlier weeks, we discussed how to process text data and constructed more than 1000 features for a given text. All these features were numeric features. These features are saved as a separate dataset, and can be downloaded from the website.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
+
+```
+
+This dataset has 2834 rows and 1072 columns. Each row represents a reading passage. The last column is the readability score, the outcome variable to predict (`target`), and the first 1071 columns are numerical features we can potentially use as predictors. 
+
+## Initial Data Preparation
+
+We will first do some initial exploration of the variables. First, we will look at the percentage of missing values. Particularly, I will look for any feature with more than 80% of values are missing. Then, I will remove those features from the data.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+require(finalfit)
+
+missing_ <- ff_glimpse(readability)$Continuous
+
+head(missing_)
+
+# Because there is more than 1000 variables, it is not practical to print them all
+# I filter the ones with missing data, and then print
+
+flag_na <- which(as.numeric(missing_$missing_percent) > 80)
+flag_na
+
+# Remove the flagged variables with high missing data percentages
+
+readability <- readability[,-flag_na]
+
+```
+
+Then, I will use the `recipes` package to create a recipe for this dataset. Note that all my features are numeric, and the last column is outcome variable while every other column is a predictor variable. This recipe
+
+- assigns the last column (`target`) as outcome and everything else as predictors,
+- removes any variable with zero variance or near-zero variance,
+- impute the missing values using the mean,
+- standardize all variables,
+- and removes variables highly correlated with one another (>.9).
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+require(recipes)
+
+blueprint <- recipe(x     = readability,
+                    vars  = colnames(readability),
+                    roles = c(rep('predictor',990),'outcome')) %>%
+  step_zv(all_numeric()) %>%
+  step_nzv(all_numeric()) %>%
+  step_impute_mean(all_numeric()) %>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_corr(all_numeric(),threshold=0.9)
+  
+```
+
+
+## Train/Test Split
+
+In order to obtain a realistic measure of model performance, we will split the data into two subsamples: training and test datasets. Due to the relatively small sample size, I will use a 90-10 split (typically a 80-20 or 70-30 split is used). 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+set.seed(10152021)  # for reproducibility
+  
+loc      <- sample(1:nrow(readability), round(nrow(readability) * 0.9))
+read_tr  <- readability[loc, ]
+read_te  <- readability[-loc, ]
+```
+
+We will first train the blueprint using the training dataset, and then bake it for both training and test datasets.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+prepare <- prep(blueprint, 
+                training = read_tr)
+prepare
+```
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+baked_tr <- bake(prepare, new_data = read_tr)
+
+baked_te <- bake(prepare, new_data = read_te)
+
+```
+
+The smaller test dataset will be used as a final hold-out set, and training dataset will be used to build the model.
+
+## Model Fitting without Cross-validation
+
+First, I will fit the model to the training dataset using all predictors in the dataset without any cross validation. Note that we will very likely overfit with more than 800 predictors and relatively small sample size.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+mod <- lm(formula(baked_tr[,c(888,1:887)]),data=baked_tr)
+
+summary(mod)$r.squared
+```
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+predicted_tr <- predict(mod)
+
+ggplot()+
+  geom_point(aes(y=baked_tr$target,x=predicted_tr))+
+  xlab('Model Predictions')+
+  ylab('Observed Readability Scores')+
+  theme_bw()+
+  ggtitle('Model Performance in the Training Dataset')
+```  
+
+In the training dataset, the model explains about 84% of the total variance in the outcome variable (WOW!). We can also calculate the MAE, MSE, and RMSE for the model predictions in the training dataset.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+rsq_tr <- cor(baked_tr$target,predicted_tr)^2
+rsq_tr
+
+mae_tr <- mean(abs(baked_tr$target - predicted_tr))
+mae_tr
+
+mse_tr <- mean((baked_tr$target - predicted_tr)^2)
+mse_tr
+
+rmse_tr <- sqrt(mean((baked_tr$target - predicted_tr)^2))
+rmse_tr
+```
+
+Something is too good to be true! As we suspected, the model predictions are unusually good in the training data because we are fitting a super complex model, and we are overfitting. This is why you should never judge how well a model is by looking at the performance of the model on the dataset it is trained. Let's check how well this model does on the test data which we didn't use in the estimation.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# first obtain the predictions according to the model for the observations
+# in the test dataset
+
+predicted_te <- predict(mod,newdata=baked_te)
+
+# Calculate the outcome metrics
+
+rsq_te <- cor(baked_te$target,predicted_te)^2
+rsq_te
+
+mae_te <- mean(abs(baked_te$target - predicted_te))
+mae_te
+
+mse_te <- mean((baked_te$target - predicted_te)^2)
+mse_te
+
+rmse_te <- sqrt(mean((baked_te$target - predicted_te)^2))
+rmse_te
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+ggplot()+
+  geom_point(aes(y=baked_te$target,x=predicted_te))+
+  xlab('Model Predictions')+
+  ylab('Observed Readability Scores')+
+  theme_bw()+
+  ggtitle('Model Performance in the Test Dataset')
+```  
+
+The model performance significantly dropped in the testing dataset. This is a classic example of model variance (overfitting). We have a very complex model that does a great job in the training dataset but does not perform at the same level in a different dataset. If we are planning to use this model for any future prediction, it is much better to consider the performance on the test data as it will be a more realistic picture of model performance. 
+
+## Model Fitting with 10-fold Cross-validation
+
+One way of obtaining realistic performance values while we train the dataset is to use k-fold cross validation. The code below first creates 10 folds for the training dataset. Then, it fits the model using the nine folds while it evaluates the performance on the tenth fold. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+set.seed(10152021)  # for reproducibility
+
+# Randomly shuffle the data
+
+baked_tr = baked_tr[sample(nrow(baked_tr)),]
+
+# Create 10 folds with equal size
+
+folds = cut(seq(1,nrow(baked_tr)),breaks=10,labels=FALSE)
+
+# Create empty vectors for performance measures
+
+rsq  <- c()
+mae  <- c()
+mse  <- c()
+rmse <- c()
+
+# Fit the model by excluding one of the folds, and then evaluate the performance
+# on the excluded fold
+
+for(i in 1:10){
+
+  data_tr <- baked_tr[which(folds!=i),] # observation for the 9 folds 
+  data_te <- baked_tr[which(folds==i),] # observation for the 10th fold   
+  
+  mod  <- lm(formula(data_tr[,c(888,1:887)]),data=data_tr)
+
+  pred <- predict(mod,newdata=data_te)
+
+  rsq[i]  <- cor(data_te$target,pred)^2
+  mse[i]  <- mean(abs(data_te$target - pred))
+  mse[i]  <- mean((data_te$target - pred)^2)
+  rmse[i] <- sqrt(mean((data_te$target - pred)^2))
+
+  #cat(paste0('Fold ',i,' is completed.'),'\n')
+}
+
+rsq
+mean(rsq)
+
+rmse
+mean(rmse)
+```
+
+The performance evaluations we obtain from k-fold cross validation is more similar to the one we get from the test data, so they provide a more realistic picture of model performance. We will frequently use k-fold cross-validation for tuning the hyperparameters for several models in later classes. 
+
+## Model Fitting Using the `caret` package
+
+It is not always the most pleasant experience to write your own code to conduct a k-fold cross validation. Packages like `caret` provides built-in functions for conducting cross-validation and also brings a number of user-friendly experiences in modeling. `caret` provides a standardized user experience for fitting a lot of different models beyond linear regression. So, one doesn't have to learn the nuances of all different types of functions to fit different types of models. Packages like `caret` provides a more consistent workflow while working with different types of models. On the other hand, this also brings less flexibility. During this class, I will try to demonstrate both how to work with direct functions and how to work with `caret` for fitting different types of models.
+
+Below is how one could implement the whole process using the `caret` package.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+require(caret)
+require(recipes)
+
+set.seed(10152021)  # for reproducibility
+
+# Train/Test Split
+  
+loc      <- sample(1:nrow(readability), round(nrow(readability) * 0.9))
+read_tr  <- readability[loc, ]
+read_te  <- readability[-loc, ]
+
+# Blueprint
+
+blueprint <- recipe(x     = readability,
+                    vars  = colnames(readability),
+                    roles = c(rep('predictor',990),'outcome')) %>%
+  step_zv(all_numeric()) %>%
+  step_nzv(all_numeric()) %>%
+  step_impute_mean(all_numeric()) %>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_corr(all_numeric(),threshold=0.9)
+
+# For available methods in the train function
+
+  # ?names(getModelInfo())
+
+  # ?getModelInfo()$lm
+
+# Cross validation settings
+
+cv <- trainControl(method = "cv",
+                   p      = 10)
+
+# Train the model
+  
+  # note that I provide the blueprint and original unprocessed training dataset
+  # as input
+
+caret_mod <- caret::train(blueprint, 
+                          data      = read_tr, 
+                          method    = "lm", 
+                          trControl = cv)
+
+caret_mod
+
+# Once you train the model, then you apply the same blueprint to the test dataset,
+# and then can predict the outcome for the observations in the test dataset using
+# the model
+
+predicted_te <- predict(caret_mod, read_te)
+
+rsq_te <- cor(read_te$target,predicted_te)^2
+rsq_te
+
+mae_te <- mean(abs(read_te$target - predicted_te))
+mae_te
+
+mse_te <- mean((read_te$target - predicted_te)^2)
+mse_te
+
+rmse_te <- sqrt(mean((read_te$target - predicted_te)^2))
+rmse_te
+
+```
+
+
+## Using the Prediction Model for a New Text
+
+We now have a model to predict the readability scores using 887 features. We also have a rough idea how well it works. It is not a great model (wouldn't win any prize in the Kaggle competition), but good enough to satisfy your advisor or boss. Now, how do we use this model to predict a readability score for a new text.
+
+Suppose, I have the following passage:
+
+
+
+|     Mittens sits in the grass. He is all alone. He is looking for some fun. Mittens hits his old ball. 
+|     Smack! He smells a worm. Sniff! Mittens flips his tail back and forth, back and forth. 
+|     Then he hears, Scratch! Scratch! What's that, Mittens? What's scratching behind the fence? 
+|     Mittens runs to the fence. He scratches in the dirt. Scratch! Scratch! Ruff! Ruff! What's that, 
+|     Mittens? What's barking behind the fence? Mittens meows by the fence. Meow! Meow!
+|
+
+
+
+
+What would be the predicted readability score for this reading passage?
+
+Moving forward, all you need is the R object (`caret_mod`) you created to save all the information from the fitted model using the `caret::train()` function.
+
+First, let's do a cleanup. I will remove everything but the model object from my environment.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# This is pretty old school, but works!
+
+rm(list= ls()[!(ls() %in% c('caret_mod'))])
+
+```
+
+Now, we have to remember how we processed the text data and constructed all the features before for the data we used to build the model. We should apply the exact same procedure to a new text and generate the same features for the new text.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+################################################################################
+
+  require(quanteda)
+  require(quanteda.textstats)
+  require(udpipe)
+  require(reticulate)
+  require(text)
+
+  ud_eng <- udpipe_load_model(here('english-ewt-ud-2.5-191206.udpipe'))
+
+  reticulate::import('torch')
+  reticulate::import('numpy')
+  reticulate::import('transformers')
+  reticulate::import('nltk')
+  reticulate::import('tokenizers')
+
+################################################################################
+
+new.text <- "Mittens sits in the grass. He is all alone. He is looking for some fun. Mittens hits his old ball. Smack! He smells a worm. Sniff! Mittens flips his tail back and forth, back and forth. Then he hears, Scratch! Scratch! What's that, Mittens? What's scratching behind the fence? Mittens runs to the fence. He scratches in the dirt. Scratch! Scratch! Ruff! Ruff! What's that, Mittens? What's barking behind the fence? Mittens meows by the fence. Meow! Meow!"
+
+  
+    # Tokenization and document-feature matrix
+  
+      tokenized <- tokens(new.text,
+                          remove_punct = TRUE,
+                          remove_numbers = TRUE,
+                          remove_symbols = TRUE,
+                          remove_separators = TRUE)
+  
+      dm <- dfm(tokenized)
+
+    # basic text stats
+  
+      text_sm <- textstat_summary(dm)
+      text_sm$sents <- nsentence(new.text)
+      text_sm$chars <- nchar(new.text)
+
+        # text_sm[2:length(text_sm)]
+    
+    # Word-length features
+  
+      wl <- nchar(tokenized[[1]])
+  
+      wl.tab <- table(wl)
+  
+      wl.features <- data.frame(matrix(0,nrow=1,nco=30))
+      colnames(wl.features) <- paste0('wl.',1:30)
+  
+      ind <- colnames(wl.features)%in%paste0('wl.',names(wl.tab))
+  
+      wl.features[,ind] <- wl.tab
+  
+      wl.features$mean.wl  <-   mean(wl)
+      wl.features$sd.wl    <-   sd(wl)
+      wl.features$min.wl   <-   min(wl)
+      wl.features$max.wl   <-   max(wl)
+  
+      # wl.features
+  
+    # Text entropy/Max entropy ratio
+  
+      t.ent <- textstat_entropy(dm)
+      n     <-  sum(featfreq(dm))
+      p     <- rep(1/n,n)
+      m.ent <- -sum(p*log(p,base=2))
+  
+      ent <- t.ent$entropy/m.ent
+  
+      # ent
+  
+    # Lexical diversity
+  
+      text_lexdiv <- textstat_lexdiv(tokenized,
+                                     remove_numbers = TRUE,
+                                     remove_punct   = TRUE,
+                                     remove_symbols = TRUE,
+                                     measure        = 'all')
+  
+      # text_lexdiv[,2:ncol(text_lexdiv)]
+  
+    # Measures of readability
+  
+      text_readability <- textstat_readability(new.text,measure='all')
+  
+    # POS tag frequency
+  
+      annotated <- udpipe_annotate(ud_eng, x = new.text)
+      annotated <- as.data.frame(annotated)
+      annotated <- cbind_morphological(annotated)
+  
+      pos_tags <- c(table(annotated$upos),table(annotated$xpos))
+    
+    # Syntactic relations
+  
+      dep_rel <- table(annotated$dep_rel)
+  
+    # morphological features
+  
+      feat_names <- c('morph_abbr','morph_animacy','morph_aspect','morph_case',
+                      'morph_clusivity','morph_definite','morph_degree',
+                      'morph_evident','morph_foreign','morph_gender','morph_mood',
+                      'morph_nounclass','morph_number','morph_numtype',
+                      'morph_person','morph_polarity','morph_polite','morph_poss',
+                      'morph_prontype','morph_reflex','morph_tense','morph_typo',
+                      'morph_verbform','morph_voice')
+
+      feat_vec <- c()
+      
+      for(j in 1:length(feat_names)){
+        
+        if(feat_names[j]%in%colnames(annotated)){
+          morph_tmp   <- table(annotated[,feat_names[j]])
+          names_tmp   <- paste0(feat_names[j],'_',names(morph_tmp))
+          morph_tmp   <- as.vector(morph_tmp)
+          names(morph_tmp) <- names_tmp
+          feat_vec  <- c(feat_vec,morph_tmp)
+        }
+      }
+      
+    # Sentence Embeddings
+    
+      embeds <- textEmbed(x     = new.text,
+                          model = 'roberta-base',
+                          layers = 12,
+                          context_aggregation_layers = 'concatenate')
+    
+
+    # combine them all into one vector and store in the list object
+      
+      input <- cbind(text_sm[2:length(text_sm)],
+                               wl.features,
+                               as.data.frame(ent),
+                               text_lexdiv[,2:ncol(text_lexdiv)],
+                               text_readability[,2:ncol(text_readability)],
+                               t(as.data.frame(pos_tags)),
+                               t(as.data.frame(c(dep_rel))),
+                               t(as.data.frame(feat_vec)),
+                               as.data.frame(embeds$x)
+                               )
+      
+      input
+```
+
+Here, we have a small issue to deal with. Our new input vector has `r ncol(input)` variables. On the other hand, the original data we used to develop the model had 991 variables. We can access to this information using the model object.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+caret_mod$recipe$var_info
+
+```
+
+This happended because some of the features don't exist for our new text. They exist but the value for these features are zero, and they just don't appear when we create features from the new text. So, we have to append these missing features to the new text, and make their values to zero. Without these features, the model will look for them to apply the formula and return an error message when it can't find any information about these features in the new dataset. In addition, there were some extra features in the new text that doesn't exist in our model. However, we don't have to worry about them because our recipe is going to ignore any extra column in the new dataset that doesn't have a defined role in the recipe.
+
+Try the following code and it should give an error message
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+  predict(caret_mod, input)
+
+```
+
+So, we have to do a little bit of work to make sure the new dataset have all the features the model expects.
+  
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+     
+# feature names from the model
+  
+  my_feats <- caret_mod$recipe$var_info$variable
+
+# column names from the new text
+      
+  colnames(input)
+      
+# Find the features missing from the new text
+      
+  missing_feats <- ! my_feats %in% colnames(input)
+      
+  my_feats[missing_feats]
+      
+      
+# Add the missing features (with assigned values of zeros)
+      
+  temp           <- data.frame(matrix(0,1,sum(missing_feats)))
+  colnames(temp) <- my_feats[missing_feats]
+   
+  input <- cbind(input,temp)
+  
+  input
+```
+
+Now, we are ready to apply our model to the new input data and predict the readability score.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+  
+  predict(caret_mod, input)
+
+```
+
+In order to make things a little easier, I will compile the code we are using to generate input features as a function. This function will require two inputs, a model object and a new text. The function will then return a a matrix of input features.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+ 
+generate_feats <- function(my.model,new.text){
+
+    # Tokenization and document-feature matrix
+  
+      tokenized <- tokens(new.text,
+                          remove_punct = TRUE,
+                          remove_numbers = TRUE,
+                          remove_symbols = TRUE,
+                          remove_separators = TRUE)
+  
+      dm <- dfm(tokenized)
+
+    # basic text stats
+  
+      text_sm <- textstat_summary(dm)
+      text_sm$sents <- nsentence(new.text)
+      text_sm$chars <- nchar(new.text)
+
+    # Word-length features
+  
+      wl <- nchar(tokenized[[1]])
+  
+      wl.tab <- table(wl)
+  
+      wl.features <- data.frame(matrix(0,nrow=1,nco=30))
+      colnames(wl.features) <- paste0('wl.',1:30)
+  
+      ind <- colnames(wl.features)%in%paste0('wl.',names(wl.tab))
+  
+      wl.features[,ind] <- wl.tab
+  
+      wl.features$mean.wl  <-   mean(wl)
+      wl.features$sd.wl    <-   sd(wl)
+      wl.features$min.wl   <-   min(wl)
+      wl.features$max.wl   <-   max(wl)
+
+    # Text entropy/Max entropy ratio
+  
+      t.ent <- textstat_entropy(dm)
+      n     <-  sum(featfreq(dm))
+      p     <- rep(1/n,n)
+      m.ent <- -sum(p*log(p,base=2))
+  
+      ent <- t.ent$entropy/m.ent
+ 
+    # Lexical diversity
+  
+      text_lexdiv <- textstat_lexdiv(tokenized,
+                                     remove_numbers = TRUE,
+                                     remove_punct   = TRUE,
+                                     remove_symbols = TRUE,
+                                     measure        = 'all')
+
+    # Measures of readability
+  
+      text_readability <- textstat_readability(new.text,measure='all')
+  
+    # POS tag frequency
+  
+      annotated <- udpipe_annotate(ud_eng, x = new.text)
+      annotated <- as.data.frame(annotated)
+      annotated <- cbind_morphological(annotated)
+  
+      pos_tags <- c(table(annotated$upos),table(annotated$xpos))
+    
+    # Syntactic relations
+  
+      dep_rel <- table(annotated$dep_rel)
+  
+    # morphological features
+  
+      feat_names <- c('morph_abbr','morph_animacy','morph_aspect','morph_case',
+                      'morph_clusivity','morph_definite','morph_degree',
+                      'morph_evident','morph_foreign','morph_gender','morph_mood',
+                      'morph_nounclass','morph_number','morph_numtype',
+                      'morph_person','morph_polarity','morph_polite','morph_poss',
+                      'morph_prontype','morph_reflex','morph_tense','morph_typo',
+                      'morph_verbform','morph_voice')
+
+      feat_vec <- c()
+      
+      for(j in 1:length(feat_names)){
+        
+        if(feat_names[j]%in%colnames(annotated)){
+          morph_tmp   <- table(annotated[,feat_names[j]])
+          names_tmp   <- paste0(feat_names[j],'_',names(morph_tmp))
+          morph_tmp   <- as.vector(morph_tmp)
+          names(morph_tmp) <- names_tmp
+          feat_vec  <- c(feat_vec,morph_tmp)
+        }
+      }
+      
+    # Sentence Embeddings
+    
+      embeds <- textEmbed(x     = new.text,
+                          model = 'roberta-base',
+                          layers = 12,
+                          context_aggregation_layers = 'concatenate')
+    
+
+    # combine them all into one vector and store in the list object
+      
+      input <- cbind(text_sm[2:length(text_sm)],
+                               wl.features,
+                               as.data.frame(ent),
+                               text_lexdiv[,2:ncol(text_lexdiv)],
+                               text_readability[,2:ncol(text_readability)],
+                               t(as.data.frame(pos_tags)),
+                               t(as.data.frame(c(dep_rel))),
+                               t(as.data.frame(feat_vec)),
+                               as.data.frame(embeds$x)
+                               )
+
+    # feature names from the model
+  
+      my_feats <- my.model$recipe$var_info$variable
+
+    # Find the features missing from the new text
+      
+      missing_feats <- ! my_feats %in% colnames(input)
+      
+    # Add the missing features (with assigned values of zeros)
+        
+      temp           <- data.frame(matrix(0,1,sum(missing_feats)))
+      colnames(temp) <- my_feats[missing_feats]
+   
+      input <- cbind(input,temp)
+      
+      return(list(input=input))
+}
+```
+
+Now, we can get the features for any text using this function and then predict the scores, all in a few lines of code.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# For the next few lines of codes to work, you will need the following
+# in your R environment
+  # 1. R Libraries (quanteda, quanteda.text, text, udpipe, reticulate)
+  # 2. Supplemental Python libraries (torch, tokenizers, nltk, transformers,numpy)
+  # 3. Model object (caret_mod)
+  # 4. A function to generate the features in the model (generate_feats) 
+
+
+# Sample text 1
+
+my.text1   <- 'Sora has a new kite. The kite is red. It is a good kite to fly. '
+
+my.inputs1 <- generate_feats(my.model = caret_mod,
+                            new.text = my.text1)
+
+predict(caret_mod, my.inputs1$input)
+
+
+# Sample text 2
+
+my.text2  <- 'Saguaros have roots underground that grow outward rather than downward.'
+
+my.inputs2 <- generate_feats(my.model = caret_mod,
+                            new.text = my.text2)
+
+predict(caret_mod, my.inputs2$input)
+
+```
+
+# Feature Redundancy, Multicollinearity, and Variable Selection
+
+There are a number of things to consider when we wit a standard multiple regression mode with many predictors. In our example above, we have a model with 887 predictors. The large number of predictors unnecessarily increases the complexity of model, and potentially increase model variance. So, it is a typical case of overfitting. This reduces the usefulness of the model as it is less likely for the model to provide good predictions for another dataset. When there are so many predictors in the regression model, it is important to check whether or not there are redundant features and quantify the degree of redundancy. Too many redundant features may also create computational issues due to singular or near-singular design matrix. In this section, we will first try to understand what feature redundancy is, then we will try to quantify it. At the end, we will present some potential solutions and remedial strategies to deal with highly complex models with so many predictors.
+
+First, let's do a small example. Suppose we have a model with four predictors to predict the readability score. Our predictors are **number of sentences** (sents, X1), **average word length** (mean_wl, X2), **number of finite verbs** (morph_verbform_Fin, X3), and **78th dimension of word embeddings** (Dim78). First, let's do a quick check on the correlation matrix of these four predictors.
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
+```
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+cor(readability[,c('sents','mean.wl','morph_verbform_Fin','Dim78')])
+
+```
+
+You should notice there is relatively higher correlations among three predictors: number of sentences, number of finite verbs, and Dim78. It is possible that some of the information in any one of these variables is redundant because the same amount of information also exist in other two variables. In order to measure this, we will define a term called **tolerance**. 
+
+**Tolerance:**  the amount of variance that is unique to a the predictor that can not be explained by the rest of the predictors.
+
+In other words, if we fit a model such that the **number of sentences** is the outcome and other three variables are predictors and find the value of $R^2$, and then substract the $R^2$ from 1, that would give us a measure of unique variance in the **number of sentences** that couldn't be explained by other three predictors. Let's find the tolerance value for the **number of sentences**.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+tol_sents <- lm(sents ~ 1 + mean.wl + morph_verbform_Fin + Dim78,
+                data=readability)
+
+summary(tol_sents)
+
+summary(tol_sents)$r.squared
+
+```
+
+
+This indicates that about 76.65% of the variance in the **number of sentences** can be explained by the other three predictors. Therefore, only 23.35% of the variance in the **number of sentences** is unique. In other words, whatever the information is stored in the **number of sentences**, 76.65% of that information is also shared by other three predictors, or redundant. So, the tolerance value for the **number of sentences** is 0.2335 (1-.7665).
+
+When tolerance is 0 or close to zero (when almost all of the variance in one predictor can be explained by other predictors), this is also known as **singularity**. In those situations, the least square solution is not unique, and most software will give you some sort of an error message about that. 
+
+The inverse of tolerance is known as something called **Variance Inflation Factor (VIF)**. For instance, VIF for the **number of sentences** would be 4.283 (1/0.2335). VIF can be considered as a measure of redundancy for a predictor in a model. Below is a plot showing VIF for a predictor as a function of variance in the predictor explained by remaining predictors in the model.
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+r2  <- seq(0.01,0.99,.01)
+vif <- 1/(1-r2)
+
+ggplot()+
+  geom_point(aes(y=vif,x=r2))+
+  xlab('R-square')+
+  ylab('VIF')+
+  theme_bw()+
+  ggtitle('Variance Inflation Factor')
+```  
+
+If we go back to our example, suppose we have a model with four predictors as mentioned before. The `vif()` function from the `car` package provides a simple and quick way of calculating VIF values for all the predictors in the model.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+mod_ex <- lm(target ~ 1 + sents + mean.wl + morph_verbform_Fin + Dim78,
+                data=readability)
+
+
+require(car)
+
+vif(mod_ex)
+```
+
+A VIF value indicates the degree of instability (sampling variance) for any regression coefficient. For instance, a VIF value of 4.283 for variable **sents** indicates that the standard error of the regression coefficient associated by this variable is 2.07 ($\sqrt(4.283)$) times larger than what it would be if this variable were uncorrelated with other three predictors in the model. This is important as the larger sampling variance for regression coefficients yield larger sampling variance of model predicted values. So, we don't like including variables with large VIF values in our models as they contribute to the model variance. There are arbitrary cut-off values for VIF depending on what textbook you read (VIF < 4 or VIF < 10).
+
+Let's see the range of VIF values in our model with 887 predictors.
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+my.vifs <- c()
+
+for(i in 1:887){
+  
+  ind  <- 1:887
+  temp <- ind[!ind%in%i]
+  
+  mod.temp   <- lm(formula(baked_tr[,c(i,temp)]),data=baked_tr)
+
+  my.vifs[i] <- 1/(1-summary(mod.temp)$r.squared)
+  
+  #cat(colnames(baked_tr)[i], ':', my.vifs[i],'\n')
+}
+
+```
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+my.vifs <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/vifs.csv',header=TRUE)
+
+require(psych)
+
+describe(my.vifs$my.vifs)
+
+hist(my.vifs$my.vifs)
+
+# The variables with the 10 smallest variables
+
+head(my.vifs[order(my.vifs$my.vifs),],10)
+
+# The variables with the 10 highest variables
+
+head(my.vifs[order(my.vifs$my.vifs,decreasing=TRUE),],10)
+
+```
+
+We clearly have problems in our model. It seems that there are so many redundant variables in our model that doesn't bring unique information when other variables are accounted in the model. That's also the main reason why our model didn't perform in the test dataset as well as it performed in the training dataset. All these redundant variables in the model contributed to the model variance. 
+
+There are a few approached to address this issue:
+
+- **Data reduction**: Data reduction techniques such as Principal Component Analysis (PCA) is an approach to find highly correlated variables and combine the information in these variables in new composite variables. For instance, in its most naive form, suppose Variable 1, Variable 2, Variable 3, and Variable 4 are highly correlated. We can create a new composite variable by taking the sum or mean of these four variables, and use the new composite variable in our model as predictor instead of using all four variables. PCA is a little more detailed version of this process where we first estimate a weight for each variable, and create a weighted sum of these variables as a composite variable. We can decide the number of composites needed to represent the information in all variables, and reduce the number of variables in the model by finding clusters of highly correlated variables and creating a single composite variable for them. Since PCA is a technique on its own and probably requires a few lectures, we will not get into the details of that.
+
+
+- **Variable selection**: Variable selection algorithms such as forward selection, backward elimination, or stepwise regression, or best subset are well known and taught in traditional statistics courses. These algorithms use certain model fit criteria (e.g., Mallows' $C_p$ statistic, AIC, BIC) to eliminate variables with the least information and come up with a simpler model. With very large number of variables, these algorithms can be computationally exhaustive and an efficient search for the best simplest model with adequate predictive power may not even be possible. In other words, there is no guarantee for an optimal solution with these approached when you have hundreds of potential predictors in the model.
+
+
+- **Regularization**: Regularization is adding penalty terms to avoid large coefficients and a trick to trade bias with variance when fitting a model. Some specific types of regularization (e.g., lasso) may indeed behave like a natural feature selection algorithm. They may produce simpler and more interpretable model. 
+
+In the following lecture, we will talk about different types of regularizations to apply while fitting a regression model and we will try to improve the performance of our unnecessarily complex linear regression model discussed above.
+
+
+
+
+
+
+
