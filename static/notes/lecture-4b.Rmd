@@ -236,7 +236,7 @@ image_write(image = img_animated,
             path = 'ridge.gif')
 ```
 
-Below is also a demonstration of what happens to loss function and the regression coefficients for increasing levels of $\lambda$.
+Below is also a demonstration of what happens to loss function and the regression coefficients for increasing levels of ridge penalty ($\lambda$).
 
 ```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
 
@@ -297,7 +297,7 @@ We can manipulate the value of $\lambda$ from 0 to 100 with increments of .1 and
 Y <-  as.matrix(readability_sub$target)
 X <-  as.matrix(cbind(1,readability_sub$mean.wl,readability_sub$sents))
 
-lambda <- seq(0,100,.01)
+lambda <- seq(0,100,.1)
 
 beta     <- data.frame(matrix(nrow=length(lambda),ncol=4))
 beta[,1] <- lambda
@@ -319,19 +319,343 @@ ggplot(data = beta)+
   
 ```
 
-#### Ridge Regression with Standardized Variables
+#### Standardized Variables
 
-We didn't consider a very important issue while we discussed the model estimation. This issue is not necessarily important if you only one predictor. However, it is critial whenever you have more than one predictor. Different variables have different scales and therefore the magnitude of the regression coefficients for different variables will be dependent on the scales of the variables. A regression coefficient for a variable with a range from 0 to 100 will be very different than a regression coefficient for a variable with a range from 0 to 1.
+We haven't considered a very important issue for the model estimation. This issue is not necessarily important if you have only one predictor. However, it is critical whenever you have more than one predictor. Different variables have different scales and therefore the magnitude of the regression coefficients for different variables will be dependent on the scales of the variables. A regression coefficient for a predictor with a range from 0 to 100 will be very different than a regression coefficient for a predictor with a range from 0 to 1. Therefore, if we work with the unstandardized variables, ridge penalty will be amplified for the coefficients of those variables with a larger range of values.
+
+Therefore, it is critical that we standardize variables before we use ridge regression. Let's do the example in the previous section, but we now first standardize the variables in our model. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+Y <-  as.matrix(readability_sub$target)
+
+X <-  as.matrix(cbind(readability_sub$mean.wl,readability_sub$sents))
+
+# Standardize Y
+
+  Y <- scale(Y)
+  
+  Y
+# Standardized X
+  
+  X <- scale(X)
+  X
+```
+
+When we standardize the variables, the mean all variables become zero. So, the intercept estimate for any regression model with standardized variables is guaranteed to be zero. Note that our design matrix doesn't have a column of ones anymore because it is unnecessary (it would be a column of zeros if we had). 
+
+First, let's check the coefficients of the regression model with standardized variables when there is no ridge penalty.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+
+lambda <- 0
+
+beta.s <- solve(t(X)%*%X + lambda*diag(ncol(X)))%*%t(X)%*%Y
+
+beta.s 
+```
+
+Now, let's increase the ridge penalty to 0.5. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+
+lambda <- 0.5
+
+beta.s <- solve(t(X)%*%X + lambda*diag(ncol(X)))%*%t(X)%*%Y
+
+beta.s 
+```
+
+
+Below, we can manipulate the value of $\lambda$ from 0 to 100 with increments of .1 as we did before and calculate the standardized regression coefficients for every possible value of $\lambda$. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=5}
+
+Y <-  as.matrix(readability_sub$target)
+X <-  as.matrix(cbind(readability_sub$mean.wl,readability_sub$sents))
+
+Y <- scale(Y)
+X <- scale(X)
+
+lambda <- seq(0,100,.1)
+
+beta     <- data.frame(matrix(nrow=length(lambda),ncol=3))
+beta[,1] <- lambda
+
+for(i in 1:length(lambda)){
+  beta[i,2:3] <- t(solve(t(X)%*%X + lambda[i]*diag(ncol(X)))%*%t(X)%*%Y)
+}
+
+ggplot(data = beta)+
+  geom_line(aes(x=X1,y=X2))+
+  geom_line(aes(x=X1,y=X3))+
+  xlab(expression(lambda))+
+  ylab('')+
+  theme_bw()+
+  geom_hline(yintercept=0,lty=2) + 
+  annotate(geom='text',x=2,y=.60,label=expression(beta[2]))+
+  annotate(geom='text',x=2,y=-.4,label=expression(beta[1]))
+  
+```
 
 #### `glmnet()` function
 
-### Tuning the Hyperparameter $\lambda$ without Cross-validation
+Similar to `lm` function, we can use `glmnet()` function from the `glmnet` package to run a regression model with ridge penalty. There are many arguments of the `glmnet()` function. For now, the arguments we need to know are
 
-The $\lambda$ parameter in ridge regression is called a **hyperparameter**. In the context of machine learning, the parameters in a model can be classified into two types: parameters and hyperparameters. The parameters of the model are typically estimated from data and not set by us. In the context of regularized regression, regression coefficients, {$\beta_0,\beta_1,...,\beta_P$},
+- `x`: an N  x P input matrix, where N is the number of observations and P is the number of predictor
+- `y`: an N x 1 input matrix for the outcome variable
+- `alpha`: a mixing constant for lasso and ridge penalty. When it is zero, the ridge regression is conducted
+- `lambda`: penalty term
+- `intercept`: set FALSE to avoid intercept for standardized variables
 
-### Tuning the Hyperparameter $\lambda$ with 10-fold Cross-validation
+If you want to fit the linear regression without any regularization, you can specify `alpha = 0` and `lambda = 0`.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=5}
+
+#install.packages('glmnet')
+
+require(glmnet)
+
+Y <-  as.matrix(readability_sub$target)
+X <-  as.matrix(cbind(readability_sub$mean.wl,readability_sub$sents))
+Y <- scale(Y)
+X <- scale(X)
+
+mod <- glmnet(x = X,
+              y = Y,
+              family = 'gaussian',
+              alpha = 0,
+              lambda = 0,
+              intercept=FALSE)
+
+
+coef(mod)
+
+```
+
+We can also increase the penalty term ($\lambda$).
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=5}
+
+#install.packages('glmnet')
+
+require(glmnet)
+
+Y <-  as.matrix(readability_sub$target)
+X <-  as.matrix(cbind(readability_sub$mean.wl,readability_sub$sents))
+Y <- scale(Y)
+X <- scale(X)
+
+mod <- glmnet(x = X,
+              y = Y,
+              family = 'gaussian',
+              alpha = 0,
+              lambda = 0.5,
+              intercept=FALSE)
+
+
+coef(mod)
+
+```
+
+
+***
+<div id="infobox">
+
+<center style="color:black;"> **NOTE** </center>
+
+A careful eye should catch the fact that the coefficient estimates we obtained from `glmnet()` function for the the two standardized variables (average word length and number of sentences) are different when the penalty term ($\lambda$) is 0.5. When we apply the matrix solution above for the ridge regression, we obtained the estimates of -0.360 and 0.591 for the two predictors, respectively, at $\lambda$ = 0.5. When we enter the same value in `glmnet()`, we obtained the estimates of -0.27 and 0.414. So, what is wrong? Where does this discrepancy come from?
+
+In fact, there is nothing wrong. It appears that what `lambda` argument in `glmnet` indicates is $\frac{\lambda}{N}$. In most statistics textbook, the penalty term for the ridge regression is specified as 
+
+$$\lambda \sum_{i=1}^{P}\beta_p^2.$$
+On the other hand, if we examine Equation 1-3 in [this paper](https://www.jstatsoft.org/article/view/v033i01) written by the developers of the `glmnet` package, we can see that the penalty term applied is equivalent of 
+
+$$\lambda N \sum_{i=1}^{P}\beta_p^2.$$
+
+Therefore, if we want to get the identical results, then we should use $\lambda$ = 0.5/20.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=5}
+
+N = 20
+
+mod <- glmnet(x = X,
+              y = Y,
+              family = 'gaussian',
+              alpha = 0,
+              lambda = 0.5/N,
+              intercept=FALSE)
+
+
+coef(mod)
+
+```
+
+Note that these numbers are still slightly different. We can attribute this difference to numerical approximation `glmnet` is using when optimizing the loss function. `glmnet` doesn't use the closed form matrix solution for ridge regression. This is a good thing because there is not always a closed form solution for different types of regularization approaches (e.g., lasso). Therefore, the computational approximation in `glmnet` is very needed moving forward.
+
+</div>
+***
+
+#### Tuning the Hyperparameter $\lambda$
+
+The $\lambda$ parameter in ridge regression is called a **hyperparameter**. In the context of machine learning, the parameters in a model can be classified into two types: parameters and hyperparameters. The parameters of the model are typically estimated from data and not set by users. In the context of ridge regression, regression coefficients, {$\beta_0,\beta_1,...,\beta_P$}, are parameters to be estimated from data. On the other hand, the hyperparameters are not estimable, most of the time due to the fact that there is no first order or second order derivatives for these hyperparameters. Therefore, they must be set by the users. In the context of ridge regression, penalty term, {$\lambda$}, is a hyperparameter.
+
+The process of deciding what value to use for a hyperparameter is called **tuning**, and it is most of the time a trial-error process. The idea is simple. We try many different values of a hyperparameter and check how well the model performs based on a certain criteria (e.g., MAE, MSE, RMSE) using a k-fold cross validation. Then, we pick the value of a hyperparameter that provides the best performance.
 
 ### Using Ridge Regression to Predict Readability Scores
+
+In this section, we will apply ridge regression to predict the readability scores from all predictors in the dataset. We will use the `caret` package and use 10-fold cross validation to evaluate the model performance for different levels of penalty term ($\lambda$).
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Load the packages
+
+  require(caret)
+  require(recipes)
+  require(finalfit)
+  require(glmnet)
+
+# Import the dataset
+
+  readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
+
+# Initial preparation (remove variables with large amount of missingness)
+
+  require(finalfit)
+
+  missing_ <- ff_glimpse(readability)$Continuous
+  flag_na <- which(as.numeric(missing_$missing_percent) > 80)
+  readability <- readability[,-flag_na]
+
+# Set the random seed for reproducibility
+
+  set.seed(10152021)
+
+# Train/Test Split
+  
+  loc      <- sample(1:nrow(readability), round(nrow(readability) * 0.9))
+  read_tr  <- readability[loc, ]
+  read_te  <- readability[-loc, ]
+
+# Blueprint
+
+  blueprint <- recipe(x     = readability,
+                      vars  = colnames(readability),
+                      roles = c(rep('predictor',990),'outcome')) %>%
+    step_zv(all_numeric()) %>%
+    step_nzv(all_numeric()) %>%
+    step_impute_mean(all_numeric()) %>%
+    step_normalize(all_numeric_predictors()) %>%
+    step_corr(all_numeric(),threshold=0.9)
+
+# Cross validation settings
+
+  cv <- trainControl(method = "cv",
+                     p      = 10)
+  
+# Tune Grid  
+  
+  # Here, we have to specify different values of lambda we want to try
+  # This should be a dataframe with columns named are the same as 
+  # the tuning parameters available for the engine we are using
+  
+  # In order to get which parameters are available to tune for glmnet
+  # run the following code
+  
+  caret::getModelInfo()$glmnet$parameters
+
+  # This indicates there are two hyperparameters available to tune for the glmnet
+  # For ridge regression, we know that we will fix the value of alpha to 0
+  # Let's assume that the lambda values we want to try are 1, 5, 10, and 100.
+  
+  
+    # Remember how glmnet multiplies the lambda by sample size (N)
+    # In this case, the sample size is 2834
+    # So, for instance a lambda value of 1 would be 2834
+    # You can try larger values and explore, but in this case a max value of 3 
+    # for lambda would be more than enough. I don't think it will improve performance
+    # beyond this value
+  
+    # Also, note that there are 100 values, and for every lambda value we will do
+    # 10-fold cross validation, so it can take a very long time to search this 
+    # grid
+  
+  grid <- data.frame(alpha = 0, lambda = seq(0.01,3,.01)) 
+  grid
+    
+  
+# Train the model
+
+  ridge <- caret::train(blueprint, 
+                        data      = read_tr, 
+                        method    = "glmnet", 
+                        trControl = cv,
+                        tuneGrid  = grid)
+
+    # This training took about 3 minutes in my computer
+
+  ridge$results
+
+  ridge$bestTune
+  
+  plot(ridge)
+  
+```
+
+
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+#Load the Rdata
+
+load('B:/UO Teaching/EDLD 654/Books&Resources/largedata/ridgemodel_lecture4a.RData')
+
+  ridge$results
+  
+  ridge$bestTune
+
+  plot(ridge)
+```
+
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=5}
+
+
+prepare <- prep(blueprint, 
+                training = read_tr)
+prepare
+
+baked_tr <- bake(prepare, new_data = read_tr)
+baked_te <- bake(prepare, new_data = read_te)
+
+baked_tr <- as.data.frame(baked_tr)
+baked_te <- as.data.frame(baked_te)
+
+
+mod <- glmnet(x = baked_tr[,1:887],
+              y = as.numeric(baked_tr[,888]),
+              family = 'gaussian',
+              alpha = 0,
+              lambda = 0.63)
+
+
+predicted_te <- predict(mod,newx=as.matrix(baked_te[,1:887]))[,1]
+
+# Calculate the outcome metrics
+
+rsq_te <- cor(baked_te$target,predicted_te)^2
+rsq_te
+
+mae_te <- mean(abs(baked_te$target - predicted_te))
+mae_te
+
+rmse_te <- sqrt(mean((baked_te$target - predicted_te)^2))
+rmse_te
+```
+
+
 
 ## Lasso Regression
 
