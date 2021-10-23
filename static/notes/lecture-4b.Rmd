@@ -604,8 +604,6 @@ In this section, we will apply ridge regression to predict the readability score
   
 ```
 
-
-
 ```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
 #Load the Rdata
@@ -619,6 +617,28 @@ load('B:/UO Teaching/EDLD 654/Books&Resources/largedata/ridgemodel_lecture4a.RDa
   plot(ridge)
 ```
 
+The 10-fold cross-validation results on the training dataset indicate that a $\lambda$ value of 0.63 provides the best performance (minimum RMSE). Let's use this model to predict the outcome in the hold-out test dataset.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+predict_te_ridge <- predict(ridge, read_te)
+
+rsq_te <- cor(read_te$target,predict_te_ridge)^2
+rsq_te
+
+mae_te <- mean(abs(read_te$target - predict_te_ridge))
+mae_te
+
+rmse_te <- sqrt(mean((read_te$target - predict_te_ridge)^2))
+rmse_te
+```
+
+Below is a table to compare the performance of ridge regression and linear regression (from earlier lecture) on the test dataset.
+
+|                   | R-square | MAE   | RMSE
+|-------------------|:--------:|:-----:|:-----:|
+| Linear Regression |  0.644   | 0.522 | 0.644 |
+| Ridge Regression  |  0.727   | 0.435 | 0.536 |
 
 ```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=5}
 
@@ -655,6 +675,25 @@ rmse_te <- sqrt(mean((baked_te$target - predicted_te)^2))
 rmse_te
 ```
 
+### Impact on VIFs
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=5}
+
+
+prepare <- prep(blueprint, 
+                training = read_tr)
+
+baked_tr <- bake(prepare, new_data = read_tr)
+
+
+rxx <- cor(baked_tr[,1:887])
+
+lambda <- 0.63*nrow(baked_tr)
+
+vifs <- diag(solve(rxx + lambda*diag(nrow(rxx))) %*% rxx %*% solve(rxx + lambda*diag(nrow(rxx))))
+
+
+```
 
 
 ## Lasso Regression

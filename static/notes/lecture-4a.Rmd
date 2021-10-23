@@ -960,7 +960,7 @@ So, we have to do a little bit of work to make sure the new dataset have all the
 
 # column names from the new text
       
-  colnames(input)
+  #colnames(input)
       
 # Find the features missing from the new text
       
@@ -976,7 +976,7 @@ So, we have to do a little bit of work to make sure the new dataset have all the
    
   input <- cbind(input,temp)
   
-  input
+  #input
 ```
 
 Now, we are ready to apply our model to the new input data and predict the readability score.

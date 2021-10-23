@@ -960,7 +960,7 @@ So, we have to do a little bit of work to make sure the new dataset have all the
 
 # column names from the new text
       
-  colnames(input)
+  #colnames(input)
       
 # Find the features missing from the new text
       
@@ -976,7 +976,7 @@ So, we have to do a little bit of work to make sure the new dataset have all the
    
   input <- cbind(input,temp)
   
-  input
+  #input
 ```
 
 Now, we are ready to apply our model to the new input data and predict the readability score.
@@ -1220,6 +1220,22 @@ mod_ex <- lm(target ~ 1 + sents + mean.wl + morph_verbform_Fin + Dim78,
 require(car)
 
 vif(mod_ex)
+```
+
+Or, the VIF values for a given set of predictors can be found using the following matrix operation. Let $r_{\mathbf{X}\mathbf{X}}$ is an P x P correlation matrix for P predictors in a model. Then, the corresponding VIF values for each predictor are the diagonal elements of output matrix obtained from the following formula,
+
+$$
+r_{\mathbf{X}\mathbf{X}}^{-1} r_{\mathbf{X}\mathbf{X}} r_{\mathbf{X}\mathbf{X}}^{-1}.
+$$
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+rxx <- cor(readability[,c('sents','mean.wl','morph_verbform_Fin','Dim78')])
+rxx
+
+solve(rxx) %*% rxx %*% solve(rxx)
+
+diag(solve(rxx) %*% rxx %*% solve(rxx))
+
 ```
 
 A VIF value indicates the degree of instability (sampling variance) for any regression coefficient. For instance, a VIF value of 4.283 for variable **sents** indicates that the standard error of the regression coefficient associated by this variable is 2.07 ($\sqrt(4.283)$) times larger than what it would be if this variable were uncorrelated with other three predictors in the model. This is important as the larger sampling variance for regression coefficients yield larger sampling variance of model predicted values. So, we don't like including variables with large VIF values in our models as they contribute to the model variance. There are arbitrary cut-off values for VIF depending on what textbook you read (VIF < 4 or VIF < 10).
