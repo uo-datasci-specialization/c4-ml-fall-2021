@@ -125,7 +125,7 @@ loss <- sum((d$error)^2) + lambda*(b0^2 + b1^2)
 loss 
 ```
 
-Notice that when $\lambda$ is equal to 0, the loss function is identical to SSR; therefore, it becomes a linear regression with no regularization. As the value of $\lambda$ increases, the degree of penalty linearly increases. Technically, the  $\lambda$ can take any positive value between 0 and $\infty$.
+Notice that when $\lambda$ is equal to zero, the loss function is identical to SSR; therefore, it becomes a linear regression with no regularization. As the value of $\lambda$ increases, the degree of penalty linearly increases. Technically, the  $\lambda$ can take any positive value between 0 and $\infty$.
 
 As we did in the previous lecture, imagine that we computed the loss function with the ridge penalty term for every possible combination of the intercept ($\beta_0$) and the slope ($\beta_1$). Let's say the plausible range for the intercept is from -10 to 10 and the plausible range for the slope is from -2 to 2. Now, we also have to think different values of $\lambda$ because the surface we try to minimize is dependent on the value $\lambda$ and different values of $\lambda$ yield different estimates of $\beta_0$ and and $\beta_1$. 
 
@@ -133,7 +133,7 @@ You can try a number of different values for $\lambda$ using the shiny app at [t
 
 ```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
-setwd('B:/UO Teaching/EDLD 654/c4-ml-fall-2021/website-data/animations/ridge')
+setwd('B:/UO Teaching/EDLD 654/Books&Resources/ridge')
 
 require(plotly)
 
@@ -226,7 +226,7 @@ imgs <- imgs[order(as.numeric(substring(imgs,
                                         str_locate(imgs,'./image')[,2]+1,
                                         str_locate(imgs,'.png')[,1]-1)))]
 
-imgs <- imgs[c(1:50,seq(51,2001,100))]
+imgs <- imgs[seq(1,2001,20)]
 
 img_list <- lapply(imgs, image_read)
 img_joined <- image_join(img_list)
@@ -567,9 +567,9 @@ In this section, we will apply ridge regression to predict the readability score
   caret::getModelInfo()$glmnet$parameters
 
   # This indicates there are two hyperparameters available to tune for the glmnet
-  # For ridge regression, we know that we will fix the value of alpha to 0
-  # Let's assume that the lambda values we want to try are 1, 5, 10, and 100.
-  
+  # For ridge regression, we will fix the value of alpha to 0
+  # For lambda, we will consider all values from 0.01 to 3 with increments of 0.01
+ 
   
     # Remember how glmnet multiplies the lambda by sample size (N)
     # In this case, the sample size is 2834
@@ -677,8 +677,16 @@ rmse_te
 
 ### Impact on VIFs
 
-```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=5}
+VIF values for the ridge regression can also be calculated using the following matrix operation,
 
+$$
+(r_{\mathbf{X}\mathbf{X}} + \lambda\mathbf{I})^{-1} r_{\mathbf{X}\mathbf{X}} (r_{\mathbf{X}\mathbf{X}}+ \lambda\mathbf{I})^{-1}.
+$$
+Note that the optimal value of $\lambda$ yielded by our grid search using `glmnet` was 0.63; however, we know that the $\lambda$ used by `glmnet` is reduced by a factor of $N$. Therefore, we should replace the $\lambda$ in this formula by 2384*0.63 to find the new VIF values.
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=5}
+
+require(recipes)
 
 prepare <- prep(blueprint, 
                 training = read_tr)
@@ -688,28 +696,798 @@ baked_tr <- bake(prepare, new_data = read_tr)
 
 rxx <- cor(baked_tr[,1:887])
 
-lambda <- 0.63*nrow(baked_tr)
+lambda <- 2834*0.63
 
 vifs <- diag(solve(rxx + lambda*diag(nrow(rxx))) %*% rxx %*% solve(rxx + lambda*diag(nrow(rxx))))
+
+hist(vifs)
+```
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=6,fig.height=6}
+
+# Consider addign this example in the future
+
+### Bias-Variance Trade off in Ridge Regression
+
+#As the magnitude of the penalty term($\lambda$) increases, we reduce the variance of regression #coefficients while introducing some bias. The bias - variance trade off in the regression coefficients #eventually lead bias - variance trade off in model predictions, because model predictions are just #functions of the regression coefficients. 
+
+#We can show that the mean squared error can be decomposed into two components: Squared bias and #variance (it looks like we have [a proof for this on #Wikipedia](https://en.wikipedia.org/wiki/Mean_squared_error#Proof_of_variance_and_bias_relationship)).
+
+#$$MSE = Bias^2 + Variance$$
+#We will try to visualize this tradeoff in the context of regression by using an earlier example we #discussed in class.
+
+#Suppose that we have a true model underlying the relationship between two variables, $X$ and $Y$. This #model is
+#$$y = e^{(x-0.3)^2} - 1 + \epsilon,$$
+#where $x$ is a predictor variable that is equally spaced and ranges from 0 to 1, $\epsilon$ is a random error component and follows a normal distribution with a mean of zero and standard deviation of 0.1, and $y$ is the outcome variable. 
+
+#Suppose that we simulate 100 datasets following the true model and error specification, and each dataset has 20 observations. Then, we will fit the 6th degree polynomial to all 100 simulated datasets with varying degrees of ridge penalty. Everytime we fit a model, we will save our predictions. At the end, we will compare these predictions to true predicted values (based on the true model) and compute bias, variance, and overall error measured by the mean squared error. Then, we will plot our numbers as a function of ridge penalty.
+
+##############################3
+
+set.seed(09282021)
+
+N = 20                         # number of observations
+
+lambda <- seq(0.01,2,.01)      # values for different levels of ridge penalty
+  
+R <- 100                       # Number of replications 
+
+# Create a list to save predictions for each single observation (1:20)
+
+result <- array(NA,dim =c(N,R,length(lambda)))
+
+
+result <- matrix(nrow=R,ncol=length(lambda))
+
+# Run the simulation
+
+for(i in 1:R){
+
+  # Simulate data
+  
+  X <- seq(0,1,length=N)   # values for X
+  E <- rnorm(N,0,.1)            # random error terms
+  Y <- exp((X-0.3)^2) - 1 + E   # observed Y based on model specifications
+ 
+  # Standardize Y and X
+  
+  X_poly      <- poly(X,degree=6)
+  
+#  X_poly_star <- scale(X_poly)
+#  Y_star      <- scale(Y)
+  
+  for(j in 1:length(lambda)) {
+    
+    mod <- glmnet(x         = X_poly,
+                  y         = Y,
+                  family    = 'gaussian',
+                  alpha     = 0,
+                  lambda    = lambda[j])
+    
+    pr  <- predict(mod,X_poly)
+    
+    result[i,j] <- pr[1]
+  }
+}
+
+##############################################################################
+
+X      <- seq(0,1,length=N)    # values for X
+true.Y <- exp((X-0.3)^2) - 1   # True values of Y based on the true model
+
+
+
+bias     <- apply(result[1,,],2,mean) - true.Y
+variance <- apply(result[1,,],2,var)
+mse      <- apply((result[1,,] - true.Y)^2,2,mean)
+  
+  
+bias     <- apply(result,2,mean) - true.Y[1]
+variance <- apply(result,2,var)
+mse      <- apply((result - true.Y[1])^2,2,mean)
+  
+plot(lambda,bias,type='l')
+points(lambda,variance,type='l')
+points(lambda,mse,type='l',lty=2)
+
+```
+
+### Variable Importance
+
+Variable importance in ridge regression can be evaluated based on the magnitude of the standardized coefficients and be obtained using `vip()` function from the `vip` package. For instance, the plot below shows the most importan 10 predictors of readability scores in this dataset.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
+
+#install.packages('vip')
+
+require(vip)
+
+vip(ridge, num_features = 10, geom = "point") + 
+  theme_bw()
+
+```
+
+The Importance values on the X-axis are directly related to the magnitude of the standardized coefficients obtained from the final model. The standardized regression coefficients are rescaled such that the largest regression coefficient is 100 and the rescaled values are used on the X-axis. Below provides a list of the 10 largest standardized regression coefficients.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+coefs <- coef(ridge$finalModel,ridge$bestTune$lambda)
+
+ind   <- order(abs(coefs),decreasing=T)
+
+head(as.matrix(coefs[ind[-1],]),10)
 
 
 ```
 
-
 ## Lasso Regression
 
-### Lasso Penalty
+Lasso regression is very similar to the Ridge regression. The only difference is that it applies a different penalty to the loss function. Assuming that there are P regression coefficients in the model, the penalty term for the ridge regression would be 
+$$\lambda \sum_{i=1}^{P} |\beta_p|,$$
+
+where $\lambda$ is again the penalty constant and $|\beta_p|$ is the absolute value of the regression coefficient for the $P^{th}$ parameter. Lasso regression also penalizes the regression coefficients when they get larger, but in a different way. When we fit a regression model with lasso penalty, the loss function to minimize becomes
+
+$$Loss = \sum_{i=1}^{N}\epsilon_{(i)}^2 + \lambda \sum_{i=1}^{P}|\beta_p|,$$
+$$Loss = SSR + \lambda \sum_{i=1}^{P}|\beta_p|.$$
+
+Let's consider again the same example where we fit a simple linear regression model such that the readability score is the outcome ($Y$) and average word length is the predictor($X$). Our regression model is
+
+$$Y = \beta_0  + \beta_1X + \epsilon,$$
+
+and let's assume the set of coefficients are {$\beta_0,\beta_1$} = {7.5,-2}, so my model is
+
+$$Y = 7.5  - 2X + \epsilon.$$
+
+Then, the value of the loss function when $\lambda=0.2$ would be equal to 17.284.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+readability_sub <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_feat_sub.csv',header=TRUE)
+
+d <-  readability_sub[,c('mean.wl','target')]
+
+b0 = 7.5
+b1 = -2
+
+d$predicted <- b0 + b1*d$mean.wl
+d$error     <- d$target - d$predicted
+
+d
+
+lambda = 0.2
+
+loss <- sum((d$error)^2) + lambda*(abs(b0) + abs(b1))
+
+loss 
+```
+
+When $\lambda$ is equal to 0, the loss function is again identical to SSR; therefore, it becomes a linear regression with no regularization. You can similarly try a number of different values for $\lambda$ using the shiny app at [this link](https://cengiz-shiny.app/shiny/ridge/) and explore how the loss function value and coefficient estimates change for different values of $\lambda$. 
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+readability_sub <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_feat_sub.csv',header=TRUE)
+
+d <-  readability_sub[,c('mean.wl','target')]
+
+setwd('B:/UO Teaching/EDLD 654/Books&Resources/lasso')
+
+require(plotly)
+
+lambda = seq(0,1000,10)
+
+b0 <- c()
+b1 <- c()
+
+for(i in 1:length(lambda)){
+  
+     grid    <- expand.grid(b0=seq(-10,10,.1),b1=seq(-5,5,.01))           
+     grid$SSR <- NA
+      
+      B1    <- matrix(grid$b1,ncol=20,nrow=nrow(grid),byrow=FALSE)
+      B0    <- matrix(grid$b0,ncol=20,nrow=nrow(grid),byrow=FALSE)
+      X     <- matrix(d$mean.wl,ncol=20,nrow=nrow(grid),byrow=TRUE)
+      Y_hat <- B0 + X*B1
+      Y     <- matrix(d$target,ncol=20,nrow=nrow(grid),byrow=TRUE)
+      P     <- lambda[i]*(abs(grid$b0) + abs(grid$b1))
+      grid$SSR <- rowSums((Y - Y_hat)^2) + P
+
+      #fig <- plot_ly(grid, x = ~b0, y = ~b1, z = ~SSR, 
+      #        marker = list(color = ~SSR,
+      #                      showscale = FALSE,
+      #                      cmin=min(grid$SSR),
+      #                      cmax=max(grid$SSR),cauto=F),
+      #        width=1200,height=1200) %>% 
+      #  add_markers() %>%
+      #  layout(title = paste0("lambda = ",lambda[i]))%>%
+      #  layout(scene = list(xaxis=list(title = 'Beta0'),
+      #                      yaxis=list(title = 'Beta1'),
+      #                      camera = list(eye = list(x = 2, y = 0.5, z = 0.5),
+      #                                    up  = list(x=0,y=0.5,z=0.5)))) %>% 
+      #  config(mathjax = 'cdn')
+    #  
+
+    #  orca(fig,paste0('plot',i,'.png'))
+      
+      
+      b0[i] <- grid[which.min(grid$SSR),]$b0
+      b1[i] <- grid[which.min(grid$SSR),]$b1
+      
+      
+      p1 <- ggplot() +
+        geom_point(aes(x=lambda[1:i],y=b0),cex=0.5) +
+        geom_line(aes(x=lambda[1:i],y=b0),size=0.25) +
+        xlim(c(0,1000))+
+        ylim(c(0,5)) +
+        xlab('lambda')+
+        ylab('Beta0')+
+        theme_bw()
+        
+      p2 <- ggplot() +
+        geom_point(aes(x=lambda[1:i],y=b1),cex=0.5) +
+        geom_line(aes(x=lambda[1:i],y=b1),size=0.25) +
+        xlim(c(0,1000))+
+        ylim(c(-1.5,0)) +
+        xlab('lambda')+
+        ylab('Beta1')+
+        theme_bw()
+      
+      ggsave(paste0('b0plot',i,'.png'),p1,width = 1200,height=600,unit='px')
+      ggsave(paste0('b1plot',i,'.png'),p2,width = 1200,height=600,unit='px')
+      
+}
+
+require(magick)
+
+for(i in 1:100){
+
+  a = image_read(paste0('b0plot',i,'.png'))
+  b = image_read(paste0('b1plot',i,'.png'))
+  p = image_read(paste0('plot',i,'.png'))
+
+  all <- image_append(c(p,image_append(c(a,b),stack=TRUE)))
+
+  image_write(all,
+              path = paste0('image',i,'.png'),
+              format='png',
+              quality=100,
+              depth=16)
+  print(i)
+}
+
+imgs <- list.files(full.names=TRUE)
+loc <- grep('./image',imgs)
+imgs <- imgs[loc]
+
+imgs <- imgs[order(as.numeric(substring(imgs,
+                                        str_locate(imgs,'./image')[,2]+1,
+                                        str_locate(imgs,'.png')[,1]-1)))]
+
+img_list <- lapply(imgs, image_read)
+img_joined <- image_join(img_list)
+img_animated <- image_animate(img_joined, fps = 10)
+#img_animated
+image_write(image = img_animated,
+            path = 'lasso.gif')
+```
+
+Below is also a demonstration of what happens to loss function and the regression coefficients for increasing levels of loss penalty ($\lambda$).
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=8,fig.width=8}
+
+knitr::include_graphics(here('website-data/animations/lasso/lasso.gif'))
+
+```
+
+### Model Estimation
+
+Unfortunately, there is no closed form solution for lasso regression due to the absolute value terms in the loss function. The only way to estimate the coefficients of the lasso regression is to optimize the loss function using numerical techniques and obtain computational approximations of the regression coefficients. Similar to the ridge regression, `glmnet` is an engine we can use to estimate the coefficients of the lasso regression.
+
+#### glmnet() function
+
+We can fit the lasso regression by setting the `alpha=` argument to 1 in `glmnet()` and specifying the penalty term ($\lambda$).
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=5}
+
+Y <-  as.matrix(readability_sub$target)
+X <-  as.matrix(cbind(readability_sub$mean.wl,readability_sub$sents))
+Y <- scale(Y)
+X <- scale(X)
+
+mod <- glmnet(x = X,
+              y = Y,
+              family = 'gaussian',
+              alpha = 1,
+              lambda = 0.5,
+              intercept=FALSE)
+
+
+coef(mod)
+
+```
+
+Notice that there is a `.` symbol for the coefficient of the first predictor. This indicates that it is equal to zero. While the regression coefficients in the ridge regression shrink to zero, they are not necessarily end up being exactly equal to zero. In contrast, lasso regression may yield a value of zero for some coefficients in the model. For this reason, lasso regression may be used as a variable selection algorithm. The variables with coefficients equal to zero may be discarded from future considerations as they are found to be not important for predicting the outcome.
+
+#### Tuning $\lambda$
+
+We implement a similar strategy for finding the optimal value of $\lambda$. We try many different values of $\lambda$ and check how well the model performs based on a certain criteria (e.g., MAE, MSE, RMSE) using a k-fold cross validation. Then, we pick the value of $\lambda$ that provides the best performance.
+
+### Using Lasso Regression to Predict the Readability Scores
+
+In this section, we will apply the lasso regression to predict the readability scores from all predictors in the dataset. We will use the `caret` package and use 10-fold cross validation to evaluate the model performance for different levels of penalty term ($\lambda$).
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Load the packages
+
+  require(caret)
+  require(recipes)
+  require(finalfit)
+  require(glmnet)
+
+# Import the dataset
+
+  readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
+
+# Initial preparation (remove variables with large amount of missingness)
+
+  require(finalfit)
+
+  missing_ <- ff_glimpse(readability)$Continuous
+  flag_na <- which(as.numeric(missing_$missing_percent) > 80)
+  readability <- readability[,-flag_na]
+
+# Set the random seed for reproducibility
+
+  set.seed(10152021)
+
+# Train/Test Split
+  
+  loc      <- sample(1:nrow(readability), round(nrow(readability) * 0.9))
+  read_tr  <- readability[loc, ]
+  read_te  <- readability[-loc, ]
+
+# Blueprint
+
+  blueprint <- recipe(x     = readability,
+                      vars  = colnames(readability),
+                      roles = c(rep('predictor',990),'outcome')) %>%
+    step_zv(all_numeric()) %>%
+    step_nzv(all_numeric()) %>%
+    step_impute_mean(all_numeric()) %>%
+    step_normalize(all_numeric_predictors()) %>%
+    step_corr(all_numeric(),threshold=0.9)
+
+# Cross validation settings
+
+  cv <- trainControl(method = "cv",
+                     p      = 10)
+  
+# Tune Grid  
+  
+  # Note that we set the value of alpha to 1 for lasso regression
+  
+  grid <- data.frame(alpha = 1, lambda = seq(0.01,3,.01)) 
+    
+# Train the model
+
+  lasso <- caret::train(blueprint, 
+                        data      = read_tr, 
+                        method    = "glmnet", 
+                        trControl = cv,
+                        tuneGrid  = grid)
+
+  lasso$results
+
+```
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+grid <- data.frame(alpha = 1, lambda = seq(0.001,0.015,.001)) 
+
+grid
+    
+# Train the model
+
+  lasso2 <- caret::train(blueprint, 
+                        data      = read_tr, 
+                        method    = "glmnet", 
+                        trControl = cv,
+                        tuneGrid  = grid)
+
+  lasso$results
+  
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+#Load the Rdata
+
+load('B:/UO Teaching/EDLD 654/Books&Resources/largedata/lassomodel_lecture4a.RData')
+
+  lasso$results
+  
+  plot(lasso)
+```
+
+Compared to the ridge regression, we have a different result. It seems a very large $\lambda$ value is not useful at all. In fact, any number larger than .01 made the predictions worse. In this case, we can do another search with really small numbers. We will update our grid, and we will look at the $\lambda$ values from 0.001 to 0.015 with increments of 0.001.
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+grid <- data.frame(alpha = 1, lambda = seq(0.005,0.015,.001)) 
+    
+# Train the model
+
+  lasso2 <- caret::train(blueprint, 
+                        data      = read_tr, 
+                        method    = "glmnet", 
+                        trControl = cv,
+                        tuneGrid  = grid)
+
+  lasso2$results
+
+  
+  lasso2$bestTune
+  
+  plot(lasso2)  
+  
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+  lasso2$results
+  
+  lasso2$bestTune
+  
+  plot(lasso2)
+```
+
+It looks like a $\lambda$ value of 0.006 is the best pick although any number between 0.005 and 0.010 probably works fine. Let's now use the lasso regression model to predict the outcome in the hold-out test dataset as we did before for the ridge regression.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+predict_te_lasso<- predict(lasso2, read_te)
+
+rsq_te <- cor(read_te$target,predict_te_lasso)^2
+rsq_te
+
+mae_te <- mean(abs(read_te$target - predict_te_lasso))
+mae_te
+
+rmse_te <- sqrt(mean((read_te$target - predict_te_lasso)^2))
+rmse_te
+```
+
+Below is a table to compare the performance of linear regression, ridge regression, and linear regression on the test dataset. The performance of the lasso regression was very close to the ridge regression but didn't provide any significant improvement over the ridge regression.
+
+|                   | R-square | MAE   | RMSE
+|-------------------|:--------:|:-----:|:-----:|
+| Linear Regression |  0.644   | 0.522 | 0.644 |
+| Ridge Regression  |  0.727   | 0.435 | 0.536 |
+| Lasso Regression  |  0.725   | 0.435 | 0.538 |
+
+
+### Variable Importance
+
+We can again look at the variable importance using the `vip` function. While there are similarities and common important variables, the lasso regression provided a different top 10 important variables.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
+
+vip(lasso2, num_features = 10, geom = "point") + 
+  theme_bw()
+
+```
+
+Below provides a list of the 10 largest standardized regression coefficients. Out of 887 predictors, lasso yielded a value of zero for the regression coefficient for 571 predictors.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+coefs <- coef(lasso2$finalModel,lasso2$bestTune$lambda)
+
+coefs.zero <- coefs[which(coefs[,1]==0),]
+length(coefs.zero)
+
+coefs.nonzero <- coefs[which(coefs[,1]!=0),]
+length(coefs.nonzero)
+
+ind   <- order(abs(coefs.nonzero),decreasing=T)
+head(as.matrix(coefs.nonzero[ind[-1]]),10)
+
+```
 
 ## Elastic Net
 
+Elastic net simply combines the two types of penalty into one by mixing them together with some kind of weighted average. The penalty term for the elastic net could be written as
+
+$$\lambda \left[ (1-\alpha)\sum_{i=1}^{P} \beta_p^2 + \alpha\sum_{i=1}^{P} |\beta_p|)\right].$$
+Note that this term reduces to 
+
+$$\lambda \sum_{i=1}^{P} \beta_p^2$$ 
+when $\alpha$ is equal to 1 and to 
+
+$$\lambda \sum_{i=1}^{P} |\beta_p|.$$
+when $\alpha$ is equal to 0. When $\alpha$ is set to 1, this is equivalent of ridge regression. When $\alpha$ is equal to 0 this is equivalent of lasso regression. When $\alpha$ takes any value between 0 and 1, this term becomes a weighted average of ridge penalty and lasso penalty. In Elastic Net, there are two hyperparameters to be tuned, $\alpha$ and $\lambda$. We can consider all possible combinations of these two hyperparameters, and try to find the optimal combination using a 10-fold cross validation. 
+
+Below is a syntax we can use to predict the readability scores using elastic net. The elastic net results indicate that there is not much benefit of mixing, and the results are consistent that the best performance is still provided by the ridge regression.
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Load the packages
+
+  require(caret)
+  require(recipes)
+  require(finalfit)
+  require(glmnet)
+
+# Import the dataset
+
+  readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
+
+# Initial preparation (remove variables with large amount of missingness)
+
+  require(finalfit)
+
+  missing_ <- ff_glimpse(readability)$Continuous
+  flag_na <- which(as.numeric(missing_$missing_percent) > 80)
+  readability <- readability[,-flag_na]
+
+# Set the random seed for reproducibility
+
+  set.seed(10152021)
+
+# Train/Test Split
+  
+  loc      <- sample(1:nrow(readability), round(nrow(readability) * 0.9))
+  read_tr  <- readability[loc, ]
+  read_te  <- readability[-loc, ]
+
+# Blueprint
+
+  blueprint <- recipe(x     = readability,
+                      vars  = colnames(readability),
+                      roles = c(rep('predictor',990),'outcome')) %>%
+    step_zv(all_numeric()) %>%
+    step_nzv(all_numeric()) %>%
+    step_impute_mean(all_numeric()) %>%
+    step_normalize(all_numeric_predictors()) %>%
+    step_corr(all_numeric(),threshold=0.9)
+
+# Cross validation settings
+
+  cv <- trainControl(method = "cv",
+                     p      = 10)
+  
+# Tune Grid  
+  
+  # Note that we set the value of alpha to 1 for lasso regression
+  
+  grid <- expand.grid(alpha = seq(0,1,.1), lambda = seq(0.01,1,.01)) 
+    
+# Train the model
+
+  elastic <- caret::train(blueprint, 
+                        data      = read_tr, 
+                        method    = "glmnet", 
+                        trControl = cv,
+                        tuneGrid  = grid)
+
+  # elastic$results
+
+  elastic$bestTune
+  
+  plot(elastic)
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+#Load the Rdata
+
+load('B:/UO Teaching/EDLD 654/Books&Resources/largedata/elasticmodel_lecture4a.RData')
+
+  elastic$bestTune
+  
+  plot(elastic)
+```
 
 
+## Using the Prediction Model for a New Text
+
+Compile the code to generate input features as a function. This function will require two inputs, a model object and a new text. The function will then return a a matrix of input features.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+ 
+generate_feats <- function(my.model,new.text){
+
+    # Tokenization and document-feature matrix
+  
+      tokenized <- tokens(new.text,
+                          remove_punct = TRUE,
+                          remove_numbers = TRUE,
+                          remove_symbols = TRUE,
+                          remove_separators = TRUE)
+  
+      dm <- dfm(tokenized)
+
+    # basic text stats
+  
+      text_sm <- textstat_summary(dm)
+      text_sm$sents <- nsentence(new.text)
+      text_sm$chars <- nchar(new.text)
+
+    # Word-length features
+  
+      wl <- nchar(tokenized[[1]])
+  
+      wl.tab <- table(wl)
+  
+      wl.features <- data.frame(matrix(0,nrow=1,nco=30))
+      colnames(wl.features) <- paste0('wl.',1:30)
+  
+      ind <- colnames(wl.features)%in%paste0('wl.',names(wl.tab))
+  
+      wl.features[,ind] <- wl.tab
+  
+      wl.features$mean.wl  <-   mean(wl)
+      wl.features$sd.wl    <-   sd(wl)
+      wl.features$min.wl   <-   min(wl)
+      wl.features$max.wl   <-   max(wl)
+
+    # Text entropy/Max entropy ratio
+  
+      t.ent <- textstat_entropy(dm)
+      n     <-  sum(featfreq(dm))
+      p     <- rep(1/n,n)
+      m.ent <- -sum(p*log(p,base=2))
+  
+      ent <- t.ent$entropy/m.ent
+ 
+    # Lexical diversity
+  
+      text_lexdiv <- textstat_lexdiv(tokenized,
+                                     remove_numbers = TRUE,
+                                     remove_punct   = TRUE,
+                                     remove_symbols = TRUE,
+                                     measure        = 'all')
+
+    # Measures of readability
+  
+      text_readability <- textstat_readability(new.text,measure='all')
+  
+    # POS tag frequency
+  
+      annotated <- udpipe_annotate(ud_eng, x = new.text)
+      annotated <- as.data.frame(annotated)
+      annotated <- cbind_morphological(annotated)
+  
+      pos_tags <- c(table(annotated$upos),table(annotated$xpos))
+    
+    # Syntactic relations
+  
+      dep_rel <- table(annotated$dep_rel)
+  
+    # morphological features
+  
+      feat_names <- c('morph_abbr','morph_animacy','morph_aspect','morph_case',
+                      'morph_clusivity','morph_definite','morph_degree',
+                      'morph_evident','morph_foreign','morph_gender','morph_mood',
+                      'morph_nounclass','morph_number','morph_numtype',
+                      'morph_person','morph_polarity','morph_polite','morph_poss',
+                      'morph_prontype','morph_reflex','morph_tense','morph_typo',
+                      'morph_verbform','morph_voice')
+
+      feat_vec <- c()
+      
+      for(j in 1:length(feat_names)){
+        
+        if(feat_names[j]%in%colnames(annotated)){
+          morph_tmp   <- table(annotated[,feat_names[j]])
+          names_tmp   <- paste0(feat_names[j],'_',names(morph_tmp))
+          morph_tmp   <- as.vector(morph_tmp)
+          names(morph_tmp) <- names_tmp
+          feat_vec  <- c(feat_vec,morph_tmp)
+        }
+      }
+      
+    # Sentence Embeddings
+    
+      embeds <- textEmbed(x     = new.text,
+                          model = 'roberta-base',
+                          layers = 12,
+                          context_aggregation_layers = 'concatenate')
+    
+
+    # combine them all into one vector and store in the list object
+      
+      input <- cbind(text_sm[2:length(text_sm)],
+                               wl.features,
+                               as.data.frame(ent),
+                               text_lexdiv[,2:ncol(text_lexdiv)],
+                               text_readability[,2:ncol(text_readability)],
+                               t(as.data.frame(pos_tags)),
+                               t(as.data.frame(c(dep_rel))),
+                               t(as.data.frame(feat_vec)),
+                               as.data.frame(embeds$x)
+                               )
+
+    # feature names from the model
+  
+      my_feats <- my.model$recipe$var_info$variable
+
+    # Find the features missing from the new text
+      
+      missing_feats <- ! my_feats %in% colnames(input)
+      
+    # Add the missing features (with assigned values of zeros)
+        
+      temp           <- data.frame(matrix(0,1,sum(missing_feats)))
+      colnames(temp) <- my_feats[missing_feats]
+   
+      input <- cbind(input,temp)
+      
+      return(list(input=input))
+}
+```
+
+For a given text, predict the scores using the ridge and lasso regression models we trained in this lectures 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# For the next few lines of codes to work, you will need the following
+# in your R environment
+  # 1. R Libraries (quanteda, quanteda.textstats, text, udpipe, reticulate)
+  # 2. Supplemental Python libraries (torch, tokenizers, nltk, transformers,numpy)
+  # 3. Model object (caret_mod)
+  # 4. A function to generate the features in the model (generate_feats) 
 
 
+################################################################################
 
+  require(quanteda)
+  require(quanteda.textstats)
+  require(udpipe)
+  require(reticulate)
+  require(text)
 
+  ud_eng <- udpipe_load_model(here('english-ewt-ud-2.5-191206.udpipe'))
 
+  reticulate::import('torch')
+  reticulate::import('numpy')
+  reticulate::import('transformers')
+  reticulate::import('nltk')
+  reticulate::import('tokenizers')
 
+################################################################################
+  
+# Sample texts
 
+my.text1   <- 'Sora has a new kite. The kite is red. It is a good kite to fly. '
+
+my.text2   <- 'Saguaros have roots underground that grow outward rather than downward.'
+
+  # Ridge regression
+
+  ridge.inputs1 <- generate_feats(my.model = ridge,
+                                  new.text = my.text1)
+  
+  ridge.inputs2 <- generate_feats(my.model = ridge,
+                                  new.text = my.text2)
+  
+
+  predict(ridge, ridge.inputs1$input)
+  predict(ridge, ridge.inputs2$input)
+  
+
+  # Lasso Regression
+  
+  lasso.inputs1 <- generate_feats(my.model = lasso2,
+                                  new.text = my.text1)
+  
+  lasso.inputs2 <- generate_feats(my.model = lasso2,
+                                  new.text = my.text2)
+  
+
+  predict(lasso2, lasso.inputs1$input)
+  predict(lasso2, lasso.inputs2$input)
+
+```
 
 
