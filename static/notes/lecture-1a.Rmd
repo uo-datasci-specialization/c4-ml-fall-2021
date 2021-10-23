@@ -119,7 +119,7 @@ devtools::install_github("oscarkjell/text")
 
 ```
 
-You can run the following code in your computer to get prepared for the following weeks. Note that you only have to run the following code once to create a virtual Python environment and install the necessary packages.
+You can run the following code in your computer to get prepared for the following weeks. Note that you only have to run the following code once to install the necessary packages.
 
 ```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show'}
 
@@ -134,26 +134,26 @@ require(reticulate)
 
 install_miniconda()
 
-# Create a virtual Python environment
-
-virtualenv_create("my.python")
-
 # Install the Python modules 
 
-conda_install(envname = 'my.python', 
-              c('torch', 'transformers', 'numpy', 'nltk','tokenizers'), 
-              pip = TRUE)
+conda_install(envname = 'r-reticulate', 'torch', pip = TRUE)
+
+
+conda_install(envname = 'r-reticulate','transformers',pip = TRUE)
+
+
+conda_install(envname = 'r-reticulate','nltk',pip = TRUE)
+
+
+conda_install(envname = 'r-reticulate','tokenizers',pip = TRUE)
+
 ```
 
-Once you create a virtual Python environment and install the packages using the code above, you can run the following code. If you are seeing the same output as below, you should be all set to explore some very exciting NLP tools using the Readability dataset.
+Once you install the Python packages using the code above, you can run the following code. If you are seeing the same output as below, you should be all set to explore some very exciting NLP tools using the Readability dataset.
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',results='hold'}
 
 require(reticulate)
-
-# List the available Python environments
-
-virtualenv_list()
 
 # Import the modules
 

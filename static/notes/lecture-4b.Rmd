@@ -1459,7 +1459,7 @@ For a given text, predict the scores using the ridge and lasso regression models
   
 # Sample texts
 
-my.text1   <- 'Sora has a new kite. The kite is red. It is a good kite to fly. '
+my.text1   <- 'Sora has a new kite. The kite is red. It is a good kite to fly.'
 
 my.text2   <- 'Saguaros have roots underground that grow outward rather than downward.'
 
