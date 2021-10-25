@@ -717,8 +717,27 @@ blueprint <- recipe(x     = readability,
 
 # Cross validation settings
 
+  # Create the index values for 10-folds to provide to the 
+  # trainControl function. This way, you can reproduce the results in the future
+  # and use the same folds across models.
+
+    # Randomly shuffle the data
+
+      read_tr = read_tr[sample(nrow(read_tr)),]
+
+    # Create 10 folds with equal size
+
+      folds = cut(seq(1,nrow(read_tr)),breaks=10,labels=FALSE)
+  
+    # Create the list for each fold 
+      
+      my.indices <- vector('list',10)
+      for(i in 1:10){
+        my.indices[[i]] <- which(folds!=i)
+      }
+      
 cv <- trainControl(method = "cv",
-                   p      = 10)
+                   index  = my.indices)
 
 # Train the model
   

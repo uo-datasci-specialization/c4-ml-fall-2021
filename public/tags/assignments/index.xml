@@ -6,7 +6,17 @@
     <description>Recent content in Assignments on Machine Learning for Educational Data Science</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 07 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://ml-21.netlify.app/tags/assignments/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 24 Oct 2021 00:00:00 +0000</lastBuildDate><atom:link href="https://ml-21.netlify.app/tags/assignments/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Homework Assignment 2</title>
+      <link>https://ml-21.netlify.app/hw2/</link>
+      <pubDate>Sun, 24 Oct 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://ml-21.netlify.app/hw2/</guid>
+      <description>Overview The purpose of this assignment is to get you working with the caret package and glmnet engine to fit regularized linear and logistic regression models for predicting a continuous and a categorical outcome. Please prepare your assignment using RMarkdown. There are alternative ways to submit your assignment depending on your preference.
+  You knit the R Markdown document to a PDF document and then submit both the .Rmd and PDF files by uploading them on Canvas.</description>
+    </item>
+    
     <item>
       <title>Homework Assignment 1</title>
       <link>https://ml-21.netlify.app/hw1/</link>

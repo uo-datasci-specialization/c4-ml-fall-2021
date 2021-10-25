@@ -1,0 +1,987 @@
+<!doctype html>
+
+<html lang="en" class="h-100">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <script src="/js/custom.js"></script>
+  
+  
+  <link rel="stylesheet" href="/highlight/highlight.css">
+  
+  <meta name="generator" content="Hugo 0.82.1" />
+  <link rel="stylesheet" href="https://ml-21.netlify.app/css/bootstrap.min.css">
+  
+  
+  <title>Homework Assignment 2 | Machine Learning for Educational Data Science</title>
+  
+
+ 
+
+<style>
+  body {
+    background-color: #FC4445; 
+    color: #fff;
+  }
+  #subtitle {
+    color: #97CAEF;
+    font-size: 1.25rem;
+    font-style: italic;
+    margin-top: -10px;
+    margin-bottom: 2rem;
+    padding-top: 0px;
+  }
+
+  div#home-jumbotron.jumbotron {
+    text-align: left !important;
+  }
+
+  div#home-jumbotron.jumbotron h1 {
+    text-align: center !important;
+  }
+
+  div#home-jumbotron.jumbotron #subtitle {
+    text-align: center !important;
+  }
+
+  div.logo {
+    text-align: center !important;
+    grid-row: 1/3;
+  }
+  div.meeting-specifics {
+    text-align: left !important;
+    grid-row: 1/3;
+  }
+  div.meeting-time {
+    display: grid;
+    grid-template-columns: 70% 30%
+  }
+
+  th {
+    background-color: #97CAEF;
+    font-weight: normal;
+
+  }
+  td {
+    color: #fff;
+  }
+  .table-hover tbody tr:hover td, 
+  .table-hover tbody tr:hover th  {
+    background-color: #CAFEFE;
+    color: #FC4445;
+  }
+  .table-hover tbody tr:hover td a {
+    color: #FC4445 !important;
+  }
+
+   
+  a {
+    text-decoration: none;
+    color: #fff !important;
+    border-bottom: 3px solid rgba(255, 255, 0, 0.8);
+    box-shadow: inset 0 -2px 0 rgba(206,91,146, 0.8);
+    background: transparent;
+    transition: background 150ms ease;
+  }
+
+  a:hover,
+  a:focus {
+    text-decoration: none;
+    color: #fff !important;
+    background: rgba(252, 68,69, 0.8);
+  }
+
+   
+  #nav > a {
+    border-bottom: 2px solid #97CAEF;
+    box-shadow: none;
+  }
+  a.hands,
+  a.isl,
+  a.feat,
+  a.esl,
+  a.mml2,
+  a.scikit,
+  a.apm,
+  a.mml {
+    border-bottom: none;
+    box-shadow: none;
+  }
+
+  a.btn {
+    border: 2px solid #97CAEF;
+    box-shadow: none;
+    border-radius: 10px;
+  }
+  a.btn:hover {
+    color: #FC4445 !important;
+    background-color: #97CAEF;
+  }
+  .badge-dark {
+    background-color: #97CAEF;
+    color: #FC4445;
+  }
+
+   
+  a.notes,
+  a.assigned,
+  a.due,
+  a.slides {
+    border-bottom: none;
+    box-shadow: none;
+    color: yellow !important;
+  },
+
+   
+  a.hands:hover,
+  a.hands:focus,
+  a.isl:hover,
+  a.isl:focus,
+  a.esl:hover,
+  a.esl:focus,
+  a.feat:hover,
+  a.feat:focus,
+  a.mml:hover,
+  a.mml:focus,
+  a.mml2:hover,
+  a.mml2:focus,
+  a.scikit:hover,
+  a.scikit:focus,
+  a.apm:hover,
+  a.apm:focus,
+  a.notes:hover,
+  a.notes:focus,
+  a.assigned:hover,
+  a.assigned:focus,
+  a.due:hover,
+  a.due:focus,
+  a.slides:hover,
+  a.slides:focus {
+    background: transparent;
+    color: #FF65AD !important;
+  },
+  
+  .wrap p span {
+    display: block;
+    color: none;
+  }
+  .course-books {
+    margin-bottom: 1.5rem;
+    border: dotted 1px #fff;
+    border-radius: 10px;
+    padding: 0.5rem;
+    width: 100%;
+    line-height: 3;
+  }
+  .book-author {
+    color: #fff;
+    padding-left: 0.5rem;
+    font-size: 0.8rem;
+    font-style: italic;
+  }
+  .book-title a {
+    color: #ff65ad !important;
+    text-decoration: underline;
+  }
+  .week-odd {
+    background: -webkit-linear-gradient(0deg, #CAFEFE 7%, #FC4445 7%);
+    border: solid 3px #CAFEFE !important;
+    border-radius: 10px;
+    display: inline-grid;
+    grid-template-columns: 9% 22% 10%  10% 13% 15% 18%;
+    align-items: center;
+    gap: 2px;
+    width:100%;
+    margin-bottom: 0.5em;    
+  }
+  .week-even {
+    background: -webkit-linear-gradient(0deg, #97CAEF 7%, #FC4445 7%);
+    border: solid 3px #97CAEF !important;
+    border-radius: 10px;
+    display: inline-grid;
+    grid-template-columns:  9% 22% 10%  10% 13% 15% 18%;
+    align-items: center;
+    gap: 2px;
+    width:100%;
+    margin-bottom: 0.5em;   
+  }
+  
+  .weeks-header {
+    display: inline-grid;
+    width:100%;
+    grid-template-columns: 5% 25% 9%  13% 13% 13% 16%;
+    text-align: center;
+    font-size: 1.2rem;
+    border-bottom: 1px solid #97CAEF;
+    background-color: #FC4445;
+    margin: 0;
+    padding: 2px 0 0 12px;
+    position: -webkit-sticky;
+    position: sticky;
+    top: -1px;
+  }
+  .schedule {
+    margin-top: 1.5rem;
+  }
+  h2#week-1 {
+    margin-top: 0.2rem;
+    font-size: 1.5rem;
+  }
+  h2[id^='week'] {
+    margin-top:1.5rem;
+    margin-bottom: -1rem;
+    color: #fff;
+    position: absolute;
+    z-index: 99;
+    font-size: 1.5rem;
+  }
+  .week-theme-title {
+    font-weight: bold;
+    border-bottom: 1px solid #c2c6cb;
+    color: #fff;
+  }
+  .week-description {
+    font-size: 0.8rem;
+    color: #fff;
+  }
+  .class-date {
+    grid-row: 1 / 3;
+    margin-right: 0.5rem;
+    font-weight: bold;
+    text-align: center;
+    color: #FC4445;
+  }
+  .week-title {
+    color: #556672;
+    margin-right: 1rem;
+    border-bottom: solid 1px gray;
+    text-align: center;
+    font-size: 1.1rem;
+    font-style: italic;
+  }
+  .class-theme {
+    text-align: left;
+  }
+  .wrap {
+    text-align: left;
+    padding-left: 20pt;
+    line-height: 3;
+  }
+  .readings {
+    text-align: left;
+    font-size: em;
+     
+  }
+  .hands {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #332288;
+  }
+  
+  a.hands:hover {
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }
+  .isl {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #117733;
+  }
+  a.isl:hover{
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }
+  .feat {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #44AA99;
+  }
+  
+  a.feat:hover {
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }
+  .esl {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #88CCEE;
+  }
+  
+  a.esl:hover {
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }
+  
+  .mml {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #DDCC77;
+  }
+  
+  a.mml:hover{
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }
+  
+  .mml2 {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #CC6677;
+  }
+  a.mml2:hover{
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }
+  
+  .scikit {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #AA4499;
+  }
+  a.scikit:hover{
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }
+
+  .apm {
+    padding-top: .6rem;
+    padding-bottom: .6rem;
+    padding-right: .6rem;
+    padding-left: .6rem;
+    border-radius: 5px;
+    background-color: #882255;
+  }
+  a.apm:hover{
+    background-color: #dee4ed;
+    color: #FC4445 !important;
+  }  
+     
+    #nav a {
+      color: #fff !important;
+      font-weight: bold;
+      color: inherit;
+    }
+    #nav a.nav-link-active {
+      background-color: #97CAEF !important;
+      color: #FC4445 !important;
+    }
+    #nav a.nav-link:hover {
+      background-color: #D7E7F2;
+      color: #000000 !important;
+    }
+    #nav-border {
+      border-bottom: 1px solid #212529;
+    }
+    #main {
+      margin-top: 1em;
+      margin-bottom: 4em;
+    }
+    #home-jumbotron {
+      background-color: inherit;
+      padding-top: 1rem;
+    }
+    #footer .container {
+      padding: 1em 0;
+      display: block;
+      color: #fff !important;
+    }
+    #footer a {
+      color: #fff !important;
+      text-decoration: none;
+    }
+    .font-125 {
+      font-size: 125%;
+    }
+    .tag-btn {
+      margin-bottom: 0.3em;
+    }
+    pre {
+      background-color: #f5f5f5;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 16px;
+    }
+    pre code {
+      padding: 0;
+      font-size: inherit;
+      color: inherit;
+      background-color: transparent;
+      border-radius: 0;
+      border: none;
+    }
+    code,
+    a > code {
+      padding: 2px 4px;
+      border: 1px solid #ccc;
+      font-size: 90%;
+      color: #6ec9f7;
+       
+      border-radius: 4px;
+    }
+    img,
+    iframe,
+    embed,
+    video,
+    audio {
+      max-width: 100%;
+    }
+    .card-img,
+    .card-img-top,
+    .card-img-bottom {
+      width: initial;
+    }
+
+    .container > aside.tableOfContentContainer {
+      position: -webkit-sticky;
+      position: sticky;
+      top: 0px;
+      height: 100vh;
+      overflow-y: scroll;
+    }
+
+    .container > aside.tableOfContentContainer::-webkit-scrollbar {
+      display: none;
+    }
+    .container > aside > h3 {
+      font-size: 1rem;
+      padding-left: 1.5rem;
+      color: #05386B;
+      font-weight: 700;
+      padding-top: 0.5rem;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 100% 15em;
+      max-width: 800px;
+      width: 100%;
+    }
+    
+    #TableOfContents {
+      font-size: 0.9rem;
+    }
+    #TableOfContents ul {
+      padding-top: 0px;
+      padding-bottom: 0px;
+      margin-top: 0px;
+      margin-bottom: 0px;
+      color: #D7E7F2 !important;
+    }
+
+    #TableOfContents a {
+      text-decoration: none;
+      border-bottom: none;
+      box-shadow: none;
+      color: #D7E7F2 !important;
+      -webkit-transition: all 50ms ease-in-out !important;
+      transition: all 50ms ease-in-out !important;
+    }
+
+    #TableOfContents li {
+      padding-top: 0.1rem;
+      padding-bottom: 0.1rem;
+      list-style: none;
+      color: #000000 !important;
+    }
+    
+    #TableOfContents li.active:before {
+      content: '→';
+      color: #000000;
+      display: inline-block;
+      margin-left: -20px;
+      width: 20px;
+    }
+
+    #TableOfContents li ul li {
+      margin-left: -0.5rem;
+    }
+    #TableOfContents a:hover {
+      background-color: transparent;
+      color: #05386B !important;
+    }
+    #TableOfContents li.active > a {
+      color: #D7E7F2 !important;
+      font-weight: 500;
+    }
+    
+    .toc-contents {
+      height: 100%
+      overflow: auto;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+    html,
+    body {
+      scroll-padding-top: 100px;
+    }
+
+    @media screen and (max-width: 800px) {
+      .container > aside {
+        display: none;
+      }
+      h2[id^='week'] {
+        font-size: 1rem;
+      }
+      .weeks-header {
+        font-size: 0.8rem;
+        grid-template-columns: 8% 25% 8% 15% 15% 20% 8%;
+      }
+    }
+</style>
+
+</head>
+
+
+
+  <body class="d-flex flex-column h-100">
+    <div id="nav-border" class="container">
+  <nav id="nav" class="nav justify-content-center">
+  
+  
+  
+    
+    
+      
+      
+      
+      
+      
+        
+      
+    
+    
+    <a class="nav-link " href="/"><i data-feather="home"></i> Home</a>
+  
+    
+    
+      
+      
+      
+      
+      
+        
+      
+    
+    
+    <a class="nav-link " href="/schedule/"><i data-feather="calendar"></i> Schedule</a>
+  
+    
+    
+      
+      
+      
+      
+      
+        
+      
+    
+    
+    <a class="nav-link " href="/assignments/"><i data-feather="edit"></i> Assignments</a>
+  
+    
+    
+      
+      
+      
+      
+      
+        
+      
+    
+    
+    <a class="nav-link " href="/syllabus/"><i data-feather="book"></i> Syllabus</a>
+  
+    
+    
+      
+      
+      
+      
+      
+        
+      
+    
+    
+    <a class="nav-link " href="/tags/"><i data-feather="tag"></i> Tags</a>
+  
+    
+    
+      
+      
+      
+      
+      
+        
+      
+    
+    
+    <a class="nav-link " href="https://github.com/uo-datasci-specialization/c4-ml-fall-2021"><i data-feather="github"></i> Class repo</a>
+  
+  </nav>
+</div>
+
+    <div class="container">
+      
+      <main id="main">
+        
+
+<h1>Homework Assignment 2</h1>
+
+
+
+<i data-feather="calendar"></i> <time datetime="2021-10-24"><strong> Assigned: </strong> Oct 27, 2020</time>
+
+<br>
+
+<i data-feather="calendar"></i> <time datetime="2021-10-24"> <strong> Due: </strong> Nov 10, 2020</time>
+
+
+
+  <br>
+  <i data-feather="tag"></i>
+  
+  
+  <a class="btn btn-sm btn-outline-dark tag-btn" href="https://ml-21.netlify.app/tags/lab">Lab</a>
+  
+  
+  <a class="btn btn-sm btn-outline-dark tag-btn" href="https://ml-21.netlify.app/tags/assignments">Assignments</a>
+  
+
+<br><br>
+<h2 id="overview">Overview</h2>
+<p>The purpose of this assignment is to get you working with the <code>caret</code> package and <code>glmnet</code> engine to fit regularized linear and logistic regression models for predicting a continuous and a categorical outcome.  Please prepare your assignment using RMarkdown. There are alternative ways to submit your assignment depending on your preference.</p>
+<ol>
+<li>
+<p>You knit the R Markdown document to a PDF document and then submit both the .Rmd and PDF files by uploading them on Canvas.</p>
+</li>
+<li>
+<p>You knit the R Markdown document to an html document and host it on your website/blog or any publicly available platform. Then, you can submit the .Rmd file by uploading it on Canvas and put the link for the html document as a comment.</p>
+</li>
+<li>
+<p>If you have a Github repo and store all your work for this class in a Github repo, you can create a folder for this assignment in that repo, and put the .Rmd file and PDF document under a specific folder. Then, you can submit the link for the Github repo on Canvas.</p>
+</li>
+</ol>
+<p>To receive full credit, you must complete the following tasks. Please make sure that all the R code you wrote for completing these tasks and any associated output are explicitly printed in your submitted document. If the task asks you to submit the data files you created, please upload these datasets along with your submission.</p>
+<p>If you have any questions, please do not hesitate to reach out to me.</p>
+<h2 id="part-1-predicting-a-categorical-outcome-using-regularized-logistic-regression">Part 1: Predicting a Categorical Outcome using Regularized Logistic Regression</h2>
+<p>For this assignment you will work with the twitter dataset and try to predict the sentiment of a given tweet. I uploaded the datasets on the website for convenience and to make sure everyone works on the same dataset. Download the tweet dataset using the R code below. Then, create the blueprint as shown below.</p>
+<div class="highlight"><pre class="chroma"><code class="language-{.r" data-lang="{.r"><span class="c1"># Load the following packages needed for modeling in this assignment</span>
+  
+  <span class="nf">require</span><span class="p">(</span><span class="n">caret</span><span class="p">)</span>
+  <span class="nf">require</span><span class="p">(</span><span class="n">recipes</span><span class="p">)</span>
+  <span class="nf">require</span><span class="p">(</span><span class="n">finalfit</span><span class="p">)</span>
+  <span class="nf">require</span><span class="p">(</span><span class="n">glmnet</span><span class="p">)</span>
+
+<span class="c1"># Import the tweet dataset with embeddings</span>
+
+<span class="n">tweet</span> <span class="o">&lt;-</span> <span class="nf">read.csv</span><span class="p">(</span><span class="s">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/content/post/hw2/data/hw1_tweet_final.csv&#39;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+
+<span class="c1"># Recipe for the tweet dataset</span>
+
+<span class="n">blueprint_tweet</span> <span class="o">&lt;-</span> <span class="nf">recipe</span><span class="p">(</span><span class="n">x</span>  <span class="o">=</span> <span class="n">tweet</span><span class="p">,</span>
+                          <span class="n">vars</span>  <span class="o">=</span> <span class="nf">colnames</span><span class="p">(</span><span class="n">tweet</span><span class="p">),</span>
+                          <span class="n">roles</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;outcome&#39;</span><span class="p">,</span><span class="nf">rep</span><span class="p">(</span><span class="s">&#39;predictor&#39;</span><span class="p">,</span><span class="m">772</span><span class="p">)))</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_dummy</span><span class="p">(</span><span class="s">&#39;month&#39;</span><span class="p">,</span><span class="n">one_hot</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span> <span class="o">%&gt;%</span> 
+  <span class="nf">step_harmonic</span><span class="p">(</span><span class="s">&#39;day&#39;</span><span class="p">,</span><span class="n">frequency</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="n">cycle_size</span><span class="o">=</span><span class="m">7</span><span class="p">,</span> <span class="n">role</span><span class="o">=</span><span class="s">&#39;predictor&#39;</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_harmonic</span><span class="p">(</span><span class="s">&#39;date&#39;</span><span class="p">,</span><span class="n">frequency</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="n">cycle_size</span><span class="o">=</span><span class="m">31</span><span class="p">,</span><span class="n">role</span><span class="o">=</span><span class="s">&#39;predictor&#39;</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_harmonic</span><span class="p">(</span><span class="s">&#39;hour&#39;</span><span class="p">,</span><span class="n">frequency</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="n">cycle_size</span><span class="o">=</span><span class="m">24</span><span class="p">,</span><span class="n">role</span><span class="o">=</span><span class="s">&#39;predictor&#39;</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_normalize</span><span class="p">(</span><span class="nf">paste0</span><span class="p">(</span><span class="s">&#39;Dim&#39;</span><span class="p">,</span><span class="m">1</span><span class="o">:</span><span class="m">768</span><span class="p">))</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_normalize</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;day_sin_1&#39;</span><span class="p">,</span><span class="s">&#39;day_cos_1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;date_sin_1&#39;</span><span class="p">,</span><span class="s">&#39;date_cos_1&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;hour_sin_1&#39;</span><span class="p">,</span><span class="s">&#39;hour_cos_1&#39;</span><span class="p">))</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_num2factor</span><span class="p">(</span><span class="n">sentiment</span><span class="p">,</span>
+                  <span class="n">transform</span> <span class="o">=</span> <span class="nf">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="n">x</span> <span class="o">+</span> <span class="m">1</span><span class="p">,</span>
+                  <span class="n">levels</span><span class="o">=</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;Negative&#39;</span><span class="p">,</span><span class="s">&#39;Positive&#39;</span><span class="p">))</span>
+
+  
+    <span class="c1"># Notice that I explicitly specified role=predictor when using</span>
+    <span class="c1"># step_harmonic function. This assures that the newly derived sin and cos</span>
+    <span class="c1"># variables has a defined role.</span>
+    <span class="c1"># You need to do this otherwise caret::train function breaks.</span>
+    <span class="c1"># caret_train requires every variable in the recipe to have a role</span>
+    
+    <span class="c1"># You can run the following code and make sure every variable has a defined </span>
+    <span class="c1"># role. If you want to experiment, remove the role=predictor argument</span>
+    <span class="c1"># in the step_harmonic function, create the recipe again, and run the following</span>
+    <span class="c1"># you will see that the new sin and cos variables have NA in the column role</span>
+    <span class="c1"># and this breaks the caret::train function later.</span>
+  
+    <span class="c1"># Also, in the last line, we transform the outcome variable &#39;sentiment&#39; to </span>
+    <span class="c1"># a factor with labels. </span>
+    <span class="c1"># This seems necessary for fitting logistic regression via caret::train</span>
+
+    <span class="nf">View</span><span class="p">(</span><span class="n">blueprint_tweet</span> <span class="o">%&gt;%</span> <span class="nf">prep</span><span class="p">()</span> <span class="o">%&gt;%</span> <span class="n">summary</span><span class="p">)</span>
+</code></pre></div><p><strong>Task 1.1.</strong> Split the original data into two subsets: training and test. Let the training data have the 80% of cases and the test data have the  20% of the cases.</p>
+<p><strong>Task 1.2.</strong> Using 10-fold cross-validation, train a model to predict the probability of sentiment being positive using logistic regression without any regularization. Evaluate the performance of the model on the test dataset.</p>
+<p><strong>Task 1.3.</strong> Using 10-fold cross-validation, train a model to predict the probability of sentiment being positive using logistic regression with ridge penalty. Try different values of ridge penalty to decide the optimal value. Use AUC as a metric for optimization. Plot the results, and report the optimal value of ridge penalty.</p>
+<p><strong>Task 1.4.</strong> Using 10-fold cross-validation, train a model to predict the probability of sentiment being positive using logistic regression with lasso penalty. Try different values of lasso penalty to decide optimal value. Use AUC as a metric for optimization. Plot the results, and report the optimal value of lasso penalty.</p>
+<p><strong>Task 1.5</strong> Evaluate the performance of the models in 2.2, 2.3, and 2.4 on the test dataset. Calculate AUC, overall accuracy (ACC), true positive rate (TPR), true negative rate (TNR), and precision (PRE). When calculating ACC, TPR, TNR, and PRE, assume that we use a cut-off value of 0.5 for the predicted probabilities. Summarize these numbers in a table like the following. Decide and comment on which model you would use to predict sentiment of a tweet moving forward.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th style="text-align:center">AUC</th>
+<th style="text-align:center">ACC</th>
+<th style="text-align:center">TPR</th>
+<th style="text-align:center">TNR</th>
+<th style="text-align:center">PRE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Logistic Regression</td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>Logistic Regression with Ridge Penalty</td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>Logistic Regression with Lasso Penalty</td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+</tr>
+</tbody>
+</table>
+<br/>
+<p><strong>Task 1.6.</strong> Pick your favorite hashtag on Twitter, and select 5 tweets written under this hashtag. Using your model, predict the probability of sentiment being positive for these you selected.</p>
+<p><strong>Task 1.7.</strong> Let&rsquo;s do an experiment and test whether or not the model is biased against certain groups when detecting sentiment of a tweet. Below you will find 10 sentences with an identical structure. The only thing that changes from tweet to tweet is the subject.</p>
+<div class="highlight"><pre class="chroma"><code class="language-{.r" data-lang="{.r"><span class="n">text1</span>  <span class="o">&lt;-</span> <span class="s">&#39;Muslims are so annoying!&#39;</span>
+<span class="n">text2</span>  <span class="o">&lt;-</span> <span class="s">&#39;Jews are so annoying!&#39;</span>
+<span class="n">text3</span>  <span class="o">&lt;-</span> <span class="s">&#39;Christians are so annoying!&#39;</span>
+<span class="n">text4</span>  <span class="o">&lt;-</span> <span class="s">&#39;Atheists are so annoying!&#39;</span>
+<span class="n">text5</span>  <span class="o">&lt;-</span> <span class="s">&#39;Buddhists are so annoying!&#39;</span>
+
+<span class="n">text6</span>  <span class="o">&lt;-</span> <span class="s">&#39;Turkish people are so annoying!&#39;</span>
+<span class="n">text7</span>  <span class="o">&lt;-</span> <span class="s">&#39;French people are so annoying!&#39;</span>
+<span class="n">text8</span>  <span class="o">&lt;-</span> <span class="s">&#39;American people are so annoying!&#39;</span>
+<span class="n">text9</span>  <span class="o">&lt;-</span> <span class="s">&#39;Japanese people are so annoying!&#39;</span>
+<span class="n">text10</span> <span class="o">&lt;-</span> <span class="s">&#39;Russian people are so annoying!&#39;</span>
+</code></pre></div><p>Use your model to predict the probability of these hypothetical tweets having a positive sentiment, and report these numbers in a table.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+<th style="text-align:center">Probability(Sentiment=Positive)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Muslims</td>
+<td></td>
+<td>are so annoying!</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>Jews</td>
+<td></td>
+<td>are so annoying!</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>Christians</td>
+<td></td>
+<td>are so annoying!</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>Atheists</td>
+<td></td>
+<td>are so annoying!</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>Buddhists</td>
+<td></td>
+<td>are so annoying!</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>Turkish people</td>
+<td></td>
+<td>are so annoying!</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>French people</td>
+<td></td>
+<td>are so annoying!</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>American people</td>
+<td></td>
+<td>are so annoying!</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>Japanese people</td>
+<td></td>
+<td>are so annoying!</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td>Russian people</td>
+<td></td>
+<td>are so annoying!</td>
+<td style="text-align:center"></td>
+</tr>
+</tbody>
+</table>
+<br/>
+<p>What do you think? Does your model favor any group or seem to be biased against any group? Provide a brief commentary (not more than 500 words).</p>
+<h2 id="part-2-predicting-a-continous-outcome-using-regularized-linear-regression">Part 2: Predicting a Continous Outcome using Regularized Linear Regression</h2>
+<p>For this assignment you will work with the Oregon dataset and try to predict the scores.</p>
+<div class="highlight"><pre class="chroma"><code class="language-{.r" data-lang="{.r"><span class="c1"># Load the following packages needed for modeling in this assignment</span>
+  
+  <span class="nf">require</span><span class="p">(</span><span class="n">caret</span><span class="p">)</span>
+  <span class="nf">require</span><span class="p">(</span><span class="n">recipes</span><span class="p">)</span>
+  <span class="nf">require</span><span class="p">(</span><span class="n">finalfit</span><span class="p">)</span>
+  <span class="nf">require</span><span class="p">(</span><span class="n">glmnet</span><span class="p">)</span>
+
+<span class="c1"># Import the oregon dataset</span>
+
+<span class="n">oregon</span> <span class="o">&lt;-</span> <span class="nf">read.csv</span><span class="p">(</span><span class="s">&#39;https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/content/post/hw2/data/hw1_oregon_final.csv&#39;</span><span class="p">,</span><span class="n">header</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span>
+
+<span class="c1"># Recipe for the oregon dataset</span>
+  
+  <span class="n">id</span>      <span class="o">&lt;-</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;id&#39;</span><span class="p">)</span>
+
+  <span class="n">categorical</span> <span class="o">&lt;-</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;sex&#39;</span><span class="p">,</span><span class="s">&#39;ethnic_cd&#39;</span><span class="p">,</span><span class="s">&#39;tst_bnch&#39;</span><span class="p">,</span><span class="s">&#39;migrant_ed_fg&#39;</span><span class="p">,</span><span class="s">&#39;ind_ed_fg&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;sp_ed_fg&#39;</span><span class="p">,</span><span class="s">&#39;tag_ed_fg&#39;</span><span class="p">,</span><span class="s">&#39;econ_dsvntg&#39;</span><span class="p">,</span><span class="s">&#39;stay_in_dist&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;stay_in_schl&#39;</span><span class="p">,</span><span class="s">&#39;dist_sped&#39;</span><span class="p">,</span><span class="s">&#39;trgt_assist_fg&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;ayp_dist_partic&#39;</span><span class="p">,</span><span class="s">&#39;ayp_schl_partic&#39;</span><span class="p">,</span><span class="s">&#39;ayp_dist_prfrm&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;ayp_schl_prfrm&#39;</span><span class="p">,</span><span class="s">&#39;rc_dist_partic&#39;</span><span class="p">,</span><span class="s">&#39;rc_schl_partic&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;rc_dist_prfrm&#39;</span><span class="p">,</span><span class="s">&#39;rc_schl_prfrm&#39;</span><span class="p">,</span><span class="s">&#39;grp_rpt_dist_partic&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;grp_rpt_schl_partic&#39;</span><span class="p">,</span><span class="s">&#39;grp_rpt_dist_prfrm&#39;</span><span class="p">,</span>
+                   <span class="s">&#39;grp_rpt_schl_prfrm&#39;</span><span class="p">)</span>
+
+  <span class="n">numeric</span> <span class="o">&lt;-</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;enrl_grd&#39;</span><span class="p">)</span>
+
+  <span class="n">cyclic</span> <span class="o">&lt;-</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;date&#39;</span><span class="p">,</span><span class="s">&#39;month&#39;</span><span class="p">)</span>
+
+
+<span class="n">blueprint_oregon</span> <span class="o">&lt;-</span> <span class="nf">recipe</span><span class="p">(</span><span class="n">x</span>     <span class="o">=</span> <span class="n">oregon</span><span class="p">,</span>
+                    <span class="n">vars</span>  <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="n">outcome</span><span class="p">,</span><span class="n">categorical</span><span class="p">,</span><span class="n">numeric</span><span class="p">,</span><span class="n">cyclic</span><span class="p">),</span>
+                    <span class="n">roles</span> <span class="o">=</span> <span class="nf">c</span><span class="p">(</span><span class="s">&#39;outcome&#39;</span><span class="p">,</span><span class="nf">rep</span><span class="p">(</span><span class="s">&#39;predictor&#39;</span><span class="p">,</span><span class="m">27</span><span class="p">)))</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_indicate_na</span><span class="p">(</span><span class="nf">all_of</span><span class="p">(</span><span class="n">categorical</span><span class="p">),</span><span class="nf">all_of</span><span class="p">(</span><span class="n">numeric</span><span class="p">))</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_zv</span><span class="p">(</span><span class="nf">all_numeric</span><span class="p">())</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_impute_mean</span><span class="p">(</span><span class="nf">all_of</span><span class="p">(</span><span class="n">numeric</span><span class="p">))</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_impute_mode</span><span class="p">(</span><span class="nf">all_of</span><span class="p">(</span><span class="n">categorical</span><span class="p">))</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_harmonic</span><span class="p">(</span><span class="s">&#39;date&#39;</span><span class="p">,</span><span class="n">frequency</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="n">cycle_size</span><span class="o">=</span><span class="m">31</span><span class="p">,</span><span class="n">role</span><span class="o">=</span><span class="s">&#39;predictor&#39;</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_harmonic</span><span class="p">(</span><span class="s">&#39;month&#39;</span><span class="p">,</span><span class="n">frequency</span><span class="o">=</span><span class="m">1</span><span class="p">,</span><span class="n">cycle_size</span><span class="o">=</span><span class="m">12</span><span class="p">,</span><span class="n">role</span><span class="o">=</span><span class="s">&#39;predictor&#39;</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_ns</span><span class="p">(</span><span class="s">&#39;enrl_grd&#39;</span><span class="p">,</span><span class="n">deg_free</span><span class="o">=</span><span class="m">3</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_normalize</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="nf">paste0</span><span class="p">(</span><span class="n">numeric</span><span class="p">,</span><span class="s">&#39;_ns_1&#39;</span><span class="p">),</span><span class="nf">paste0</span><span class="p">(</span><span class="n">numeric</span><span class="p">,</span><span class="s">&#39;_ns_2&#39;</span><span class="p">),</span><span class="nf">paste0</span><span class="p">(</span><span class="n">numeric</span><span class="p">,</span><span class="s">&#39;_ns_3&#39;</span><span class="p">)))</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_normalize</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">&#34;date_sin_1&#34;</span><span class="p">,</span><span class="s">&#34;date_cos_1&#34;</span><span class="p">,</span><span class="s">&#34;month_sin_1&#34;</span><span class="p">,</span><span class="s">&#34;month_cos_1&#34;</span><span class="p">))</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_dummy</span><span class="p">(</span><span class="nf">all_of</span><span class="p">(</span><span class="n">categorical</span><span class="p">),</span><span class="n">one_hot</span><span class="o">=</span><span class="kc">TRUE</span><span class="p">)</span> <span class="o">%&gt;%</span>
+  <span class="nf">step_rm</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="s">&#39;date&#39;</span><span class="p">,</span><span class="s">&#39;month&#39;</span><span class="p">))</span>
+    
+  <span class="nf">View</span><span class="p">(</span><span class="n">blueprint_oregon</span> <span class="o">%&gt;%</span> <span class="nf">prep</span><span class="p">()</span> <span class="o">%&gt;%</span> <span class="n">summary</span><span class="p">)</span>
+</code></pre></div><p>Task 2.1. Check the dataset for missingness. If there is any variable with more than 75% missingness, remove these variables.</p>
+<p>Task 2.2. Split the original data into two subsets: training and test. Let the training data have the 80% of cases and the test data have the  20% of the cases.</p>
+<p>Task 2.3. Using 10-fold cross-validation, train a model to predict the scores using linear regression without any regularization. Evaluate the performance of the model on the test dataset. Report RMSE, R-square, and MAE.</p>
+<p>Task 2.4. Using 10-fold cross-validation, train a model to predict the scores using ridge regression. Try different values of <code>\(\lambda\)</code> to decide optimal value. Evaluate the performance of the model on the test dataset. Report RMSE, R-square, and MAE.</p>
+
+
+
+      </main>
+      
+      
+      <aside class="tableOfContentContainer" id="tableOfContentContainer">
+      
+      <h3>Table of contents</h3>
+        
+        <nav id="TableOfContents">
+  <ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#part-1-predicting-a-categorical-outcome-using-regularized-logistic-regression">Part 1: Predicting a Categorical Outcome using Regularized Logistic Regression</a></li>
+    <li><a href="#part-2-predicting-a-continous-outcome-using-regularized-linear-regression">Part 2: Predicting a Continous Outcome using Regularized Linear Regression</a></li>
+  </ul>
+</nav>
+      
+      </aside>
+      
+
+    </div>
+    
+<footer id="footer" class="mt-auto text-center text-muted">
+  <div class="container">
+    Made with <a href="https://gohugo.io/">Hugo</a> &amp; <a href="https://github.com/zwbetz-gh/vanilla-bootstrap-hugo-theme">Vanilla</a>
+  </div>
+</footer>
+
+    <script src="https://ml-21.netlify.app/js/feather.min.js"></script>
+<script>
+  feather.replace()
+</script>
+
+
+    
+
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css"
+  integrity="sha384-zB1R0rpPzHqg7Kpt0Aljp8JPLqbXI3bhnPWROx27a9N0Ll6ZP/+DiW/UqRcLbRjq"
+  crossorigin="anonymous"
+/>
+
+
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js"
+  integrity="sha384-y23I5Q6l+B6vatafAwxRu/0oK/79VlbSz7Q9aiSZUvyWYIYsd+qj+o24G5ZU2zJz"
+  crossorigin="anonymous"
+></script>
+
+
+<script
+  defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js"
+  integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI"
+  crossorigin="anonymous"
+  onload="renderMathInElement(document.body);"
+></script>
+
+
+    
+  
+
+  </body>
+</html>

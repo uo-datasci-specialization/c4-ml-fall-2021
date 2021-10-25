@@ -551,10 +551,25 @@ In this section, we will apply ridge regression to predict the readability score
     step_corr(all_numeric(),threshold=0.9)
 
 # Cross validation settings
-
-  cv <- trainControl(method = "cv",
-                     p      = 10)
   
+    # Randomly shuffle the data
+
+      read_tr = read_tr[sample(nrow(read_tr)),]
+
+    # Create 10 folds with equal size
+
+      folds = cut(seq(1,nrow(read_tr)),breaks=10,labels=FALSE)
+  
+    # Create the list for each fold 
+      
+      my.indices <- vector('list',10)
+      for(i in 1:10){
+        my.indices[[i]] <- which(folds!=i)
+      }
+      
+  cv <- trainControl(method = "cv",
+                     index  = my.indices)
+
 # Tune Grid  
   
   # Here, we have to specify different values of lambda we want to try
@@ -617,7 +632,7 @@ load('B:/UO Teaching/EDLD 654/Books&Resources/largedata/ridgemodel_lecture4a.RDa
   plot(ridge)
 ```
 
-The 10-fold cross-validation results on the training dataset indicate that a $\lambda$ value of 0.63 provides the best performance (minimum RMSE). Let's use this model to predict the outcome in the hold-out test dataset.
+The 10-fold cross-validation results on the training dataset indicate that a $\lambda$ value of 0.57 provides the best performance (minimum RMSE). Let's use this model to predict the outcome in the hold-out test dataset.
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -696,7 +711,7 @@ baked_tr <- bake(prepare, new_data = read_tr)
 
 rxx <- cor(baked_tr[,1:887])
 
-lambda <- 2834*0.63
+lambda <- 2834*0.57
 
 vifs <- diag(solve(rxx + lambda*diag(nrow(rxx))) %*% rxx %*% solve(rxx + lambda*diag(nrow(rxx))))
 
@@ -1058,9 +1073,24 @@ In this section, we will apply the lasso regression to predict the readability s
     step_corr(all_numeric(),threshold=0.9)
 
 # Cross validation settings
+  
+    # Randomly shuffle the data
 
+      read_tr = read_tr[sample(nrow(read_tr)),]
+
+    # Create 10 folds with equal size
+
+      folds = cut(seq(1,nrow(read_tr)),breaks=10,labels=FALSE)
+  
+    # Create the list for each fold 
+      
+      my.indices <- vector('list',10)
+      for(i in 1:10){
+        my.indices[[i]] <- which(folds!=i)
+      }
+      
   cv <- trainControl(method = "cv",
-                     p      = 10)
+                     index  = my.indices)
   
 # Tune Grid  
   
@@ -1094,7 +1124,7 @@ grid
                         trControl = cv,
                         tuneGrid  = grid)
 
-  lasso$results
+  lasso2$results
   
 ```
 
@@ -1141,7 +1171,7 @@ grid <- data.frame(alpha = 1, lambda = seq(0.005,0.015,.001))
   plot(lasso2)
 ```
 
-It looks like a $\lambda$ value of 0.006 is the best pick although any number between 0.005 and 0.010 probably works fine. Let's now use the lasso regression model to predict the outcome in the hold-out test dataset as we did before for the ridge regression.
+It looks like a $\lambda$ value of 0.007 is the best pick although any number between 0.005 and 0.010 probably works fine. Let's now use the lasso regression model to predict the outcome in the hold-out test dataset as we did before for the ridge regression.
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -1163,7 +1193,7 @@ Below is a table to compare the performance of linear regression, ridge regressi
 |-------------------|:--------:|:-----:|:-----:|
 | Linear Regression |  0.644   | 0.522 | 0.644 |
 | Ridge Regression  |  0.727   | 0.435 | 0.536 |
-| Lasso Regression  |  0.725   | 0.435 | 0.538 |
+| Lasso Regression  |  0.725   | 0.434 | 0.538 |
 
 
 ### Variable Importance
@@ -1252,10 +1282,25 @@ Below is a syntax we can use to predict the readability scores using elastic net
     step_corr(all_numeric(),threshold=0.9)
 
 # Cross validation settings
-
-  cv <- trainControl(method = "cv",
-                     p      = 10)
   
+    # Randomly shuffle the data
+
+      read_tr = read_tr[sample(nrow(read_tr)),]
+
+    # Create 10 folds with equal size
+
+      folds = cut(seq(1,nrow(read_tr)),breaks=10,labels=FALSE)
+  
+    # Create the list for each fold 
+      
+      my.indices <- vector('list',10)
+      for(i in 1:10){
+        my.indices[[i]] <- which(folds!=i)
+      }
+      
+  cv <- trainControl(method = "cv",
+                     index  = my.indices)
+
 # Tune Grid  
   
   # Note that we set the value of alpha to 1 for lasso regression
@@ -1459,7 +1504,7 @@ For a given text, predict the scores using the ridge and lasso regression models
   
 # Sample texts
 
-my.text1   <- 'Sora has a new kite. The kite is red. It is a good kite to fly. '
+my.text1   <- 'Sora has a new kite. The kite is red. It is a good kite to fly.'
 
 my.text2   <- 'Saguaros have roots underground that grow outward rather than downward.'
 
