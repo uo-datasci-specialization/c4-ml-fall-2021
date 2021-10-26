@@ -42,7 +42,7 @@ If you have any questions, please do not hesitate to reach out to me.
 
 ## Part 1: Predicting a Categorical Outcome using Regularized Logistic Regression
 
-For this assignment you will work with the twitter dataset and try to predict the sentiment of a given tweet. I uploaded the datasets on the website for convenience and to make sure everyone works on the same dataset. Download the tweet dataset using the R code below. Then, create the blueprint as shown below.
+For this assignment you will work with the twitter dataset and try to predict the sentiment of a given tweet. I uploaded the datasets on the website for convenience and to make sure everyone works on the same dataset. Download the tweet dataset using the R code below. Then, also create the blueprint as shown below.
 
 ```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
@@ -97,25 +97,44 @@ blueprint_tweet <- recipe(x  = tweet,
 
 **Task 1.1.** Split the original data into two subsets: training and test. Let the training data have the 80% of cases and the test data have the  20% of the cases. 
 
-**Task 1.2.** Using 10-fold cross-validation, train a model to predict the probability of sentiment being positive using logistic regression without any regularization. Evaluate the performance of the model on the test dataset. 
+**Task 1.2.** Use the `caret::train()` function to train a model with 10-fold cross-validation for predicting the probability of sentiment being positive using logistic regression without any regularization. Evaluate and report the performance of the model on the test dataset. 
 
-**Task 1.3.** Using 10-fold cross-validation, train a model to predict the probability of sentiment being positive using logistic regression with ridge penalty. Try different values of ridge penalty to decide the optimal value. Use AUC as a metric for optimization. Plot the results, and report the optimal value of ridge penalty.
+**Task 1.3.** Use the `caret::train()` function to train a model with 10-fold cross-validation for predicting the probability of sentiment being positive using logistic regression with ridge penalty. Try different values of ridge penalty to decide the optimal value. Use `logLoss` as a metric for optimization. Plot the results, and report the optimal value of ridge penalty.
 
-**Task 1.4.** Using 10-fold cross-validation, train a model to predict the probability of sentiment being positive using logistic regression with lasso penalty. Try different values of lasso penalty to decide optimal value. Use AUC as a metric for optimization. Plot the results, and report the optimal value of lasso penalty.
+**Task 1.4.** Use the `caret::train()` function to train a model with 10-fold cross-validation for predicting the probability of sentiment being positive using logistic regression with lasso penalty. Try different values of lasso penalty to decide optimal value. Use `logLoss` as a metric for optimization. Plot the results, and report the optimal value of lasso penalty.
 
-**Task 1.5** Evaluate the performance of the models in 2.2, 2.3, and 2.4 on the test dataset. Calculate AUC, overall accuracy (ACC), true positive rate (TPR), true negative rate (TNR), and precision (PRE). When calculating ACC, TPR, TNR, and PRE, assume that we use a cut-off value of 0.5 for the predicted probabilities. Summarize these numbers in a table like the following. Decide and comment on which model you would use to predict sentiment of a tweet moving forward.
+**Task 1.5** Evaluate the performance of the models in 1.2, 1.3, and 1.4 on the test dataset. Calculate and report logLoss (LL), area under the reciever operating characteristic curver (AUC), overall accuracy (ACC), true positive rate (TPR), true negative rate (TNR), and precision (PRE) for three models. When calculating ACC, TPR, TNR, and PRE, assume that we use a cut-off value of 0.5 for the predicted probabilities. Summarize these numbers in a table like the following. Decide and comment on which model you would use to predict sentiment of a tweet moving forward.
 
-|                                         | AUC | ACC | TPR | TNR | PRE |
-|-----------------------------------------|:---:|:---:|:---:|:---:|:---:|
-| Logistic Regression                     |     |     |     |     |     |
-| Logistic Regression with Ridge Penalty  |     |     |     |     |     |
-| Logistic Regression with Lasso Penalty  |     |     |     |     |     |
+|                                         | LL  | AUC | ACC | TPR | TNR | PRE |
+|-----------------------------------------|:---:|:---:|:---:|:---:|:---:|:---:|
+| Logistic Regression                     |     |     |     |     |     |     |
+| Logistic Regression with Ridge Penalty  |     |     |     |     |     |     |
+| Logistic Regression with Lasso Penalty  |     |     |     |     |     |     |
 
 <br/>
 
-**Task 1.6.** Pick your favorite hashtag on Twitter, and select 5 tweets written under this hashtag. Using your model, predict the probability of sentiment being positive for these you selected.
 
-**Task 1.7.** Let's do an experiment and test whether or not the model is biased against certain groups when detecting sentiment of a tweet. Below you will find 10 sentences with an identical structure. The only thing that changes from tweet to tweet is the subject. 
+**Task 1.6** For the model you decided in 1.5, find and report the most important 10 predictors of sentiment and their coefficients. Briefly comment which variables seem to be the most important predictors. 
+
+**Task 1.7.** Below is two tweets I picked from my timeline. Use the model you decided in Task 1.5 to predict a probability that the sentiment being positive for these tweets. You are welcome to extract the word embeddings for these tweets by yourself (model: roberta-base, layer=12). Assume that all these tweets are posted on Saturday, May 1, 2021 at 12pm. For convenience, you can also download the dataset from the link below in case you have trouble in extracting the word embeddings. 
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+tweet1  <- "You are not getting displaced you decide to sell your $800k townhome because a 12-story apartment goes up next door, and then can't find another $800k townhome in Arlington."
+
+tweet2  <- "One cold morning and I'm in holiday mode. Bought gifts for students."
+
+```
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+new_tweets <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/content/post/hw2/data/toy_tweet_embeddings.csv',header=TRUE)
+
+```
+
+**Task 1.8.** Let's do an experiment and test whether or not the model is biased against certain groups when detecting sentiment of a given text. Below you will find 10 hypothetical tweets with an identical structure. The only thing that changes from tweet to tweet is the subject. 
+
+You are welcome to extract the word embeddings for these tweets by yourself (model: roberta-base, layer=12). Assume that all these tweets are posted on Saturday, May 1, 2021 at 12pm. For convenience, you can also download the dataset from the link below in case you have trouble in extracting the word embeddings. 
 
 ```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
@@ -133,8 +152,13 @@ text10 <- 'Russian people are so annoying!'
 
 ```
 
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-Use your model to predict the probability of these hypothetical tweets having a positive sentiment, and report these numbers in a table.
+bias_check <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/content/post/hw2/data/bias_check_tweet_embeddings.csv',header=TRUE)
+
+```
+
+Use your model from Task 1.5 to predict the probability of these hypothetical tweets having a positive sentiment, and report these numbers in a table.
 
 |                 | |                  | Probability(Sentiment=Positive)|
 |-----------------|-|------------------|:------------------------------:|
@@ -155,8 +179,7 @@ What do you think? Does your model favor any group or seem to be biased against 
 
 ## Part 2: Predicting a Continous Outcome using Regularized Linear Regression
 
-For this assignment you will work with the Oregon dataset and try to predict the scores.
-
+For this assignment you will work with the Oregon dataset and try to predict the scores.I uploaded the datasets on the website for convenience and to make sure everyone works on the same dataset. Download the Oregon testing dataset using the R code below. Then, also create the blueprint as shown below.
 
 ```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
@@ -172,8 +195,10 @@ For this assignment you will work with the Oregon dataset and try to predict the
 oregon <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/content/post/hw2/data/hw1_oregon_final.csv',header=TRUE)
 
 # Recipe for the oregon dataset
+
+  outcome <- 'score'
   
-  id      <- c('id')
+  id      <- 'id'
 
   categorical <- c('sex','ethnic_cd','tst_bnch','migrant_ed_fg','ind_ed_fg',
                    'sp_ed_fg','tag_ed_fg','econ_dsvntg','stay_in_dist',
@@ -208,10 +233,32 @@ blueprint_oregon <- recipe(x     = oregon,
     
 ```
 
-Task 2.1. Check the dataset for missingness. If there is any variable with more than 75% missingness, remove these variables.
+**Task 2.1.** Check the dataset for missingness. If there is any variable with more than 75% missingness, remove these variables.
 
-Task 2.2. Split the original data into two subsets: training and test. Let the training data have the 80% of cases and the test data have the  20% of the cases. 
+**Task 2.2.** Split the original data into two subsets: training and test. Let the training data have the 80% of cases and the test data have the  20% of the cases. 
 
-Task 2.3. Using 10-fold cross-validation, train a model to predict the scores using linear regression without any regularization. Evaluate the performance of the model on the test dataset. Report RMSE, R-square, and MAE.
+**Task 2.3.** Use the `caret::train()` function to train a model with 10-fold cross-validation to predict the scores using linear regression without any regularization. Evaluate the performance of the model on both training and test datasets. Evaluate and report RMSE, R-square, and MAE for both training and test datasets. Is there any evidence of overfitting?  
  
-Task 2.4. Using 10-fold cross-validation, train a model to predict the scores using ridge regression. Try different values of $\lambda$ to decide optimal value. Evaluate the performance of the model on the test dataset. Report RMSE, R-square, and MAE.
+**Task 2.4.** Use the `caret::train()` function to train a model with 10-fold cross-validation to predict the scores using ridge regression. Try different values of lambda to decide optimal value. Evaluate the performance of the model on the test dataset, and report RMSE, R-square, and MAE. Does ridge regression provide any improvement over linear regression with no regularization?
+
+**Task 2.5.** Use the `caret::train()` function to train a model with 10-fold cross-validation to predict the scores using lasso regression. Try different values of lambda to decide optimal value. Evaluate the performance of the model on the test dataset, and report RMSE, R-square, and MAE. Does lasso regression provide any improvement over linear regression with no regularization?
+
+**Task 2.6** Evaluate the performance of the models in 2.2, 2.3, and 2.4 on the test dataset. Calculate and report the root mean squared error (RMSE), mean absolute error (MAE), and R-square. Summarize these numbers in a table like the following. Decide and comment on which model you would use to predict scores.
+
+|                                      | RMSE| MAE | R-sq|
+|--------------------------------------|:---:|:---:|:---:|
+| Linear Regression                    |     |     |     |
+| Linear Regression with Ridge Penalty |     |     |     |
+| Linear Regression with Lasso Penalty |     |     |     |
+
+<br/>
+
+
+**Task 2.7** For the model you decided in 2.6, find and report the most important 10 predictors of test scores and their regression coefficients. Briefly comment which variables seem to be the most important predictors.
+
+
+
+
+
+
+
