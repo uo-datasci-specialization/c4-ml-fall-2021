@@ -83,11 +83,41 @@ options(scipen=99)
 
 # Overview of the Logistic Regression
 
-## Model Description
+Logistic regression is a type of model that can be used to predict a binary outcome variable. Linear regression and logistic regression are indeed members of the same family of models called *generalized linear models*. While linear regression can also technically be used to predict a binary outcome, the bounded nature of a binary outcome, [0,1], makes the linear regression solution suboptimal. Logistic regression is a more appropriate model and takes the bounded nature of the binary outcome into account when making predictions.
 
-## Model Estimation
+The binary outcomes can be coded in a variety of ways in the data such as 0 vs 1, True vs False, Yes vs. No, Success vs. Failure. The rest of the notes, it is assumed that the category of interest to predict is represented by 1s in the data. 
 
-## `glm` function
+The notes in this section will first introduce a suboptimal solution to predict a binary outcome by fitting a linear probability model using linear regression and discuss the limitations of this approach. Then, the logistic regression model and its estimation will be demonstrated. Finally, different regularization approaches for the logistic regression will be discussed.
+
+Throughout these notes, we will use the [Recidivism dataset from the NIJ competition](https://nij.ojp.gov/funding/recidivism-forecasting-challenge) to discuss different aspects of logistic regression and demonstrations. This data and variables in this data were discussed in detail in [Lecture 1a](https://ml-21.netlify.app/notes/lecture-1a.html) and [Lecture 2a](https://ml-21.netlify.app/notes/lecture-2a.html). The outcome of interest to predict in this dataset is whether or not an individual will be recidivated in the second year after initial release. In order to make demonstrations easier, I randomly sample 20 observations from this data.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Download the random sample of 20 observations from the recidivism dataset
+
+recidivism <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_sub.csv',
+                         header=TRUE)
+
+# Outcome variable
+
+table(recidivism$Recidivism_Arrest_Year2)
+```  
+
+## Linear Probability Model
+
+Linear probability model is just fitting a typical regression model to a binary outcome. When the outcome is binary, the predictions from a linear regression model can be considered as probability of outcome being equal to 1,
+$$\hat{Y} = P(Y = 1).$$
+Suppose that we want to predict the recidivism in the second year (`Recidivism_Arrest_Year2`) by using the number of prior arrests for felony (`Prior_Arrest_Episodes_Felony`).
+
+
+
+## Description of Logistic Regression Model
+
+### Model Estimation
+
+
+
+### `glm` function
 
 ## Building a Prediction Model for Recidivism
 
