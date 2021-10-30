@@ -294,7 +294,7 @@ $$ \mathfrak{L}(\mathbf{Y}|p = 0.65) = 0.65 \times 0.5 \times 0.65 \times (1-0.6
 
 We can say that based on our observation, an estimate of $p$ being equal to 0.65 is more likely than an estimate of $p$ being equal to 0.5. Our observation of 7 heads and 3 tails is more likely if we estimate $p$ as 0.65 rather than 0.5.
 
-#### Maximum likelihood estimation
+#### Maximum likelihood estimation (MLE)
 
 Then, what would be the best estimate of $p$ given our observed data (7 heads and 3 tails). We can try every possible value of $p$ between 0 and 1, and calculate the likelihood of our data ($\mathbf{Y}$). Then, we can pick the value that makes our data most likely (largest likelihood) to observe as our best estimate. This would be called the maximum likelihood estimate of $p$ given the data we observed.
 
@@ -360,7 +360,7 @@ logL[which.max(logL)]
 p[which.max(logL)]
 ``` 
 
-#### MLE of Logistic Regression coefficients
+#### MLE for Logistic Regression coefficients
 
 Now, we can apply these concepts to estimate the logistic regression coefficients. Let's revisit our previous example in which we predict the probability of being recidivated in Year 2 given the number of dependents a parolee has. Our model can be written as the following.
 
@@ -430,13 +430,12 @@ We can sumamrize this by saying that if our model coefficients are $\beta_0$ = 0
 $$\mathbf{Y} = \left ( 1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,1,0,0,0,0 \right )$$
 
 
-$$ \mathfrak{logL}(\mathbf{Y}|\beta_0 = 0.5,\beta_1 = -0.8) = -23.25$$
+$$ \mathfrak{logL}(\mathbf{Y}|\beta_0 = 0.5,\beta_1 = -0.8) = -12.65$$
 The critical question to ask is whether or not there is another pair of values we can assign to $\beta_0$ and $\beta_1$ that would provide a higher likelihood of data. If there is, then they would be better estimates for our model. If we can find such a pair with the maximum loglikelihood of data, then they would be our maximum likelihood estimates for the given model. 
 
-We can approach this problem in a very crude way to gain some intution. Now, suppose that a reasonable range of values for  $\beta_0$ is from -1 to 1 and a reasonable range of values for  $\beta_1$ is also from -1 to 1. Let's think about every possible combinations of values for $\beta_0$ and  $\beta_1$ within these ranges with increments of .01. Then, let's calculate the loglikelihood of data for every possible combination and plot these in a 3D plot as a function of $\beta_0$ and  $\beta_1$.
+We can approach this problem in a very crude way to gain some intuition about what Maximum Likelihood Estimation is about. Now, suppose that a reasonable range of values for  $\beta_0$ is from -1 to 1 and a reasonable range of values for  $\beta_1$ is also from -1 to 1. Let's think about every possible combinations of values for $\beta_0$ and  $\beta_1$ within these ranges with increments of .01. Then, let's calculate the loglikelihood of data for every possible combination and plot these in a 3D plot as a function of $\beta_0$ and  $\beta_1$.
 
-
-```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
 grid    <- expand.grid(b0=seq(-1,1,.01),b1=seq(-1,1,.01))           
 grid$logL <- NA
@@ -468,7 +467,7 @@ plot_ly(grid, x = ~b0, y = ~b1, z = ~logL,
 
 ```
 
-```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
 grid <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/grid_logistic_regression.csv',header=TRUE)
 
@@ -483,30 +482,73 @@ plot_ly(grid, x = ~b0, y = ~b1, z = ~logL,
 
 ```
 
+What is the maximum point of this surface? Our crude search indicates that it is -11.78708, and the set of $\beta_0$ and $\beta_1$ coefficients that make the observed data most likely is -0.38 and -0.37. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+grid[which.max(grid$logL),]
+
+``` 
+
+Therefore, given our dataset with 20 observations, our maximum likelihood estimates for the coefficients of the logistic regression model above are -0.38 and -0.37.
 
 
+$$ln \left [ \frac{P_i(Y=1)}{1-P_i(Y=1)} \right] =  -0.38 - 0.37 \times X_i.$$
 
-
-
-
-
-
-
-
+#### Logistic Loss function
 
 Below is a compact way of writing likelihood and loglikeihood in mathematical notation. For simplification purposes, we write $P_i$ to represent $P_i(Y=1)$.
 
-$$\mathbf{Y} = \left ( 1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,1,0,0,0,0 \right )$$
-
-$$ \mathfrak{L}(\mathbf{Y}|\beta_0,\beta_1) = \prod_{i=1}^{N} P_i^{y_i} \times (1-P_i)^{1-y_i}$$
-
-$$ \mathfrak{logL}(\mathbf{Y}|\beta_0,\beta_1) = \sum_{i=1}^{N} y_i \times ln(P_i) + (1-y_i) \times ln(1-P_i)$$
+$$ \mathfrak{L}(\mathbf{Y}|\boldsymbol\beta) = \prod_{i=1}^{N} P_i^{y_i} \times (1-P_i)^{1-y_i}$$
 
 
-The final equation above, $\mathfrak{logL}(\mathbf{Y}|\beta_0,\beta_1)$, is known as the **logistic loss** function. By finding the set of {$\beta_0,\beta_1$} that maximizes this quantity, we obtain the maximum likelihood estimates of the coefficients in the logistic regression model with one predictor specified above.
+$$ \mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta) = \sum_{i=1}^{N} y_i \times ln(P_i) + (1-y_i) \times ln(1-P_i)$$
 
+The final equation above, $\mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta)$, is known as the **logistic loss** function. By finding the set of coefficients in a model, $\boldsymbol\beta = (\beta_0, \beta_1,...,\beta_P)$, that maximizes this quantity, we obtain the maximum likelihood estimates of the coefficients for the logistic regression model.
 
+Unfortunately, the naive crude search we applied above would be a bad solution when you have a complex model with so many predictors. Another unfortunate thing is that there is no closed form solution (as we had for the linear regression) for the logistic regression. Therefore, the only way to estimate the logistic regression coefficients is to use numerical approximations and computational algorithms to maximize the logistic loss function. Luckily, we have tools available to accomplish this task.
 
+***
+<div id="infobox">
+
+<center style="color:black;"> **NOTE** </center>
+
+One may wonder why we do not use least square estimation and minimize the sum of squared residuals when estimating the coefficients of the logistic regression model.
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+grid    <- expand.grid(b0=seq(-1,1,.01),b1=seq(-1,1,.01))           
+grid$logL <- NA
+
+for(i in 1:nrow(grid)){
+  
+  x = recidivism$Dependents
+  y = recidivism$Recidivism_Arrest_Year2
+
+  pred_logit    <- grid[i,]$b0 + grid[i,]$b1*x
+  pred_prob1    <- exp(pred_logit)/(1+exp(pred_logit))
+  pred_prob0    <- 1 - pred_prob1 
+  logL          <- y*log(pred_prob1) + (1-y)*log(pred_prob0)
+  grid[i,]$logL <- sum(logL)
+  
+  print(i)
+}
+
+  
+require(plotly)
+
+plot_ly(grid, x = ~b0, y = ~b1, z = ~logL, 
+        marker = list(color = ~logL,
+                      showscale = TRUE,
+                      cmin=min(grid$logL),
+                      cmax=max(grid$logL),cauto=F),
+        width=600,height=600) %>% 
+  add_markers()
+
+```
+
+</div>
+***
 
 
 ### `glm` function
