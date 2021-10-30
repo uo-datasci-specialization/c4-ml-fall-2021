@@ -89,7 +89,7 @@ The binary outcomes can be coded in a variety of ways in the data such as 0 vs 1
 
 The notes in this section will first introduce a suboptimal solution to predict a binary outcome by fitting a linear probability model using linear regression and discuss the limitations of this approach. Then, the logistic regression model and its estimation will be demonstrated. Finally, different regularization approaches for the logistic regression will be discussed.
 
-Throughout these notes, we will use the [Recidivism dataset from the NIJ competition](https://nij.ojp.gov/funding/recidivism-forecasting-challenge) to discuss different aspects of logistic regression and demonstrations. This data and variables in this data were discussed in detail in [Lecture 1a](https://ml-21.netlify.app/notes/lecture-1a.html) and [Lecture 2a](https://ml-21.netlify.app/notes/lecture-2a.html). The outcome of interest to predict in this dataset is whether or not an individual will be recidivated in the second year after initial release. In order to make demonstrations easier, I randomly sample 20 observations from this data.
+Throughout these notes, we will use the [Recidivism dataset from the NIJ competition](https://nij.ojp.gov/funding/recidivism-forecasting-challenge) to discuss different aspects of logistic regression and demonstrations. This data and variables in this data were discussed in detail in [Lecture 1a](https://ml-21.netlify.app/notes/lecture-1a.html) and [Lecture 2a](https://ml-21.netlify.app/notes/lecture-2a.html). The outcome of interest to predict in this dataset is whether or not an individual will be recidivated in the second year after initial release. In order to make demonstrations easier, I randomly sample 20 observations from this data. Six observations in this data have a value of 1 for the outcome (recidivated) while 14 observations have a value of 0 (not recidivated).
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
@@ -107,13 +107,405 @@ table(recidivism$Recidivism_Arrest_Year2)
 
 Linear probability model is just fitting a typical regression model to a binary outcome. When the outcome is binary, the predictions from a linear regression model can be considered as probability of outcome being equal to 1,
 $$\hat{Y} = P(Y = 1).$$
-Suppose that we want to predict the recidivism in the second year (`Recidivism_Arrest_Year2`) by using the number of prior arrests for felony (`Prior_Arrest_Episodes_Felony`).
+Suppose that we want to predict the recidivism in the second year (`Recidivism_Arrest_Year2`) by using the number of dependents they have. Then, we could fit this using the `lm` function.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+mod <- lm(Recidivism_Arrest_Year2 ~ 1 + Dependents,
+          data = recidivism)
+
+summary(mod)
+
+```  
+
+The intercept is 0.402 and the slope for the predictor `Dependents` is -.073. We can interpret the intercept and slope as the following for this example. Note that the predicted values from this model now can be interpreted as probability predictions because the outcome is binary.
+
+- Intercept (0.402): When the number of dependent is equal to 0, the probability of being recidivated in Year 2 is 0.402.
+
+- Slope (-0.073): For every additional dependent (one unit increase in X) the individual has, the probability of being recidivated in Year 2 is reduced by .07.
+
+The intercept and slope still represent the best fitting line to our data, and this fitted line can be shown here.
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+set.seed(1234)
+
+x <- recidivism$Dependents + runif(20,-.1,.1)
+y <- recidivism$Recidivism_Arrest_Year2
+
+ggplot()+
+  geom_point(aes(x=x,y=y))+
+  theme_bw()+
+  geom_abline(intercept = coef(mod)[1],slope = coef(mod)[2])+
+  xlim(c(min(x),10))
 
 
+```  
+
+
+Now, suppose we want to calculate the model predicted probability of being recidivated in Year 2 for different number of dependents a parolee has. Let's assume that the number of dependents can be any number from 0 to 10. What would be the predicted probability of being recidivated in Year 2 for a parolee with 8 dependents?
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+X <- data.frame(Dependents = 0:10)
+
+predict(mod,newdata = X)
+
+```  
+
+It is not reasonable for a probability prediction to be negative. One of the major issues with using a linear regression to predict a binary outcome using a linear-probability model is that the model predictions can easily be go outside of the boundary [0,1] and yield unreasonable predictions. So, a linear regression model may not necessarily the best tool to predict a binary outcome. We should use a model that respect the boundaries of the outcome variable.  
 
 ## Description of Logistic Regression Model
 
+In order to overcome the limitations of the linear probability model, we bundle our prediction model in a sigmoid function. Suppose there is real-valued function of $a$ such that 
+
+$$ f(a) = \frac{e^a}{e^a+1}. $$
+It can be shows than the output of this function is always bounded to be between 0 and 1 regardless of the value of $a$. Therefore, sigmoid function is an appropriate choice for the logistic regression because it assures that the output is always bounded between 0 and 1. 
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+
+fx <- function(x) { exp(x)/(1+exp(x))}
+
+ggplot()+
+  geom_function(fun=fx)+
+  xlim(c(-10,10))+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('a')+
+  ylab('f(a)')+
+  ggtitle('Sigmoid function')
+
+
+```  
+
+
+If we revisit the previous example, we can specify a logistic regression model to predict the probability of being recidivated in Year 2 as the following by using the number of dependents a parolee has as the predictor,
+
+$$P(Y=1) =  \frac{e^{\beta_0+\beta_1X}}{e^{\beta_0+\beta_1X}+1}.$$
+
+When the values of predictor variable is entered into the equation, the model output can be directly interpreted as the probability of the binary outcome being equal to 1 (or whatever category and meaning a value of one represents). Then, we assume that the actual outcome follows a binomial distribution with the predicted probability.
+
+$$ P(Y=1) = p $$
+$$ Y \sim Binomial(p)$$
+
+Suppose the coefficient estimates of this model are $\beta_0$=-0.38 and $\beta_1$=-0.37. Then, for instance, we can compute the probability of being recidivated for a parolee with 8 dependents as the following:
+
+$$P(Y=1) =  \frac{e^{(-0.38-0.37 \times 8)}}{e^{(-0.38-0.37 \times 8)+1}} = 0.034.$$
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+mod <- glm(Recidivism_Arrest_Year2 ~ 1 + Dependents,
+           family = 'binomial',
+           data = recidivism)
+
+summary(mod)
+
+``` 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+b0 = -0.38
+b1 = -0.37
+
+x = 0:10
+
+y = exp(b0+b1*x)/(1+exp(b0+b1*x))
+
+data.frame(number.of.dependents = x, probability=y)
+``` 
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+
+b0 = -0.38
+b1 = -0.37
+
+fx <- function(x) {exp(b0+b1*x)/(1+exp(b0+b1*x))}
+
+ggplot()+
+  geom_function(fun=fx)+
+  xlim(c(0,10))+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('Number of Dependents')+
+  ylab('Probability of Being Recidivated')+
+  ggtitle('')
+
+
+```  
+
+In its original form, it is difficult to interpret the parameters of the logistic regression because a one unit increase in the predictor is not anymore linearly related the probability of outcome being equal to 1 due to the nonlinear nature of the sigmoid function. Most common presentation of logistic regression is obtained after a bit of algebraic manipulation to rewrite the model equation. The logistic regression model above can also be specificed as the following without any loss of meaning as they are mathematically equivalent. 
+
+
+$$ln \left [ \frac{P(Y=1)}{1-P(Y=1)} \right] =  \beta_0+\beta_1X.$$
+The term on the left side of the equation is known as the **logit**. So, when the outcome is a binary variable, the logit transformation of the probability that the outcome is equal to 1 can be represented as a linear equation. This provides a more straightforward interpretation. For instance, we can know say that when the number of dependents is equal to zero, the predicted logit is equal to -0.38 (intercept), and for every additional dependent the logit decreases by 0.37 (slope). 
+
+It is also common to transform the logit to odds when interpreting the parameters. For instance, we can say that when the number of dependents is equal to zero, the odds of being recidivated is 0.68 ($e^{-0.38}$), and for every additional dependent the odds of being recidivated is reduced by 31% ($1 - e^{-0.37}$).
+
+The right side of the equation can be expanded by adding more predictors, adding polynomial terms of the predictors, or adding interactions among predictors. A model with only main effects of $P$ predictors can be written as
+
+$$ ln \left [ \frac{P(Y=1)}{1-P(Y=1)} \right] = \beta_0  + \sum_{p=1}^{P} \beta_pX_{p},$$
+and the coefficients can be interpreted as
+
+- $\beta_0$: the predicted logit when the values for all the predictor variables in the model are equal to zero. $e^{\beta_0}$, the predicted odds of outcome being equal to 1 when the values for all the predictor variables in the model are equal to zero.
+
+-  $\beta_p$: the change in the predicted logit for one unit increase in $X_p$ when the values for all other predictors in the model are held constant. For every one unit in increase in $X_p$, the odds of the outcome being equal to 1 is multiplied  by $e^{\beta_p}$ when the values for all other predictors in the model are held constant. In other words, $e^{\beta_p}$ is odds ratio, the ratio of odds at $\beta_p = a+1$ to the odds at $\beta_p = a$. 
+
+It is important that you get familiar with the three concepts (probability, odds, logit) and how these three are related to each other for interpreting the logistic regression parameters. 
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center',fig.height=5,fig.width=12}
+
+knitr::include_graphics(here('static/notes/images/pr-odd-logit.PNG'))
+
+```
+
+***
+<div id="infobox">
+
+<center style="color:black;"> **NOTE** </center>
+
+Sigmoid function is not the only tool to be used for modeling a binary outcome. One can also use the cumulative standard normal distribution function, $\phi(a)$, and the output of $\phi(a)$ is also bounded between 0 and 1. When $\phi$ is used to to transform the prediction model, this is known as **probit regression** and it serves the same purpose as the logistic regression, which is to predict probability of a binary outcome being equal to 1. However, it is always easier and more pleasant to work with logarithmic functions, and logarithmic functions has nice computational properties. Therefore, logistic regression is more commonly used than the probit regression.
+</div>
+***
+
 ### Model Estimation
+
+#### The concept of likelihood
+
+It is important to understand the concept of likelihood for estimating the coefficients of a logistic regression model. We will consider a simple example of flipping coins for this.
+Suppose you flip the same coin 20 times and observe the following outcome. We don't necessarily know whether or not this is a fair coin in which the probability of observing a head or tail is equal to 0.5. 
+
+$$\mathbf{Y} = \left ( H,H,H,T,H,H,H,T,H,T \right )$$
+Suppose that we define $p$ as the probability of observing a head when we flip this coin. By definition, the probability of observing a tail is $1-p$.
+$$P(Y=H) = p$$
+$$P(Y=T) = 1 - p$$
+Then, we can calculate the likelihood of our observations of heads and tails as a function of $p$.
+
+$$ \mathfrak{L}(\mathbf{Y}|p) = p \times p \times p \times (1-p) \times p \times p \times p \times (1-p) \times p \times (1-p) $$
+For instance, if we say that this is a fair coin and therefore $p$ is equal to 0.5, then the likelihood of observing 7 heads and 3 tails would be equal to
+
+$$ \mathfrak{L}(\mathbf{Y}|p = 0.5) = 0.5 \times 0.5 \times 0.5 \times (1-0.5) \times 0.5 \times 0.5 \times 0.5 \times (1-0.5) \times 0.5 \times (1-0.5) = 0.0009765625$$
+
+On the other hand, another person can say this is probably not a fair coin and the $p$ should be something higher than 0.5. How about 0.65?
+
+
+$$ \mathfrak{L}(\mathbf{Y}|p = 0.65) = 0.65 \times 0.5 \times 0.65 \times (1-0.65) \times 0.65 \times 0.65 \times 0.65 \times (1-0.65) \times 0.65 \times (1-0.65) = 0.00210183$$
+
+We can say that based on our observation, an estimate of $p$ being equal to 0.65 is more likely than an estimate of $p$ being equal to 0.5. Our observation of 7 heads and 3 tails is more likely if we estimate $p$ as 0.65 rather than 0.5.
+
+#### Maximum likelihood estimation
+
+Then, what would be the best estimate of $p$ given our observed data (7 heads and 3 tails). We can try every possible value of $p$ between 0 and 1, and calculate the likelihood of our data ($\mathbf{Y}$). Then, we can pick the value that makes our data most likely (largest likelihood) to observe as our best estimate. This would be called the maximum likelihood estimate of $p$ given the data we observed.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+p <- seq(0,1,.001)
+L <- p^7*(1-p)^3
+
+ggplot()+
+  geom_line(aes(x=p,y=L)) + 
+  theme_bw() + 
+  xlab('Probability of Observing a Head (p)')+
+  ylab('Likelihood of Observing 7 Heads and 3 Tails')+
+  geom_vline(xintercept=p[which.max(L)],lty=2)
+```
+
+We can show that the $p$ value that makes the likelihood largest is 0.7, and the likelihood of observing 7 heads and 3 tails is 0.002223566 when $p$ is equal to 0.7. Therefore, the maximum likelihood estimate of probability of observing a head for this particular coin is 0.7 given the 10 observations we have made. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+L[which.max(L)]
+
+p[which.max(L)]
+``` 
+
+Note that our estimate can change and be updated if we continue collecting more data by flipping the same coin and record our observations.
+
+#### The concept of loglikelihood
+
+The computation of likelihood requires the multiplication of so many $p$ values, and When you multiply values between 0 and 1, the result gets smaller and smaller. This creates problems when you multiply so many of these small $p$ values due the maximum precision any computer can handle. For instance, you can see what is the minimum number that can be represented in R and meets the requirements of [IEEE 754 technical standard](https://en.wikipedia.org/wiki/IEEE_754).
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+.Machine$double.xmin
+
+```
+
+When you have hundreds of thousands of observations, it is probably not a good idea to directly work with likelihood. Instead, we work with the log of likelihood. This has two main advantages:
+
+- We are less concerned about the precision of small numbers our computer can handle.
+
+- Loglikelihood has nicer mathematical properties to work with for optimization problems (log of product of two numbers is equal to the sum of log of the two numbers).
+
+- The point that maximizes likelihood also the same number that maximizes the loglikelihood, so our end results (MLE estimate) does not care if we use loglikelihood instead of likelihood.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+p <- seq(0,1,.001)
+logL <- log(p)*7 + log(1-p)*3
+
+ggplot()+
+  geom_line(aes(x=p,y=logL)) + 
+  theme_bw() + 
+  xlab('Probability of Observing a Head (p)')+
+  ylab('Loglikelihood of Observing 7 Heads and 3 Tails')+
+  geom_vline(xintercept=p[which.max(logL)],lty=2)
+```
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+logL[which.max(logL)]
+
+p[which.max(logL)]
+``` 
+
+#### MLE of Logistic Regression coefficients
+
+Now, we can apply these concepts to estimate the logistic regression coefficients. Let's revisit our previous example in which we predict the probability of being recidivated in Year 2 given the number of dependents a parolee has. Our model can be written as the following.
+
+$$ln \left [ \frac{P_i(Y=1)}{1-P_i(Y=1)} \right] =  \beta_0+\beta_1X_i.$$
+Note that $X$ and $P$ has a subscript $i$ to indicate that each individual may have a different X value, and therefore each individual will have a different probability. Our observed outcome is a set of 0s and 1s. Remember that there are 6 individuals recidivated (Y=1) and 14 individuals not recidivated (Y=0).
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+recidivism$Recidivism_Arrest_Year2
+``` 
+
+Given a set of coefficients, {$\beta_0,\beta_1$}, we can calculate the logit for every observation using the model equation, and then transform this logit to a probability,$P_i(Y=1)$. Finally, we can calculate the log of the probability for each obsrvation, and sum them across observations to obtain the loglikelihood of observing this set of observations (14 ones and 6 zeros). Suppose that we have two guesstimates for {$\beta_0,\beta_1$}, and they are 0.5 and -0.8, respectively. These coefficients imply the following predicted model.
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+
+b0 = 0.5
+b1 = -0.8
+
+fx <- function(x) {exp(b0+b1*x)/(1+exp(b0+b1*x))}
+
+ggplot()+
+  geom_function(fun=fx)+
+  xlim(c(0,10))+
+  ylim(c(0,1))+
+  theme_bw()+
+  xlab('Number of Dependents')+
+  ylab('Probability of Being Recidivated')+
+  ggtitle('')
+
+
+```  
+
+If these two coefficients are our estimates, how likely would it be to observe the outcome in our data given the number of dependents. The below R code first finds the predicted logit for every single observation assuming that $\beta_0$ = 0.5 and $\beta_1$ = -0.8.
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+b0 = 0.5
+b1 = -0.8
+
+x = recidivism$Dependents
+y = recidivism$Recidivism_Arrest_Year2
+
+pred_logit <- b0 + b1*x
+
+pred_prob1 <- exp(pred_logit)/(1+exp(pred_logit))
+pred_prob0 <- 1 - pred_prob1 
+
+data.frame(Dependents      = x, 
+           Recidivated     = y, 
+           Prob1 = pred_prob1,
+           Prob0 = pred_prob0)
+
+``` 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+logL <-  y*log(pred_prob1) + (1-y)*log(pred_prob0)
+
+sum(logL)
+
+``` 
+
+We can sumamrize this by saying that if our model coefficients are $\beta_0$ = 0.5 and $\beta_1$ = -0.8, then the log of likelihood of observing the outcome in our data would be -12.65.
+
+$$\mathbf{Y} = \left ( 1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,1,0,0,0,0 \right )$$
+
+
+$$ \mathfrak{logL}(\mathbf{Y}|\beta_0 = 0.5,\beta_1 = -0.8) = -23.25$$
+The critical question to ask is whether or not there is another pair of values we can assign to $\beta_0$ and $\beta_1$ that would provide a higher likelihood of data. If there is, then they would be better estimates for our model. If we can find such a pair with the maximum loglikelihood of data, then they would be our maximum likelihood estimates for the given model. 
+
+We can approach this problem in a very crude way to gain some intution. Now, suppose that a reasonable range of values for  $\beta_0$ is from -1 to 1 and a reasonable range of values for  $\beta_1$ is also from -1 to 1. Let's think about every possible combinations of values for $\beta_0$ and  $\beta_1$ within these ranges with increments of .01. Then, let's calculate the loglikelihood of data for every possible combination and plot these in a 3D plot as a function of $\beta_0$ and  $\beta_1$.
+
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+grid    <- expand.grid(b0=seq(-1,1,.01),b1=seq(-1,1,.01))           
+grid$logL <- NA
+
+for(i in 1:nrow(grid)){
+  
+  x = recidivism$Dependents
+  y = recidivism$Recidivism_Arrest_Year2
+
+  pred_logit    <- grid[i,]$b0 + grid[i,]$b1*x
+  pred_prob1    <- exp(pred_logit)/(1+exp(pred_logit))
+  pred_prob0    <- 1 - pred_prob1 
+  logL          <- y*log(pred_prob1) + (1-y)*log(pred_prob0)
+  grid[i,]$logL <- sum(logL)
+  
+  print(i)
+}
+
+  
+require(plotly)
+
+plot_ly(grid, x = ~b0, y = ~b1, z = ~logL, 
+        marker = list(color = ~logL,
+                      showscale = TRUE,
+                      cmin=min(grid$logL),
+                      cmax=max(grid$logL),cauto=F),
+        width=600,height=600) %>% 
+  add_markers()
+
+```
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+grid <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/grid_logistic_regression.csv',header=TRUE)
+
+plot_ly(grid, x = ~b0, y = ~b1, z = ~logL, 
+        marker = list(color = ~logL,
+                      showscale = TRUE,
+                      cmin=min(grid$logL),
+                      cmax=max(grid$logL),cauto=F),
+        width=600,height=600) %>% 
+  add_markers()
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+Below is a compact way of writing likelihood and loglikeihood in mathematical notation. For simplification purposes, we write $P_i$ to represent $P_i(Y=1)$.
+
+$$\mathbf{Y} = \left ( 1,0,1,0,0,0,0,1,1,0,0,1,0,0,0,1,0,0,0,0 \right )$$
+
+$$ \mathfrak{L}(\mathbf{Y}|\beta_0,\beta_1) = \prod_{i=1}^{N} P_i^{y_i} \times (1-P_i)^{1-y_i}$$
+
+$$ \mathfrak{logL}(\mathbf{Y}|\beta_0,\beta_1) = \sum_{i=1}^{N} y_i \times ln(P_i) + (1-y_i) \times ln(1-P_i)$$
+
+
+The final equation above, $\mathfrak{logL}(\mathbf{Y}|\beta_0,\beta_1)$, is known as the **logistic loss** function. By finding the set of {$\beta_0,\beta_1$} that maximizes this quantity, we obtain the maximum likelihood estimates of the coefficients in the logistic regression model with one predictor specified above.
+
+
 
 
 
