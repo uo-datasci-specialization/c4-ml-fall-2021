@@ -81,7 +81,7 @@ options(scipen=99)
 # Applied Predictive Modeling, Chapter 6
 ```
 
-# Overview of the Logistic Regression
+# 1. Overview of the Logistic Regression
 
 Logistic regression is a type of model that can be used to predict a binary outcome variable. Linear regression and logistic regression are indeed members of the same family of models called *generalized linear models*. While linear regression can also technically be used to predict a binary outcome, the bounded nature of a binary outcome, [0,1], makes the linear regression solution suboptimal. Logistic regression is a more appropriate model and takes the bounded nature of the binary outcome into account when making predictions.
 
@@ -95,15 +95,15 @@ Throughout these notes, we will use the [Recidivism dataset from the NIJ competi
 
 # Download the random sample of 20 observations from the recidivism dataset
 
-recidivism <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_sub.csv',
+recidivism_sub <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_sub.csv',
                          header=TRUE)
 
 # Outcome variable
 
-table(recidivism$Recidivism_Arrest_Year2)
+table(recidivism_sub$Recidivism_Arrest_Year2)
 ```  
 
-## Linear Probability Model
+## 1.1. Linear Probability Model
 
 Linear probability model is just fitting a typical regression model to a binary outcome. When the outcome is binary, the predictions from a linear regression model can be considered as probability of outcome being equal to 1,
 $$\hat{Y} = P(Y = 1).$$
@@ -112,7 +112,7 @@ Suppose that we want to predict the recidivism in the second year (`Recidivism_A
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
 mod <- lm(Recidivism_Arrest_Year2 ~ 1 + Dependents,
-          data = recidivism)
+          data = recidivism_sub)
 
 summary(mod)
 
@@ -130,8 +130,8 @@ The intercept and slope still represent the best fitting line to our data, and t
 
 set.seed(1234)
 
-x <- recidivism$Dependents + runif(20,-.1,.1)
-y <- recidivism$Recidivism_Arrest_Year2
+x <- recidivism_sub$Dependents + runif(20,-.1,.1)
+y <- recidivism_sub$Recidivism_Arrest_Year2
 
 ggplot()+
   geom_point(aes(x=x,y=y))+
@@ -155,7 +155,7 @@ predict(mod,newdata = X)
 
 It is not reasonable for a probability prediction to be negative. One of the major issues with using a linear regression to predict a binary outcome using a linear-probability model is that the model predictions can easily be go outside of the boundary [0,1] and yield unreasonable predictions. So, a linear regression model may not necessarily the best tool to predict a binary outcome. We should use a model that respect the boundaries of the outcome variable.  
 
-## Description of Logistic Regression Model
+## 1.2. Description of Logistic Regression Model
 
 In order to overcome the limitations of the linear probability model, we bundle our prediction model in a sigmoid function. Suppose there is real-valued function of $a$ such that 
 
@@ -197,7 +197,7 @@ $$P(Y=1) =  \frac{e^{(-0.38-0.37 \times 8)}}{e^{(-0.38-0.37 \times 8)+1}} = 0.03
 
 mod <- glm(Recidivism_Arrest_Year2 ~ 1 + Dependents,
            family = 'binomial',
-           data = recidivism)
+           data = recidivism_sub)
 
 summary(mod)
 
@@ -269,9 +269,9 @@ Sigmoid function is not the only tool to be used for modeling a binary outcome. 
 </div>
 ***
 
-### Model Estimation
+## 1.3. Model Estimation
 
-#### The concept of likelihood
+### 1.3.1. The concept of likelihood
 
 It is important to understand the concept of likelihood for estimating the coefficients of a logistic regression model. We will consider a simple example of flipping coins for this.
 Suppose you flip the same coin 20 times and observe the following outcome. We don't necessarily know whether or not this is a fair coin in which the probability of observing a head or tail is equal to 0.5. 
@@ -294,7 +294,7 @@ $$ \mathfrak{L}(\mathbf{Y}|p = 0.65) = 0.65 \times 0.5 \times 0.65 \times (1-0.6
 
 We can say that based on our observation, an estimate of $p$ being equal to 0.65 is more likely than an estimate of $p$ being equal to 0.5. Our observation of 7 heads and 3 tails is more likely if we estimate $p$ as 0.65 rather than 0.5.
 
-#### Maximum likelihood estimation (MLE)
+### 1.3.2. Maximum likelihood estimation (MLE)
 
 Then, what would be the best estimate of $p$ given our observed data (7 heads and 3 tails). We can try every possible value of $p$ between 0 and 1, and calculate the likelihood of our data ($\mathbf{Y}$). Then, we can pick the value that makes our data most likely (largest likelihood) to observe as our best estimate. This would be called the maximum likelihood estimate of $p$ given the data we observed.
 
@@ -322,7 +322,7 @@ p[which.max(L)]
 
 Note that our estimate can change and be updated if we continue collecting more data by flipping the same coin and record our observations.
 
-#### The concept of loglikelihood
+### 1.3.3. The concept of loglikelihood
 
 The computation of likelihood requires the multiplication of so many $p$ values, and When you multiply values between 0 and 1, the result gets smaller and smaller. This creates problems when you multiply so many of these small $p$ values due the maximum precision any computer can handle. For instance, you can see what is the minimum number that can be represented in R and meets the requirements of [IEEE 754 technical standard](https://en.wikipedia.org/wiki/IEEE_754).
 
@@ -360,7 +360,7 @@ logL[which.max(logL)]
 p[which.max(logL)]
 ``` 
 
-#### MLE for Logistic Regression coefficients
+### 1.3.4. MLE for Logistic Regression coefficients
 
 Now, we can apply these concepts to estimate the logistic regression coefficients. Let's revisit our previous example in which we predict the probability of being recidivated in Year 2 given the number of dependents a parolee has. Our model can be written as the following.
 
@@ -369,7 +369,7 @@ Note that $X$ and $P$ has a subscript $i$ to indicate that each individual may h
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
-recidivism$Recidivism_Arrest_Year2
+recidivism_sub$Recidivism_Arrest_Year2
 ``` 
 
 Given a set of coefficients, {$\beta_0,\beta_1$}, we can calculate the logit for every observation using the model equation, and then transform this logit to a probability,$P_i(Y=1)$. Finally, we can calculate the log of the probability for each obsrvation, and sum them across observations to obtain the loglikelihood of observing this set of observations (14 ones and 6 zeros). Suppose that we have two guesstimates for {$\beta_0,\beta_1$}, and they are 0.5 and -0.8, respectively. These coefficients imply the following predicted model.
@@ -402,8 +402,8 @@ If these two coefficients are our estimates, how likely would it be to observe t
 b0 = 0.5
 b1 = -0.8
 
-x = recidivism$Dependents
-y = recidivism$Recidivism_Arrest_Year2
+x = recidivism_sub$Dependents
+y = recidivism_sub$Recidivism_Arrest_Year2
 
 pred_logit <- b0 + b1*x
 
@@ -442,8 +442,8 @@ grid$logL <- NA
 
 for(i in 1:nrow(grid)){
   
-  x = recidivism$Dependents
-  y = recidivism$Recidivism_Arrest_Year2
+  x = recidivism_sub$Dependents
+  y = recidivism_sub$Recidivism_Arrest_Year2
 
   pred_logit    <- grid[i,]$b0 + grid[i,]$b1*x
   pred_prob1    <- exp(pred_logit)/(1+exp(pred_logit))
@@ -459,7 +459,7 @@ require(plotly)
 
 plot_ly(grid, x = ~b0, y = ~b1, z = ~logL, 
         marker = list(color = ~logL,
-                      showscale = TRUE,
+                      showscale = FALSE,
                       cmin=min(grid$logL),
                       cmax=max(grid$logL),cauto=F),
         width=600,height=600) %>% 
@@ -473,7 +473,7 @@ grid <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4
 
 plot_ly(grid, x = ~b0, y = ~b1, z = ~logL, 
         marker = list(color = ~logL,
-                      showscale = TRUE,
+                      showscale = FALSE,
                       cmin=min(grid$logL),
                       cmax=max(grid$logL),cauto=F),
         width=600,height=600) %>% 
@@ -495,14 +495,14 @@ Therefore, given our dataset with 20 observations, our maximum likelihood estima
 
 $$ln \left [ \frac{P_i(Y=1)}{1-P_i(Y=1)} \right] =  -0.38 - 0.37 \times X_i.$$
 
-#### Logistic Loss function
+### 1.3.5. Logistic Loss function
 
 Below is a compact way of writing likelihood and loglikeihood in mathematical notation. For simplification purposes, we write $P_i$ to represent $P_i(Y=1)$.
 
 $$ \mathfrak{L}(\mathbf{Y}|\boldsymbol\beta) = \prod_{i=1}^{N} P_i^{y_i} \times (1-P_i)^{1-y_i}$$
 
 
-$$ \mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta) = \sum_{i=1}^{N} y_i \times ln(P_i) + (1-y_i) \times ln(1-P_i)$$
+$$ \mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta) = \sum_{i=1}^{N} Y_i \times ln(P_i) + (1-Y_i) \times ln(1-P_i)$$
 
 The final equation above, $\mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta)$, is known as the **logistic loss** function. By finding the set of coefficients in a model, $\boldsymbol\beta = (\beta_0, \beta_1,...,\beta_P)$, that maximizes this quantity, we obtain the maximum likelihood estimates of the coefficients for the logistic regression model.
 
@@ -513,23 +513,25 @@ Unfortunately, the naive crude search we applied above would be a bad solution w
 
 <center style="color:black;"> **NOTE** </center>
 
-One may wonder why we do not use least square estimation and minimize the sum of squared residuals when estimating the coefficients of the logistic regression model.
+Why do we not use least square estimation and minimize the sum of squared residuals when estimating the coefficients of the logistic regression model? We can certainly use the sum of squared residuals as our loss function and minimize it to estimate the coefficients for the logistic regression, just like we did for the linear regression. The complication is that the sum of squared residuals function yields a non-convex surface when the outcome is binary as opposed to a convex surface obtained from the logistic loss function. Non-convex optimization problems are harder than convex optimization problems, and they are more vulnerable in terms of finding sub-optimal solutions (local minima/maxima). Therefore, the logistic loss function and maximizing it is preferred when estimating the coefficients of a logistic regression model.
+ 
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
-```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+#If you are interested, I replicated the previous crude grid search by using the sum of #squared residuals as the loss function. As you see, the least-square estimates are very #close to the maximum-likelihood estimates. This is not surprising since this is a simple #model with only one predictor.
 
 grid    <- expand.grid(b0=seq(-1,1,.01),b1=seq(-1,1,.01))           
-grid$logL <- NA
+grid$SSR <- NA
 
 for(i in 1:nrow(grid)){
   
-  x = recidivism$Dependents
-  y = recidivism$Recidivism_Arrest_Year2
+  x = recidivism_sub$Dependents
+  y = recidivism_sub$Recidivism_Arrest_Year2
 
   pred_logit    <- grid[i,]$b0 + grid[i,]$b1*x
   pred_prob1    <- exp(pred_logit)/(1+exp(pred_logit))
-  pred_prob0    <- 1 - pred_prob1 
-  logL          <- y*log(pred_prob1) + (1-y)*log(pred_prob0)
-  grid[i,]$logL <- sum(logL)
+ 
+  grid[i,]$SSR  <- sum((y - pred_prob1)^2)
   
   print(i)
 }
@@ -537,29 +539,344 @@ for(i in 1:nrow(grid)){
   
 require(plotly)
 
-plot_ly(grid, x = ~b0, y = ~b1, z = ~logL, 
-        marker = list(color = ~logL,
-                      showscale = TRUE,
-                      cmin=min(grid$logL),
-                      cmax=max(grid$logL),cauto=F),
+plot_ly(grid, x = ~b0, y = ~b1, z = ~SSR, 
+        marker = list(color = ~SSR,
+                      showscale = FALSE,
+                      cmin=min(grid$SSR),
+                      cmax=max(grid$SSR),cauto=F),
         width=600,height=600) %>% 
   add_markers()
 
 ```
 
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+grid <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/grid_logistic_regression_ssr.csv',header=TRUE)
+
+plot_ly(grid, x = ~b0, y = ~b1, z = ~SSR, 
+        marker = list(color = ~SSR,
+                      showscale = FALSE,
+                      cmin=min(grid$SSR),
+                      cmax=max(grid$SSR),cauto=F),
+        width=600,height=600) %>% 
+  add_markers()
+
+```
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+grid[which.min(grid$SSR),]
+
+``` 
+
 </div>
 ***
 
+### 1.3.6. The `glm` function
 
-### `glm` function
+The `glm()` function as a part of base `stats` package can be used to estimate the coefficients of the logistic regression. Let's fit the model discussed in the earlier sections using the `glm()` function.
 
-## Building a Prediction Model for Recidivism
+The use of the `glm()` function is very similar to the `lm()` function. The only difference is that we specify the `family='binomial'` argument to fit the logistic regression by maximizing the logistic loss function.
 
-### Initial Data Preparation
 
-### Train/Test Split
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
-### Model Fitting with the `caret` package
+mod <- glm(Recidivism_Arrest_Year2 ~ 1 + Dependents,
+           data   = recidivism_sub,
+           family = 'binomial')
+
+summary(mod)
+
+```
+
+In the **Coefficients** table, the numbers under the **Estimate** column are the estimated coefficients for the logistic regression model. The quantity labeled as the **Residual Deviance** in the output is twice the maximized loglikelihood,
+
+$$ Deviance  = -2 \times \mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta). $$
+Notice that the coefficient estimates from the `glm()` function are very close to our crude estimates from a brute-force search in an earlier section (-0.38 and -0.37). From our crude search, we found the maximum loglikelihood as -11.787. So, if we multiply that number by -2, that is equal to 23.574, which is the number reported in this output as **Residual Deviance**.
+
+## 1.4. Building a Prediction Model for Recidivism
+
+In earlier weeks, we discussed how to process 48 variables in the recidivism data and constructed 165 features for a given individual using a blueprint. Let's read the original data.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+recidivism <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_y1 removed.csv',header=TRUE)
+```
+
+This dataset has 18,111 rows and 54 columns. Each row represents a parolee. There are 48 predictor variables, one ID variable, four possible outcome variable (Recidivism in Year 1, Recidivism in Year 2, Recidivism in Year 3, and Recidivism within 3 years), and a filter variable to obtain the train and test split as in the original competition. For this lecture, we are interested in predicting Recidivism in Year 2. This dataset has already cleaned by removing the individuals who were recidivated in Year 1 ([https://ml-21.netlify.app/notes/lecture-1a.html#Recidivism)) 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+table(recidivism$Recidivism_Arrest_Year1)
+
+table(recidivism$Recidivism_Arrest_Year2)
+
+table(recidivism$Recidivism_Arrest_Year3)
+
+table(recidivism$Training_Sample)
+
+```
+
+### 1.4.1. Initial data preparation
+
+We will copy/paste the blueprint we developed earlier in the course ([Lecture 2a](https://ml-21.netlify.app/notes/lecture-2a.html#6_Wrapping-up_using_the_recipes_package))
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# List of variable types
+  
+  outcome <- c('Recidivism_Arrest_Year2')
+  
+  categorical <- c('Residence_PUMA',
+                   'Prison_Offense',
+                   'Age_at_Release',
+                   'Supervision_Level_First',
+                   'Education_Level',
+                   'Prison_Years',
+                   'Gender',
+                   'Race',
+                   'Gang_Affiliated',
+                   'Prior_Arrest_Episodes_DVCharges',
+                   'Prior_Arrest_Episodes_GunCharges',
+                   'Prior_Conviction_Episodes_Viol',
+                   'Prior_Conviction_Episodes_PPViolationCharges',
+                   'Prior_Conviction_Episodes_DomesticViolenceCharges',
+                   'Prior_Conviction_Episodes_GunCharges',
+                   'Prior_Revocations_Parole',
+                   'Prior_Revocations_Probation',
+                   'Condition_MH_SA',
+                   'Condition_Cog_Ed',
+                   'Condition_Other',
+                   'Violations_ElectronicMonitoring',
+                   'Violations_Instruction',
+                   'Violations_FailToReport',
+                   'Violations_MoveWithoutPermission',
+                   'Employment_Exempt') 
+
+  numeric   <- c('Supervision_Risk_Score_First',
+                 'Dependents',
+                 'Prior_Arrest_Episodes_Felony',
+                 'Prior_Arrest_Episodes_Misd',
+                 'Prior_Arrest_Episodes_Violent',
+                 'Prior_Arrest_Episodes_Property',
+                 'Prior_Arrest_Episodes_Drug',
+                 'Prior_Arrest_Episodes_PPViolationCharges',
+                 'Prior_Conviction_Episodes_Felony',
+                 'Prior_Conviction_Episodes_Misd',
+                 'Prior_Conviction_Episodes_Prop',
+                 'Prior_Conviction_Episodes_Drug',
+                 'Delinquency_Reports',
+                 'Program_Attendances',
+                 'Program_UnexcusedAbsences',
+                 'Residence_Changes',
+                 'Avg_Days_per_DrugTest',
+                 'Jobs_Per_Year')
+  
+  props      <- c('DrugTests_THC_Positive',
+                  'DrugTests_Cocaine_Positive',
+                  'DrugTests_Meth_Positive',
+                  'DrugTests_Other_Positive',
+                  'Percent_Days_Employed')
+  
+# 3) Convert all nominal, ordinal, and binary variables to factors
+  # Leave the rest as is
+  
+  for(i in categorical){
+    
+    recidivism[,i] <- as.factor(recidivism[,i])
+    
+  }
+  
+# 4) For variables that represent proportions, add/substract a small number
+  # to 0s/1s for logit transformation
+  
+  for(i in props){
+    recidivism[,i] <- ifelse(recidivism[,i]==0,.0001,recidivism[,i])
+    recidivism[,i] <- ifelse(recidivism[,i]==1,.9999,recidivism[,i])
+  }
+  
+
+#############################################################################
+  
+# Blueprint for processing variables
+  
+require(recipes)
+
+blueprint <- recipe(x  = recidivism,
+                    vars  = c(categorical,numeric,props,outcome),
+                    roles = c(rep('predictor',48),'outcome')) %>%
+  step_indicate_na(all_of(categorical),all_of(numeric),all_of(props)) %>%
+  step_zv(all_numeric()) %>%
+  step_impute_mean(all_of(numeric),all_of(props)) %>%
+  step_impute_mode(all_of(categorical)) %>%
+  step_logit(all_of(props)) %>%
+  step_ns(all_of(numeric),all_of(props),deg_free=3) %>%
+  step_normalize(paste0(numeric,'_ns_1'),
+                 paste0(numeric,'_ns_2'),
+                 paste0(numeric,'_ns_3'),
+                 paste0(props,'_ns_1'),
+                 paste0(props,'_ns_2'),
+                 paste0(props,'_ns_3')) %>%
+  step_dummy(all_of(categorical),one_hot=TRUE) %>%
+  step_num2factor(Recidivism_Arrest_Year2,
+                  transform = function(x) x + 1,
+                  levels=c('No','Yes'))
+
+  # The final step_num2factor is necessary to be able to work with the 
+  # caret::train() function
+  # This syntax simply converts 0s and 1s to 1s and 2s, then convert it to a factor
+  # with labels attached (No:1, Yes:2)
+
+blueprint
+```
+
+### 1.4.2. Train/Test split
+
+We could do a random split of training and test sample. However, this dataset has already a filtering variable created by the agency who opened this competition. The test sample was unknown during the competition, and was later released after the competition was over. I will use the original training and testing datasets so we can compare the performance of our models to the highest ranking results in the competition.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+loc <- which(recidivism$Training_Sample==1)
+
+# Training dataset
+
+recidivism_tr  <- recidivism[loc, ]
+dim(recidivism_tr)
+
+# Test dataset
+
+recidivism_te  <- recidivism[-loc, ]
+dim(recidivism_te)
+```
+
+### 1.4.3. Model fitting with the `caret` package
+
+`caret` package has `glm` available as an engine to use.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+
+require(caret)
+
+# getModelInfo()$glm
+
+```
+
+For 10-fold cross-validation, I will first do a random shuffle of the data and then assign each individual to a fold. Note that I added two arguments, `summaryFunction = mnLogLoss` and `classProbs=TRUE` for the `trainControl()` function. This is necessary to fit the logistic regression by maximizing the logistic loss function.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Cross validation settings
+
+  # Create the index values for 10-folds to provide to the 
+  # trainControl function. This way, you can reproduce the results in the future
+  # and use the same folds across models.
+
+    # Randomly shuffle the data
+
+      set.seed(10302021) # for reproducibility
+
+      recidivism_tr = recidivism_tr[sample(nrow(recidivism_tr)),]
+
+    # Create 10 folds with equal size
+
+      folds = cut(seq(1,nrow(recidivism_tr)),breaks=10,labels=FALSE)
+  
+    # Create the list for each fold 
+      
+      my.indices <- vector('list',10)
+      for(i in 1:10){
+        my.indices[[i]] <- which(folds!=i)
+      }
+      
+
+      cv <- trainControl(method    = "cv",
+                   index           = my.indices,
+                   classProbs      = TRUE,
+                   summaryFunction = mnLogLoss)
+      
+      
+```
+
+Now, we can train the logistic regression model using 10-fold cross validation.
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Train the model
+  
+caret_mod <- caret::train(blueprint, 
+                          data      = recidivism_tr, 
+                          method    = "glm",
+                          family    = 'binomial',
+                          metric    = 'logLoss',
+                          trControl = cv)
+
+caret_mod
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+load("B:/UO Teaching/EDLD 654/Books&Resources/largedata/logistic_regression_model_lecture5a.RData")
+
+```
+
+After we train the model, we can predict the probabilities for the observation in the test dataset.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Predict the probabilities for the observations in the test dataset
+
+predicted_te <- predict(caret_mod, recidivism_te, type='prob')
+
+dim(predicted_te)
+
+head(predicted_te)
+
+```
+
+Finally, we can calculate several evaluation metrics (e.g., AUC, TPR, TNR, FPR, Precision) for the model.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Compute the AUC
+
+require(cutpointr)
+
+cut.obj <- cutpointr(x     = predicted_te$Yes,
+                     class = recidivism_te$Recidivism_Arrest_Year2)
+
+auc(cut.obj)
+
+# Confusion matrix assuming the threshold is 0.5
+
+pred_class <- ifelse(predicted_te$Yes>.5,1,0)
+
+confusion <- table(recidivism_te$Recidivism_Arrest_Year2,pred_class)
+
+confusion
+
+# True Negative Rate
+
+confusion[1,1]/(confusion[1,1]+confusion[1,2])
+
+
+# False Positive Rate
+
+confusion[1,2]/(confusion[1,1]+confusion[1,2])
+
+# True Positive Rate
+
+confusion[2,2]/(confusion[2,1]+confusion[2,2])
+ 
+
+# Precision
+
+confusion[2,2]/(confusion[1,2]+confusion[2,2])
+ 
+```
+
+### 1.4.4. Predictions for the new observations
 
 # Regularization in Logistic Regression
 
