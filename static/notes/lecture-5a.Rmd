@@ -909,11 +909,11 @@ confusion[2,2]/(confusion[1,2]+confusion[2,2])
  
 ```
 
-# Regularization in Logistic Regression
+# 2. Regularization in Logistic Regression
 
 The regularization works very similarly in logistic regression as it was discussed in linear regression. We add penalty terms to the loss function to avoid large coefficients. By including a penalty term, we reduce model variance in exchange of adding bias. By optimizing the degree of penalty via tuning, we can typically get models with better performance than a logistic regression with no regularization.
 
-## Ridge Penalty
+## 2.1 Ridge Penalty
 
 The loss function with ridge penalty applied in logistic regression is the following:
 
@@ -950,7 +950,7 @@ This information may be important while searching plausible values of $\lambda$ 
 </div>
 ***
 
-### Model Fitting with the `caret` package
+### 2.1.1. Model Fitting with the `caret` package
 
 ```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -1044,7 +1044,7 @@ confusion[2,2]/(confusion[1,2]+confusion[2,2])
  
 ```
              
-### Variable Importance
+### 2.1.2. Variable Importance
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
 
@@ -1067,7 +1067,7 @@ head(as.matrix(coefs[ind,]),10)
 
 ```
 
-## Lasso Penalty
+## 2.2. Lasso Penalty
 
 The loss function with the lasso penalty applied in logistic regression is the following:
 
@@ -1105,7 +1105,7 @@ This information may be important while searching plausible values of $\lambda$ 
 </div>
 ***
 
-### Model Fitting with the `caret` package
+### 2.2.1. Model Fitting with the `caret` package
 
 ```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -1203,7 +1203,7 @@ confusion[2,2]/(confusion[1,2]+confusion[2,2])
  
 ```
 
-### Variable Importance
+### 2.2.2. Variable Importance
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
 
@@ -1227,14 +1227,14 @@ head(as.matrix(coefs[ind,]),10)
 
 ```
 
-## Elastic Net
+## 2.3. Elastic Net
 
 
 The loss function with the elastic applied is the following:
 
 $$ \mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta) = \left ( \sum_{i=1}^{N} Y_i \times ln(P_i) + (1-Y_i) \times ln(1-P_i) \right)- \left ((1-\alpha)\frac{\lambda}{2} \sum_{i=1}^{P}\beta_p^2 + \alpha  \lambda \sum_{i=1}^{P}|\beta_p| \right)$$
 
-### Model Fitting with the `caret` package
+### 2.3.1. Model Fitting with the `caret` package
 
 ```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -1332,7 +1332,7 @@ confusion[2,2]/(confusion[1,2]+confusion[2,2])
  
 ```
 
-### Variable Importance
+### 2.3.2. Variable Importance
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
 
@@ -1357,7 +1357,7 @@ head(as.matrix(coefs[ind,]),10)
 ```
 
 
-## Comparison of Models
+## 2.4. Comparison of Models
 
 Performance evaluation metrics on the test data.
 
