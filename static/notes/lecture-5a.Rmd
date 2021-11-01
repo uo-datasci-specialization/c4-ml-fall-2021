@@ -75,10 +75,9 @@ options(scipen=99)
 
 # Resources:
 
-# https://bradleyboehmke.github.io/HOML/linear-regression.html
-# https://bradleyboehmke.github.io/HOML/regularized-regression.html
-# James et al. Ch 3 and Ch 6.2
-# Applied Predictive Modeling, Chapter 6
+# https://bradleyboehmke.github.io/HOML/logistic-regression.html
+# James et al. Ch 4.3
+# Applied Predictive Modeling, Chapter 12.2, 12.5
 ```
 
 # 1. Overview of the Logistic Regression
