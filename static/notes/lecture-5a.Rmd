@@ -594,6 +594,28 @@ In the **Coefficients** table, the numbers under the **Estimate** column are the
 $$ Deviance  = -2 \times \mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta). $$
 Notice that the coefficient estimates from the `glm()` function are very close to our crude estimates from a brute-force search in an earlier section (-0.38 and -0.37). From our crude search, we found the maximum loglikelihood as -11.787. So, if we multiply that number by -2, that is equal to 23.574, which is the number reported in this output as **Residual Deviance**.
 
+
+### 1.3.7. The `glmnet` function
+
+You can also `glmnet()` function from the `glmnet` package to fit the logistic regression. The advantage of the `glmnet` package is that it provides the option of regularization while fitting the logistic regression. You can set the `alpha=0` and `lambda=0` arguments to obtain the coefficient estimates without any penalty.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+require(glmnet)
+
+mod <- glmnet(x         = cbind(0,recidivism_sub$Dependents),
+              y         = factor(recidivism_sub$Recidivism_Arrest_Year2),
+              family    = 'binomial',
+              alpha     = 0,
+              lambda    = 0,
+              intercept = TRUE)
+
+coef(mod)
+
+```
+
+The `x` argument is the input matrix for predictors, and `y` argument is a vector of binary response outcome. The `glmnet` requires the `y` argument to be a factor with two levels. Note that I defined `x` argument above as `cbind(0,recidivism_sub$Dependents)` because `glmnet` requires the `x` to be a matrix with at least two columns. So, I added a column of zeros to trick the function and force to run it. That column of zeros has zero impact on the estimation.
+
 ## 1.4. Building a Prediction Model for Recidivism
 
 In earlier weeks, we discussed how to process 48 variables in the recidivism data and constructed 165 features for a given individual using a blueprint. Let's read the original data.
@@ -603,7 +625,7 @@ In earlier weeks, we discussed how to process 48 variables in the recidivism dat
 recidivism <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_y1 removed.csv',header=TRUE)
 ```
 
-This dataset has 18,111 rows and 54 columns. Each row represents a parolee. There are 48 predictor variables, one ID variable, four possible outcome variable (Recidivism in Year 1, Recidivism in Year 2, Recidivism in Year 3, and Recidivism within 3 years), and a filter variable to obtain the train and test split as in the original competition. For this lecture, we are interested in predicting Recidivism in Year 2. This dataset has already cleaned by removing the individuals who were recidivated in Year 1 ([https://ml-21.netlify.app/notes/lecture-1a.html#Recidivism)) 
+This dataset has 18,111 rows and 54 columns. Each row represents a parolee. There are 48 predictor variables, one ID variable, four possible outcome variable (Recidivism in Year 1, Recidivism in Year 2, Recidivism in Year 3, and Recidivism within 3 years), and a filter variable to obtain the train and test split as in the original competition. For this lecture, we are interested in predicting Recidivism in Year 2. This dataset has already cleaned by removing the individuals who were recidivated in Year 1 ([Lecture-1a](https://ml-21.netlify.app/notes/lecture-1a.html#Recidivism)) 
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
@@ -763,7 +785,18 @@ require(caret)
 
 ```
 
-For 10-fold cross-validation, I will first do a random shuffle of the data and then assign each individual to a fold. Note that I added two arguments, `summaryFunction = mnLogLoss` and `classProbs=TRUE` for the `trainControl()` function. This is necessary to fit the logistic regression by maximizing the logistic loss function.
+For 10-fold cross-validation, I will first do a random shuffle of the data and then assign each individual to a fold. Note that I added two arguments, `summaryFunction = mnLogLoss` and `classProbs=TRUE` for the `trainControl()` function. This is necessary to fit the logistic regression by minimizing the negative logistic loss function (or maximizing the logistic loss). 
+
+***
+<div id="infobox">
+
+<center style="color:black;"> **NOTE** </center>
+
+`mnLogLoss` yields computation of **minus log-likelihood**. The negative of loglikelihood is also sometimes called **the cross-entropy loss function**. Technically, maximizing the logistic loss function is equivalent to minimizing the cross-entropy loss function. When you use `glmnet` and specify `summaryFunction = mnLogLoss` in the cross-validation settings, it is minimizing the negative of the logistic loss function. You should be aware of it because it may be confusing or misleading when you start tuning parameters based on the value of logloss reported by the `glmnet` function. When you are using `caret::train()` for training a `glmnet` model with a binary outcome, keep in mind that a lower value o logloss function is better because the function actually minimizes the negative of the logloss function.
+
+</div>
+***
+
 
 ```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
@@ -876,32 +909,464 @@ confusion[2,2]/(confusion[1,2]+confusion[2,2])
  
 ```
 
-### 1.4.4. Predictions for the new observations
-
 # Regularization in Logistic Regression
+
+The regularization works very similarly in logistic regression as it was discussed in linear regression. We add penalty terms to the loss function to avoid large coefficients. By including a penalty term, we reduce model variance in exchange of adding bias. By optimizing the degree of penalty via tuning, we can typically get models with better performance than a logistic regression with no regularization.
 
 ## Ridge Penalty
 
+The loss function with ridge penalty applied in logistic regression is the following:
+
+$$ \mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta) = \left ( \sum_{i=1}^{N} Y_i \times ln(P_i) + (1-Y_i) \times ln(1-P_i) \right ) - \frac{\lambda}{2} \sum_{i=1}^{P}\beta_p^2$$
+Notice that we now substract the penalty from the logistic loss, because we are maximizing the quantity. The penalty term has the same effect in the logistic regression, and it will pull the regression coefficients toward zero, but will not make them exactly equal to zero. Below, you can see a plot of change in logistic regression coefficients for some of the variables from a model that will be fit in the next section at increasing levels of ridge penalty.
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+coef_ridge <- read.csv(here('data','ridge coefs.csv')) 
+
+ggplot()+
+  geom_line(aes(x=seq(0,9.9,.1),y=as.numeric(coef_ridge[7,])))+
+  geom_line(aes(x=seq(0,9.9,.1),y=as.numeric(coef_ridge[3,])))+
+  geom_line(aes(x=seq(0,9.9,.1),y=as.numeric(coef_ridge[112,])))+
+  theme_bw()+
+  xlab('Lambda')+
+  ylab('Logistic regression coefficients')
+
+
+```
+
+
+***
+<div id="infobox">
+
+<center style="color:black;"> **NOTE** </center>
+
+The `glmnet` package divides the value of loss function by sample size ($N$) during the optimization (Equation 12 and 2-3 in [this paper](https://www.jstatsoft.org/article/view/v033i01)). This technically does not change anything in terms of the optimal solution. On the other hand, we should be aware that the ridge penalty being applied in the `glmnet package has become
+
+$$N\frac{\lambda}{2}\sum_{i=1}^{P}\beta_p^2.$$
+
+This information may be important while searching plausible values of $\lambda$ for the `glmnet` package.
+
+</div>
+***
+
 ### Model Fitting with the `caret` package
 
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Cross-validation settings
+
+cv <- trainControl(method    = "cv",
+                   index           = my.indices,
+                   classProbs      = TRUE,
+                   summaryFunction = mnLogLoss)
+      
+# Hyperparameter tuning grid for ridge penalty (lambda), alpha = 0
+
+grid <- data.frame(alpha = 0, lambda = c(seq(0,.001,.00001),.005,.01,.05,.1)) 
+grid
+
+# Train the model
+  
+caret_logistic_ridge <- caret::train(blueprint, 
+                                     data      = recidivism_tr, 
+                                     method    = "glmnet",
+                                     family    = 'binomial',
+                                     metric    = 'logLoss',
+                                     trControl = cv,
+                                     tuneGrid  = grid)
+
+caret_logistic_ridge
+
+# check the results
+
+plot(caret_logistic_ridge)
+
+caret_logistic_ridge$bestTune
+
+```
+
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+load("B:/UO Teaching/EDLD 654/Books&Resources/largedata/logistic_regression_ridgemodel_lecture5a.RData")
+
+plot(caret_logistic_ridge)
+
+caret_logistic_ridge$bestTune
+
+```
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Predict the probabilities for the observations in the test dataset
+
+predicted_te <- predict(caret_logistic_ridge, recidivism_te, type='prob')
+
+dim(predicted_te)
+
+head(predicted_te)
+
+# Compute the AUC
+
+require(cutpointr)
+
+cut.obj <- cutpointr(x     = predicted_te$Yes,
+                     class = recidivism_te$Recidivism_Arrest_Year2)
+
+auc(cut.obj)
+
+# Confusion matrix assuming the threshold is 0.5
+
+pred_class <- ifelse(predicted_te$Yes>.5,1,0)
+
+confusion <- table(recidivism_te$Recidivism_Arrest_Year2,pred_class)
+
+confusion
+
+# True Negative Rate
+
+confusion[1,1]/(confusion[1,1]+confusion[1,2])
+
+# False Positive Rate
+
+confusion[1,2]/(confusion[1,1]+confusion[1,2])
+
+# True Positive Rate
+
+confusion[2,2]/(confusion[2,1]+confusion[2,2])
+ 
+
+# Precision
+
+confusion[2,2]/(confusion[1,2]+confusion[2,2])
+ 
+```
+             
 ### Variable Importance
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
+
+#install.packages('vip')
+
+require(vip)
+
+vip(caret_logistic_ridge, 
+    num_features = 10, 
+    geom = "point") + 
+  theme_bw()
+
+
+
+coefs <- coef(caret_logistic_ridge$finalModel,caret_logistic_ridge$bestTune$lambda)
+
+ind   <- order(abs(coefs[,1]),decreasing=T)
+
+head(as.matrix(coefs[ind,]),10)
+
+```
 
 ## Lasso Penalty
 
+The loss function with the lasso penalty applied in logistic regression is the following:
+
+$$ \mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta) = \left ( \sum_{i=1}^{N} Y_i \times ln(P_i) + (1-Y_i) \times ln(1-P_i) \right)- \lambda \sum_{i=1}^{P}|\beta_p|$$
+The penalty terms has the same effect in the logistic regression, and it will make the regression coefficients equal to zero when a sufficiently large $\lambda$ value is applied.
+
+Below, you can see a plot of change in logistic regression coefficients for some of the variables from a model that will be fit in the next section at increasing levels of lasso penalty.
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+coef_lasso <- read.csv(here('data','lasso coefs.csv')) 
+
+ggplot()+
+  geom_line(aes(x=seq(0,0.07,.001),y=as.numeric(coef_lasso[7,])))+
+  geom_line(aes(x=seq(0,0.07,.001),y=as.numeric(coef_lasso[3,])))+
+  geom_line(aes(x=seq(0,0.07,.001),y=as.numeric(coef_lasso[112,])))+
+  theme_bw()+
+  xlab('Lambda')+
+  ylab('Logistic regression coefficients')
+
+
+```
+
+***
+<div id="infobox">
+
+<center style="color:black;"> **NOTE** </center>
+
+Note that `glmnet` package divides the value of loss function by sample sample ($N$) during the optimization (Equation 12 and 2-3 in [this paper](https://www.jstatsoft.org/article/view/v033i01)). You should be aware that the lasso penalty being applied in the `glmnet package has become
+
+$$N\lambda\sum_{i=1}^{P}|\beta_p|.$$
+
+This information may be important while searching plausible values of $\lambda$ for the `glmnet` package.
+
+</div>
+***
+
 ### Model Fitting with the `caret` package
 
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Cross-validation settings
+
+cv <- trainControl(method    = "cv",
+                   index           = my.indices,
+                   classProbs      = TRUE,
+                   summaryFunction = mnLogLoss)
+      
+# Hyperparameter tuning grid for ridge penalty (lambda), alpha = 0
+
+grid <- data.frame(alpha = 1, lambda = seq(0,.001,.00001)) 
+grid
+
+  # If you want to fit logistic regression you can also set lambda to 0
+  # grid <- data.frame(alpha = 0, lambda = 0) 
+  # This is equivalent to glm fit we did in the previous section
+
+# Train the model
+  
+caret_logistic_lasso <- caret::train(blueprint, 
+                                     data      = recidivism_tr, 
+                                     method    = "glmnet",
+                                     family    = 'binomial',
+                                     metric    = 'logLoss',
+                                     trControl = cv,
+                                     tuneGrid  = grid)
+
+caret_logistic_lasso
+
+# check the results
+
+plot(caret_logistic_lasso)
+
+caret_logistic_lasso$bestTune
+
+```
+
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+load("B:/UO Teaching/EDLD 654/Books&Resources/largedata/logistic_regression_lassomodel_lecture5a.RData")
+
+plot(caret_logistic_lasso)
+
+caret_logistic_lasso$bestTune
+
+```
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Predict the probabilities for the observations in the test dataset
+
+predicted_te <- predict(caret_logistic_lasso, recidivism_te, type='prob')
+
+dim(predicted_te)
+
+head(predicted_te)
+
+# Compute the AUC
+
+require(cutpointr)
+
+cut.obj <- cutpointr(x     = predicted_te$Yes,
+                     class = recidivism_te$Recidivism_Arrest_Year2)
+
+auc(cut.obj)
+
+# Confusion matrix assuming the threshold is 0.5
+
+pred_class <- ifelse(predicted_te$Yes>.5,1,0)
+
+confusion <- table(recidivism_te$Recidivism_Arrest_Year2,pred_class)
+
+confusion
+
+# True Negative Rate
+
+confusion[1,1]/(confusion[1,1]+confusion[1,2])
+
+# False Positive Rate
+
+confusion[1,2]/(confusion[1,1]+confusion[1,2])
+
+# True Positive Rate
+
+confusion[2,2]/(confusion[2,1]+confusion[2,2])
+ 
+
+# Precision
+
+confusion[2,2]/(confusion[1,2]+confusion[2,2])
+ 
+```
+
 ### Variable Importance
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
+
+#install.packages('vip')
+
+require(vip)
+
+vip(caret_logistic_lasso, 
+    num_features = 10, 
+    geom = "point") + 
+  theme_bw()
+
+
+
+coefs <- coef(caret_logistic_lasso$finalModel,
+              caret_logistic_lasso$bestTune$lambda)
+
+ind   <- order(abs(coefs[,1]),decreasing=T)
+
+head(as.matrix(coefs[ind,]),10)
+
+```
 
 ## Elastic Net
 
+
+The loss function with the elastic applied is the following:
+
+$$ \mathfrak{logL}(\mathbf{Y}|\boldsymbol\beta) = \left ( \sum_{i=1}^{N} Y_i \times ln(P_i) + (1-Y_i) \times ln(1-P_i) \right)- \left ((1-\alpha)\frac{\lambda}{2} \sum_{i=1}^{P}\beta_p^2 + \alpha  \lambda \sum_{i=1}^{P}|\beta_p| \right)$$
+
 ### Model Fitting with the `caret` package
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Cross-validation settings
+
+cv <- trainControl(method    = "cv",
+                   index           = my.indices,
+                   classProbs      = TRUE,
+                   summaryFunction = mnLogLoss)
+      
+# Hyperparameter tuning grid for ridge penalty (lambda), alpha = 0
+
+  grid <- expand.grid(alpha = seq(0,.8,.01), lambda = seq(0,.001,.0001)) 
+  grid
+  
+# Train the model
+  
+caret_logistic_elastic <- caret::train(blueprint, 
+                                     data      = recidivism_tr, 
+                                     method    = "glmnet",
+                                     family    = 'binomial',
+                                     metric    = 'logLoss',
+                                     trControl = cv,
+                                     tuneGrid  = grid)
+
+caret_logistic_elastic
+
+# check the results
+
+plot(caret_logistic_elastic)
+
+caret_logistic_elastic$bestTune
+
+
+0.5091198
+```
+
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+load("B:/UO Teaching/EDLD 654/Books&Resources/largedata/logistic_regression_elastic_lecture5a.RData")
+
+
+plot(caret_logistic_elastic)
+
+caret_logistic_elastic$bestTune
+
+
+```
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Predict the probabilities for the observations in the test dataset
+
+predicted_te <- predict(caret_logistic_elastic, recidivism_te, type='prob')
+
+dim(predicted_te)
+
+head(predicted_te)
+
+# Compute the AUC
+
+require(cutpointr)
+
+cut.obj <- cutpointr(x     = predicted_te$Yes,
+                     class = recidivism_te$Recidivism_Arrest_Year2)
+
+auc(cut.obj)
+
+# Confusion matrix assuming the threshold is 0.5
+
+pred_class <- ifelse(predicted_te$Yes>.5,1,0)
+
+confusion <- table(recidivism_te$Recidivism_Arrest_Year2,pred_class)
+
+confusion
+
+# True Negative Rate
+
+confusion[1,1]/(confusion[1,1]+confusion[1,2])
+
+# False Positive Rate
+
+confusion[1,2]/(confusion[1,1]+confusion[1,2])
+
+# True Positive Rate
+
+confusion[2,2]/(confusion[2,1]+confusion[2,2])
+ 
+
+# Precision
+
+confusion[2,2]/(confusion[1,2]+confusion[2,2])
+ 
+```
 
 ### Variable Importance
 
-## Using the Prediction Model for Future Observations
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
+
+#install.packages('vip')
+
+require(vip)
+
+vip(caret_logistic_elastic, 
+    num_features = 10, 
+    geom = "point") + 
+  theme_bw()
 
 
 
+coefs <- coef(caret_logistic_elastic$finalModel,
+              caret_logistic_elastic$bestTune$lambda)
+
+ind   <- order(abs(coefs[,1]),decreasing=T)
+
+head(as.matrix(coefs[ind,]),10)
+
+```
+
+
+## Comparison of Models
+
+Performance evaluation metrics on the test data.
+
+|                                         | -LL  | AUC  | ACC | TPR | TNR | FPR |PRE  |
+|-----------------------------------------|:----:|:----:|:---:|:---:|:---:|:---:|:---:|
+| Logistic Regression                     |0.5096|0.7192|0.755|0.142|0.949|0.051|0.471|
+| Logistic Regression with Ridge Penalty  |0.5111|0.7181|0.754|0.123|0.954|0.046|0.461|
+| Logistic Regression with Lasso Penalty  |0.5090|0.7200|0.754|0.127|0.952|0.048|0.458|
+| Logistic Regression with Elastic Net    |0.5091|0.7200|0.753|0.127|0.952|0.048|0.456|
 
 
 
