@@ -173,7 +173,7 @@ substr(x,12,13)
 
 **Task 1.3** Recode the outcome variable (`sentiment`) into a binary variable such that Positive is equal to 1 and Negative is equal to 0. Calculate and print the frequencies for tweets with positive and negative sentiments.
 
-**Task 1.4** Load the `reticulate` package and Python libraries (`torch`, `numpy`, `transformers`, `nltk`, and `tokenizers`). Then, load the `text` package. Using these packages, generate tweet embeddings for each tweet in this dataset using the `roberta-base` model, a pre-trained NLP model. Tweet embeddings for each tweet should be a vector of numbers with length 768. Append these embeddings to the original data. 
+**Task 1.4** Load the `reticulate` package and Python libraries (`torch`, `numpy`, `transformers`, `nltk`, and `tokenizers`). Then, load the `text` package. Using these packages, generate tweet embeddings for each tweet in this dataset using the last layer (layer = 12) from the `roberta-base` model, a pre-trained NLP model. Tweet embeddings for each tweet should be a vector of numbers with length 768. Append these embeddings to the original data. 
 
 **Task 1.5** Remove the two columns `time` and `tweet` from the dataset as you do not need them anymore.
 
