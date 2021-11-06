@@ -209,3 +209,47 @@ surface3d(x=x,
 
 
 
+
+library("rgl")
+
+plot3d(x = c(-30,30),
+       y = c(15,-15),
+       z = c(25,-25),
+       size=1, 
+       type="s",
+       xlim=c(-40,40), 
+       ylim=c(-40,40),
+       zlim=c(-40,40),
+       xlab="X",ylab="Y",zlab="Z")
+
+lines3d(x = c(-30,30),
+       y = c(15,-15),
+       z = c(25,-25))
+
+
+plot3d(x = c(-30,30),
+       y = c(15,-15),
+       z = c(25,-25),
+       size=1, 
+       type="s",
+       xlim=c(-40,40), 
+       ylim=c(-40,40),
+       zlim=c(-40,40),
+       xlab="X",ylab="Y",zlab="Z")
+
+lines3d(x = c(-30,-30),
+        y = c(15,15),
+        z = c(25,-25))
+
+lines3d(x = c(-30,-30),
+        y = c(15,15),
+        z = c(25,-25))
+
+
+lines3d(x = c(-30,-30),
+        y = c(15,-15),
+        z = c(-25,-25))
+
+lines3d(x = c(-30,30),
+        y = c(-15,-15),
+        z = c(-25,-25))
