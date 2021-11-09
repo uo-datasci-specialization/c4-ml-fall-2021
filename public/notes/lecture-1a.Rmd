@@ -147,6 +147,8 @@ conda_install(envname = 'r-reticulate','nltk',pip = TRUE)
 
 conda_install(envname = 'r-reticulate','tokenizers',pip = TRUE)
 
+  # try pip=FALSE, if it gives an error message
+
 ```
 
 Once you install the Python packages using the code above, you can run the following code. If you are seeing the same output as below, you should be all set to explore some very exciting NLP tools using the Readability dataset.

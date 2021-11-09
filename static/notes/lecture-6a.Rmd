@@ -667,7 +667,14 @@ stopCluster(cl)
 
 You can find more information about parallel processing with the caret package at [this link](https://topepo.github.io/caret/parallel-processing.html).
 
-# 2. K Nearest Neighbors for Continuous Outcomes
+# 6. K-Nearest Neighbors Algorithm to Predict Readability Scores 
+
+In this section, we implement the KNN algorithm to build a prediction model for the readability score. The first part of the code is identical to the code we use in earlier classes for the following steps:
+
+1. Split the data into train and test sets
+2. Create the list of row indices for 10-fold cross validation
+3. Set the object for cross validation settings.
+
 
 ```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
@@ -680,7 +687,7 @@ You can find more information about parallel processing with the caret package a
   read_tr  <- readability[loc, ]
   read_te  <- readability[-loc, ]
   
-# Cross validation settings
+# Create the row indices for 10-folds
   
     # Randomly shuffle the training data
 
@@ -696,34 +703,136 @@ You can find more information about parallel processing with the caret package a
       for(i in 1:10){
         my.indices[[i]] <- which(folds!=i)
       }
+
+# Cross-validation settings
       
   cv <- trainControl(method = "cv",
                      index  = my.indices)
-  
-# Hyperparameter Tuning Grid
-  
-  # check the hyperparameters for the kknn method
-  # getModelInfo()$kknn$parameters
-  # getModelInfo()$kknn$grid
-  
-  grid <- expand.grid(kmax=3:25,
-                     distance=c(1,2,3),
-                     kernel=c('epanechnikov','rectangular'))
-  grid
-
-# Train the model
-
-  caret_knn <- caret::train(blueprint_readability, 
-                            data      = read_tr,
-                            method    = "kknn",
-                            trControl = cv,
-                            tuneGrid  = grid)
 ```
 
 
-# 3. K Nearest Neighbors for Binary Outcomes
+We will use the `kknn` package to implement the KNN algorithm, and this method is available through the `caret::train()` function. First, let's check which hyperparameters are available to tune for this method.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# install.package('kknn')
+
+require(caret)
+require(kknn)
+
+
+getModelInfo()$kknn$parameters
+```
+
+There are three hyperparameters available to optimize for the `kknn` method. These are the same parameters discussed earlier:
+
+- `kmax`: the choice of K for the K-nearest neighbors (numeric). 
+- `distance`: the choice of power value ($q$) for the Minkowski distance (numeric)
+- `kernel`: the choice of kernel function for weigted predictions (character)
+
+The possible kernel functions available are "rectangular","triangular", "epanechnikov", "biweight", "triweight", "cos", "inv", and "gaussian". The "rectangular" indicates a simple average with no weight applied (equally weighted).
+
+The next step is to create a matrix for hyperparameter grid search. Let's consider the following values for these three hyperparameters:
+
+- `kmax`: 2, 3, 4,..., 25 
+- `distance`: 1, 2, 3
+- `kernel`: rectangular, epanechnikov
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+load("B:/UO Teaching/EDLD 654/Books&Resources/largedata/knn_readability_caretfit.RData")
+
+```
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Hyperparameter Tuning Grid
+  
+  grid <- expand.grid(kmax    = 3:25,
+                     distance = c(1,2,3),
+                     kernel   = c('epanechnikov','rectangular'))
+  grid
+```
+
+There are a total of 138 combinations we would like to search. Note that, this means a total of 1380 model fitted with 10-fold cross validation for each combination. Also, the KNN algorithm is very slow to fit (because you have to calculate N*(N-1)/2 distances). This may take very long. Therefore, I will also use parallel processing with 15 cores.
 
 ```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+require(doParallel)
+
+ncores <- 15    # depends on the number of cores available in your computer
+
+cl <- makePSOCKcluster(ncores)
+
+registerDoParallel(cl)
+
+```
+
+Now, we can fit the model with these settings.
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Train the model
+
+  caret_knn_readability <- caret::train(blueprint_readability, 
+                                        data      = read_tr,
+                                        method    = "kknn",
+                                        trControl = cv,
+                                        tuneGrid  = grid)
+
+  caret_knn_readability$times
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+caret_knn_readability$times
+```
+
+The training took 11534.15 seconds (~ 3 hours 12 minutes) with 15 cores running at the same time (!).
+
+
+Let's check the best combination of hyperparameters that optimizes the 10-fold cross validated performance metric (RMSE).
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+plot(caret_knn_readability)
+
+caret_knn_readability$bestTune
+```
+
+Now, we can check the performance of the KNN algorithm on the test dataset.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+predicted_te <- predict(caret_knn_readability,read_te)
+
+# R-square
+
+cor(read_te$target,predicted_te)^2
+
+# RMSE
+
+sqrt(mean((read_te$target - predicted_te)^2))
+
+# MAE
+
+mean(abs(read_te$target - predicted_te))
+
+
+```
+
+The table below provides a comparison to the models we discussed earlier.
+
+
+|                   | R-square | MAE   | RMSE
+|-------------------|:--------:|:-----:|:-----:|
+| Linear Regression |  0.644   | 0.522 | 0.644 |
+| Ridge Regression  |  0.727   | 0.435 | 0.536 |
+| Lasso Regression  |  0.725   | 0.434 | 0.538 |
+| KNN               |  0.623   | 0.500 | 0.629 |  
+
+
+```{r, echo=FALSE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
 
 # Train and Test Split 
 
