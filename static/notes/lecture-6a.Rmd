@@ -893,3 +893,17 @@ The table below provides a comparison to the models we discussed earlier.
 
 ```
 
+## Variable Importance
+
+You can ask for the variable importance plot from the KNN algorithmsimilar to other models (although I am not sure how they calculate the variable importance in the context of KNN).
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
+
+require(vip)
+
+vip(caret_knn_readability, 
+    num_features = 10, 
+    geom = "point") + 
+  theme_bw()
+
+```
