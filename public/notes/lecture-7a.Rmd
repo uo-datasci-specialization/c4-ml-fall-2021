@@ -75,5 +75,1004 @@ options(scipen=99)
 
 # Resources:
 # https://bradleyboehmke.github.io/HOML/DT.html
+# Applied Predictive Modeling, Chapter 8.1
 ```
+
+# 1. Regression Trees
+
+We will again consider the toy dataset (N=20) we used before to predict a readability score from average word length and number of sentences.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+readability_sub <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_feat_sub.csv',header=TRUE)
+
+readability_sub[,c('mean.wl','sents','target')]
+```
+
+## 1.1. Basics of a regression tree
+
+### 1.1.1. Tree Structure
+
+Let's imagine a simple tree model to predict readability scores from average word length.
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center'}
+
+knitr::include_graphics(here('static/notes/images/dt1.png'))
+
+```
+
+This model splits the sample into two pieces using a **split point** of 4.5 for the predictor variable. There are 14 observations with average word length is less than 4.5, and 6 observations with average word length is more than 4.5. The top of the tree model is called **root node**, and the $R_1$ and $R_2$ in this model are called **terminal nodes**. This model has two terminal nodes. There is a number assigned to each terminal node. These numbers are the average values for the target outcome (readability score) for those observations in that specific node. This can be symbolically shown as
+
+$$\bar{Y_t} = \frac{1}{n_t}\sum_{i\epsilon R_t} Y_i,$$
+where $n_t$ is the number of observations in a terminal node, and $R_t$ represents the set of observations that exist in the $t_{th}$ node.
+
+There is also a concept of **depth** of a tree. The root node counted as depth 0 and each split increases the depth of the tree by one. In this case, we can say this tree model has a depth of one.
+
+We can increase the complexity of our tree model by splitting first node into two more nodes using a split point of 4. 
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center'}
+
+knitr::include_graphics(here('static/notes/images/dt2.png'))
+
+```
+
+Now, our model has a depth of two and a total three terminal nodes, and each terminal node is again assigned a number which is the average of target outcome for those observations in that node. 
+
+The tree model can have nodes from splitting another variable. For instance, the model below first splits the observations based on the average word length, and then based on the number of sentences yielding again a tree model with three nodes with a depth of two. The complexity of this tree model is same the complexity of the previous one. The only difference is that we have nodes from two variables instead of one.
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center3'}
+
+knitr::include_graphics(here('static/notes/images/dt3.png'))
+
+```
+
+A final example is another tree model with increasing complexity and having a depth of three and four nodes. It first splits observations based on whether or not the average word length is less than 4.5, then splits observations based on whether or not the average word length is less than 4, and finally splits observations based on whether or not the number of sentences is less than 11.
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center'}
+
+knitr::include_graphics(here('static/notes/images/dt4.png'))
+
+```
+
+### 1.1.2. Predictions
+
+Given a tree model, the predictions for the new observations are made by first 
+
+Suppose you developed a tree model and decided to use this model to make predictions for new observations. Let's assume our model is the below. How do we use this model to make predictions for new observations?
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center'}
+
+knitr::include_graphics(here('static/notes/images/dt4.png'))
+
+```
+
+Suppose that there is a new reading passage we want to predict the readability score based on this tree model. This new reading passage has 20 sentences and the average word length is 3.5. To predict the readability score for this reading passage, we have to decide which node this passage would belong in this tree model. You can trace a path starting from the **root node** (top of the tree) and see what this reading passage will end up. As you can see below, this reading passage would be in the first node based on the observed values for these two predictors, and so we predict that the readability score for this new reading passage is equal to 0.022.
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center'}
+
+knitr::include_graphics(here('static/notes/images/dt5.png'))
+
+```
+
+If we have another new reading passage with 5 sentences and an average word length of 4.4, then it would end up in the second node and we would predict the readability score as -1.197.
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center'}
+
+knitr::include_graphics(here('static/notes/images/dt6.png'))
+
+```
+
+### 1.1.3. Loss function
+
+When we fit a tree model, the algorithm decides what is the best split that minimizes the sum of squared errors. The sum of squared error from a tree model can be shown as 
+
+$$ SSE = \sum_{t=1}^{T} \sum_{i \epsilon R_t} (Y_i - \hat{Y}_{R_{t}})^2,$$
+where $T$ is the total number of terminal nodes in the tree model, and $\hat{Y}_{R_{t}}$ is the prediction for the observations in the $t^{th}$ node (average target outcome for those observations in the $t^{th}$ node).
+
+### 1.1.4. Growing a tree
+
+Deciding a root node and then growing a tree model from that root node can become computationally exhaustive depending on the size of dataset and number of variables. In the most basic sence, the decision tree algorithm searches all variables designated as predictors in the dataset at all possible split points for these variables, calculates the SSE for all possible splits, and then finds the split that would reduce the amount of prediction error the most. The search continues by growing the tree model sequentially until there is no more split left that would give better predictions.
+
+I will demonstrate the logic of this search process with the toy dataset (N=20) and two predictor variables: average word length and number of sentences. Before we start our search process, we should come up with a baseline SSE to decide whether or not any future split is going to improve our predictions. We can imagine that a model witn no split at all and using the mean of all 20 observations to predict the target outcome is the simplest baseline model. So, if we compute the sum of squared residuals assuming that we predict every observation with the mean of these 20 observations, that could be a baseline measure. As you see below, if we use the mean target score as our prediction for the 20 observations, then the sum of squared residuals would be 18.654. We will try to improve this number over the baseline by growing a tree model.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# average outcome
+
+mu <- mean(readability_sub$target)
+
+# SSE for baseline model
+
+sum((readability_sub$target - mu)^2)
+
+```
+
+#### Find the root node
+
+The first step in building the tree model is to find the root node. In this case, we have two candidates for the root node: average word length and number of sentenses. We want to know which variable should be the root node and what value we should use to split to improve the baseline SSE the most. This is how the process would look like.
+
+1) Pick a split point
+2) Divide 20 observations into two nodes based on the split point
+3) Calculate the average target outcome within each node as predictions for the observations in that node
+4) Calculate SSE within each node using the predictions from Step 3, and sum them all across two nodes. 
+5) Repeat Step 1 - Step 4 for every possible split point, and find the best split point with the minimum SSE
+6) Repeat Step 1 - Step 5 for every possible predictor.
+
+The code below implements Step 1 - Step 5 for the predictor **average word length**.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+splits1 <- seq(3.84,5.47,0.01)
+
+# For every split point, partition the observations into two groups and then
+# make predictions based on the partitioning. Save the SSE in an empy object
+
+sse1 <- c()
+
+for(i in 1:length(splits1)){
+  
+  gr1 <- which(readability_sub$mean.wl <= splits1[i])
+  gr2 <- which(readability_sub$mean.wl > splits1[i])
+  
+  pr1 <- mean(readability_sub[gr1,]$target)
+  pr2 <- mean(readability_sub[gr2,]$target)
+  
+  sse1[i] = sum((readability_sub[gr1,]$target - pr1)^2) + 
+            sum((readability_sub[gr2,]$target - pr2)^2)
+}
+
+ggplot()+
+  geom_line(aes(x=splits1,y=sse1))+
+  xlab('Split Points (Average Word Length)')+
+  ylab('Sum of Squared Residuals')+
+  theme_bw()
+
+splits1[which.min(sse1)]
+min(sse1)
+```
+
+The search process indicates that the best split point for the average word length is 4.16, and if we divide the observations into two nodes based on the average word length using the split point 4.16, SSE would be equal to 11.24, a significant improvement over the baseline model.
+
+We will now repeat the same process for the number of sentences. The code below implements Step 1 - Step 5 for the predictor **number of sentences**.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+splits2 <- seq(3.5,28.5,1)
+
+# For every split point, partition the observations into two groups and then
+# make predictions based on the partitioning. Save the SSE in an empy object
+
+sse2 <- c()
+
+for(i in 1:length(splits2)){
+  
+  gr1 <- which(readability_sub$sents <= splits2[i])
+  gr2 <- which(readability_sub$sents > splits2[i])
+  
+  pr1 <- mean(readability_sub[gr1,]$target)
+  pr2 <- mean(readability_sub[gr2,]$target)
+  
+  sse2[i] = sum((readability_sub[gr1,]$target - pr1)^2) + 
+            sum((readability_sub[gr2,]$target - pr2)^2)
+}
+
+ggplot()+
+  geom_line(aes(x=splits2,y=sse2))+
+  xlab('Split Points (Number of Sentences)')+
+  ylab('Sum of Squared Residuals')+
+  theme_bw()
+
+splits2[which.min(sse2)]
+min(sse2)
+```
+
+The search process indicates that the best split point for the number of sentences is 1, and if we divide the observations into two nodes based on the number of sentences using the split point 18.5, SSE would be equal to 10.27, also a significant improvement over the baseline model.
+
+We have two choices for the **root node** (because we assume we only have two predictors):
+
+- Average Word Length, Best split point = 4.16, SSE = 11.24
+- Number of Sentences, Best split point = 18.5, SSE = 10.27
+
+Both options provide a significant improvement in our predictions over the baseline (SSE = 18.654), but one is better than the other. Therefore, our final decision to start growing our tree is to pick number of sentences as our **root node** and split it at 8.5. Our tree model starts growing!
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center'}
+
+knitr::include_graphics(here('static/notes/images/dt7.png'))
+
+```
+
+#### Adding depth with terminal nodes
+
+Now, we have to decide if we should add another split to either one of these two nodes. There are now four possible split scenarios. 
+
+1) For first terminal node on the left, we can split the observations based on average word length.
+
+2) For first terminal node on the left, we can split the observations based on number of sentences.
+
+3) For second terminal node on the right, we can split the observations based on average word length.
+
+4) For second terminal node on the right, we can split the observations based on number of sentences.
+
+For each one of these scenarios, we can implement Step 1 - Step 4, and identify the best split point and what SSE that split yields. The code below implements these steps for all 4 scenarios.
+
+**Scenario 1:**
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+node1 <- c(1,3,4,5,6,7,8,9,11,12,13,14,16,17,18,19)
+node2 <- c(2,10,15,20)
+
+# Splits based on average word length for node 1
+
+splits1 <- seq(4.01,5.47,0.01)
+
+sse1 <- c()
+
+for(i in 1:length(splits1)){
+  
+  gr1 <- which(readability_sub[node1,]$mean.wl <= splits1[i])
+  gr2 <- which(readability_sub[node1,]$mean.wl > splits1[i])
+  gr3 <- node2
+  
+  pr1 <- mean(readability_sub[node1[gr1],]$target)
+  pr2 <- mean(readability_sub[node1[gr2],]$target)
+  pr3 <- mean(readability_sub[node2,]$target)
+
+    
+  sse1[i] = sum((readability_sub[node1[gr1],]$target - pr1)^2) + 
+            sum((readability_sub[node1[gr2],]$target - pr2)^2) +
+            sum((readability_sub[node2,]$target - pr3)^2) 
+}
+
+splits1[which.min(sse1)]
+min(sse1)
+```
+
+**Scenario 2:**
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Splits based on number of sentences for node 1
+
+splits2 <- seq(3.5,17.5,0.5)
+
+sse2 <- c()
+
+for(i in 1:length(splits2)){
+  
+  gr1 <- which(readability_sub[node1,]$sents <= splits2[i])
+  gr2 <- which(readability_sub[node1,]$sents > splits2[i])
+  gr3 <- node2
+  
+  pr1 <- mean(readability_sub[node1[gr1],]$target)
+  pr2 <- mean(readability_sub[node1[gr2],]$target)
+  pr3 <- mean(readability_sub[node2,]$target)
+
+    
+  sse2[i] = sum((readability_sub[node1[gr1],]$target - pr1)^2) + 
+            sum((readability_sub[node1[gr2],]$target - pr2)^2) +
+            sum((readability_sub[node2,]$target - pr3)^2) 
+}
+
+splits2[which.min(sse2)]
+min(sse2)
+```
+
+**Scenario 3:**
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Splits based on average word length for node 2
+
+splits3 <- c(3.84,3.86,4.16)
+
+sse3 <- c()
+
+for(i in 1:length(splits3)){
+  
+  gr1 <- which(readability_sub[node2,]$mean.wl <= splits3[i])
+  gr2 <- which(readability_sub[node2,]$mean.wl > splits3[i])
+  gr3 <- node2
+  
+  pr1 <- mean(readability_sub[node2[gr1],]$target)
+  pr2 <- mean(readability_sub[node2[gr2],]$target)
+  pr3 <- mean(readability_sub[node1,]$target)
+
+    
+  sse3[i] = sum((readability_sub[node2[gr1],]$target - pr1)^2) + 
+            sum((readability_sub[node2[gr2],]$target - pr2)^2) +
+            sum((readability_sub[node1,]$target - pr3)^2) 
+}
+
+splits3[which.min(sse3)]
+min(sse3)
+```
+
+**Scenario 4:**
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Splits based on number of sentences for node 2
+
+splits4 <- seq(19.5,23.5)
+
+sse4 <- c()
+
+for(i in 1:length(splits4)){
+  
+  gr1 <- which(readability_sub[node2,]$sents <= splits4[i])
+  gr2 <- which(readability_sub[node2,]$sents > splits4[i])
+  gr3 <- node1
+  
+  pr1 <- mean(readability_sub[node2[gr1],]$target)
+  pr2 <- mean(readability_sub[node2[gr2],]$target)
+  pr3 <- mean(readability_sub[node1,]$target)
+
+    
+  sse4[i] = sum((readability_sub[node2[gr1],]$target - pr1)^2) + 
+            sum((readability_sub[node2[gr2],]$target - pr2)^2) +
+            sum((readability_sub[node1,]$target - pr3)^2) 
+}
+
+splits4[which.min(sse4)]
+min(sse4)
+
+
+```
+
+Based on our search, the following splits provided the least SSEs:
+
+1) 1st terminal node, Split variable: Average Word Length, Split Point: 4.19, SSE = 6.35
+
+2) 1st terminal node, Split variable: Number of Sentences, Split Point: 4, SSE = 8.21
+
+3) 2nd terminal node, Split variable: Average Word Length, Split Point: 3.86, SSE = 10.16
+
+4) 2nd terminal node, Split variable: Number of Sentences, Split Point: 19.5, SSE = 9.58
+
+We decide to continue with Scenario 1 because it yields the minimum SSE. Therefore, our tree model now looks like this.
+
+```{r, echo=FALSE,eval=knitr::is_html_output(),class.source='klippy',fig.align='center'}
+
+knitr::include_graphics(here('static/notes/images/dt8.png'))
+
+```
+
+#### Termination of Growth
+
+The search process continues until a certain type of criteria is met to stop the algorithm. There may be a number of conditions where we may constrain the growth and force the algorithm to stop searching for additional growth in the tree model. Some of these are listed below:
+
+- Minimizing SSE: the algorithm stops when there is no potential split in any of the existing nodes that would reduce the sum of squared errors.
+
+- Minimum number of observations to split: the algorithm does not attempt to split a node unless there is a certain number of observation in the node. 
+
+- Minimum number of observations in a node: the algorithm does not consider splits unless there is a certain number of observation in the nodes.
+
+- Maximum depth: The algorithm stops searching when the tree reaches to a certain depth.
+
+### 1.1.5. Pruning a tree
+
+Overfitting and underfitting also occurs as one develops a tree model. When the depth of a tree becomes unnecessarily large, there is a risk of overfitting (increased variance in model predictions across samples, less generalizable). On the other hand, when the depth of a tree is small, there is a risk of underfitting (increased bias in model predictions, underperforming model).
+
+In order to balance the model variance and model bias, we considered penalizing large coefficients in regression models yielding different types of penalty terms on the regression coefficients. There is a similar approach that can be applied for tree models. In the context of tree models, the loss function with a penalty term can be specified as
+
+$$ SSE = \sum_{t=1}^{T} \sum_{i \epsilon R_t} (Y_i - \hat{Y}_{R_{t}})^2 + \alpha T.$$
+The penalty term $\alpha$ is known as the **cost complexity** parameter. The product term $\alpha T$ increases as the number of terminal nodes increases in the model, so this term penalizes increasing complexity of the tree model. By fine-tuning the value of $\alpha$ through cross-validation, we can find a balance between model variance and bias as we did for regression models. The process is called pruning because the terminal nodes from the tree are eliminated in a nested way for increasing levels of $\alpha$.
+
+## 1.2. Growing trees with the `rpart()` function
+
+### 1.2.1. A simple example
+
+We can develop a tree model using the `rpart()` function fromt the `rpart` package. Also, we will use the `fancyRpartPlot` function from the `rattle` package to get a nice plot of a tree model.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+#install.packages('rpart')
+
+#install.packages('rattle')
+
+require(rpart)
+require(rattle)
+
+#?rpart
+#?fancyRpartPlot
+
+```
+
+Let's first replicate our search above to build a tree model predicting the readability scores from average word length and number of sentences for the toy dataset.
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+dt <- rpart(formula = target ~ mean.wl + sents,
+            data    = readability_sub,
+            method  = "anova",
+            control = list(minsplit=5,
+                           cp=0,
+                           minbucket = 2,
+                           maxdepth = 2)
+            )
+
+```
+
+- The `formula` argument works the same way as in the regression models. The variable name on the left side of `~` represents the outcome variable. The variable names on the right side of `~` represent the predictor variables.
+- The `data` argument provides the name of the dataset to find these variables specified in the formula.
+- The `method` argument is set to `anova` to indicate that the outcome is a continuous variable and this is a regression problem.
+- The `control` argument is a list object with a number of settings to be used during the tree building process. For more information, check `?rpart.control`. You can accept the default values by not specifying it at all. Here, I specified a few important ones. `minsplit=5` forces algorithm not to attempt to split a node unless there is at least five observations. `minbucket=2` forces algorithm to have at least two observations for any node. `maxdepth = 2` forces algorithm to stop when the depth of a tree reaches to 2. `cp=0` indicates that we do not want to apply any penalty term ($\lambda = 0$) during the model building process.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+fancyRpartPlot(dt,type=2,sub='')
+
+  # ?prp
+  # check for a lot of settings for modifying this plot
+
+```
+
+As you can see, we got the exact same tree model we built in our own search process in the earlier section. You can also ask more specific information about the model building process by running the `summary()` function.
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+summary(dt)
+```
+
+### 1.2.2. Tree pruning by increasing the complexity parameter
+
+We will now expand the model by adding more predictors to be considered for the tree model. Suppose that we now have 6 different predictors to be considered for the tree model. We will provide the same settings with 6 predictors except the complexity parameter. We will fit three models by setting the complexity parameter at 0, 0.05, and 0.1 to see what happens to the tree model as we increase the complexity parameter.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+dt <- rpart(formula = target ~ mean.wl + sents + chars + Dim1 + Dim10 + Dim300,
+            data    = readability_sub,
+            method  = "anova",
+            control = list(minsplit=5,
+                           cp=0,
+                           minbucket = 2,
+                           maxdepth = 5)
+            )
+
+
+fancyRpartPlot(dt,type=2,sub='')
+
+```
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+dt <- rpart(formula = target ~ mean.wl + sents + chars + Dim1 + Dim10 + Dim300,
+            data    = readability_sub,
+            method  = "anova",
+            control = list(minsplit=5,
+                           cp=0.05,
+                           minbucket = 2,
+                           maxdepth = 5)
+            )
+
+
+fancyRpartPlot(dt,type=2,sub='')
+
+```
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+dt <- rpart(formula = target ~ mean.wl + sents + chars + Dim1 + Dim10 + Dim300,
+            data    = readability_sub,
+            method  = "anova",
+            control = list(minsplit=5,
+                           cp=0.1,
+                           minbucket = 2,
+                           maxdepth = 5)
+            )
+
+
+fancyRpartPlot(dt,type=2,sub='')
+
+```
+
+
+## 1.3. Training a tree model with `caret::train()`
+
+`rpart` is also available in the caret package that provides user-friendly interface for hyperparameter tuning with cross validation. First, let's check the hyperparameters available to tune for the `rpart` method. 
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+require(caret)
+
+getModelInfo()$rpart$parameters
+```
+
+It seems that the `caret::train()` only allows tuning the complexity parameter ($\alpha$). Now, let's replicate the same examples with the caret package.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Specify the grid for cp
+# fix it to 0, so we are not tuning it
+
+grid <- data.frame(cp=0)
+
+# Cross-validation settings
+# method=none, no cross validation
+
+cv <- trainControl(method = "none")
+
+
+fit_rpart <- caret::train(x         = readability_sub[,c('mean.wl','sents')],
+                          y         = readability_sub$target,
+                          method    = 'rpart',
+                          tuneGrid  = grid,
+                          trControl = cv,
+                          control   = list(minsplit=5,
+                                           minbucket = 2,
+                                           maxdepth = 2))
+             
+fit_rpart$finalModel
+
+```
+
+This provides the same results we obtained before. If you would like to plot the tree model obtained from the `caret::train()` function, you can still use the `fancyRpartPlot()` function.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+fancyRpartPlot(fit_rpart$finalModel,type=2,sub='')
+
+```
+
+Now, let's replicate the second example.
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Specify the grid for cp
+
+grid <- data.frame(cp=0)
+
+# Cross-validation settings
+
+cv <- trainControl(method = "none")
+
+fit_rpart <- caret::train(x         = readability_sub[,c('mean.wl','sents','chars',
+                                                         'Dim1','Dim10','Dim300')],
+                          y         = readability_sub$target,
+                          method    = 'rpart',
+                          tuneGrid  = grid,
+                          trControl = cv,
+                          control   = list(minsplit=5,
+                                           minbucket = 2,
+                                           maxdepth = 5))
+             
+fit_rpart$finalModel
+
+fancyRpartPlot(fit_rpart$finalModel,type=2,sub='')
+
+```
+
+## 1.4. Predicting the Readability Scores
+
+Now, we will import the whole readability dataset and train a tree model with all observations. Then, we will test the model performance on the test set. Most of the code below is identical to the code we used in earlier classes. The only difference is that we are now using `rpart` method in the caret package to train a tree model. I will also use parallel processing to reduce the model training time.
+
+**1. Import the dataset and prepare the dataset for model training**
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Import the dataset
+
+readability <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/readability_features.csv',header=TRUE)
+
+# Remove the variables with more than 80% missingness
+
+require(finalfit)
+
+missing_    <- ff_glimpse(readability)$Continuous
+flag_na     <- which(as.numeric(missing_$missing_percent) > 80)
+readability <- readability[,-flag_na]
+
+# Write the recipe
+
+require(recipes)
+
+blueprint_readability <- recipe(x     = readability,
+                                vars  = colnames(readability),
+                                roles = c(rep('predictor',990),'outcome')) %>%
+  step_zv(all_numeric()) %>%
+  step_nzv(all_numeric()) %>%
+  step_impute_mean(all_numeric()) %>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_corr(all_numeric(),threshold=0.9)
+
+```
+
+**2. Train/Test Split**
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+  set.seed(10152021)  # for reproducibility
+    
+  loc      <- sample(1:nrow(readability), round(nrow(readability) * 0.9))
+  read_tr  <- readability[loc, ]
+  read_te  <- readability[-loc, ]
+```
+
+**3. Cross-validation settings**
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Create the row indices for 10-folds
+  
+    # Randomly shuffle the training data
+
+      read_tr = read_tr[sample(nrow(read_tr)),]
+
+    # Create 10 folds with equal size
+
+      folds = cut(seq(1,nrow(read_tr)),breaks=10,labels=FALSE)
+  
+    # Create the list for each fold 
+      
+      my.indices <- vector('list',10)
+      for(i in 1:10){
+        my.indices[[i]] <- which(folds!=i)
+      }
+
+# Cross-validation settings
+      
+  cv <- trainControl(method = "cv",
+                     index  = my.indices)
+```
+
+**4. Tuning grid for the complexity parameter**
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+grid <- data.frame(cp=seq(0,0.02,.001))
+```
+
+**5. Train the model**
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+caret_rpart <- caret::train(blueprint_readability,
+                            data      = read_tr,
+                            method    = 'rpart',
+                            tuneGrid  = grid,
+                            trControl = cv,
+                            control   = list(minsplit=20,
+                                             minbucket = 2,
+                                             maxdepth = 60))
+
+
+plot(caret_rpart)
+
+caret_rpart$bestTune
+
+fancyRpartPlot(caret_rpart$finalModel,type=2,sub='')
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+load("B:/UO Teaching/EDLD 654/Books&Resources/largedata/rpart_readability_caretfit.RData")
+
+plot(caret_rpart)
+
+caret_rpart$bestTune
+
+fancyRpartPlot(caret_rpart$finalModel,type=2,sub='')
+
+```
+
+**6. Evaluate the model performance on the test set**
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+predicted_te <- predict(caret_rpart,newdata = read_te)
+
+# R-square
+
+cor(read_te$target,predicted_te)^2
+
+# mean absolute error
+
+mean(abs(read_te$target - predicted_te))
+
+# root mean squared error
+
+sqrt(mean((read_te$target - predicted_te)^2))
+
+
+```
+
+**7. Variable Importance Plot**
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
+
+require(vip)
+
+vip(caret_rpart, 
+    num_features = 10, 
+    geom = "point") + 
+  theme_bw()
+
+```
+
+**8. Comparison of model performance**
+
+|                   | R-square | MAE   | RMSE
+|-------------------|:--------:|:-----:|:-----:|
+| Linear Regression |  0.644   | 0.522 | 0.644 |
+| Ridge Regression  |  0.727   | 0.435 | 0.536 |
+| Lasso Regression  |  0.725   | 0.434 | 0.538 |
+| KNN               |  0.623   | 0.500 | 0.629 |  
+| Decision Tree     |  0.497   | 0.577 | 0.729 |
+
+
+# 2. Classification Trees (Predicting Recidivism)
+
+The classification trees are very similar to the regression trees. The only difference is that the loss function and the metric used while selecting the best split is different while growing the tree model. A more special metric (e.g., gini impurity or cross-entropy) is used to decide the best split that improves the accuracy of predictions. [This document](https://cran.r-project.org/web/packages/rpart/vignettes/longintro.pdf) provides a detailed technical discussion of how `rpart` builds a regression tree.
+
+This section, we will implement the decision tree algorithm to the Recidivism dataset using the `caret::train()` function.
+
+**1. Import the dataset and prepare the dataset for model training**
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Import data
+
+recidivism <- read.csv('https://raw.githubusercontent.com/uo-datasci-specialization/c4-ml-fall-2021/main/data/recidivism_y1 removed.csv',header=TRUE)
+
+# Write the recipe
+  
+
+  # List of variable types
+  
+  outcome <- c('Recidivism_Arrest_Year2')
+  
+  categorical <- c('Residence_PUMA',
+                   'Prison_Offense',
+                   'Age_at_Release',
+                   'Supervision_Level_First',
+                   'Education_Level',
+                   'Prison_Years',
+                   'Gender',
+                   'Race',
+                   'Gang_Affiliated',
+                   'Prior_Arrest_Episodes_DVCharges',
+                   'Prior_Arrest_Episodes_GunCharges',
+                   'Prior_Conviction_Episodes_Viol',
+                   'Prior_Conviction_Episodes_PPViolationCharges',
+                   'Prior_Conviction_Episodes_DomesticViolenceCharges',
+                   'Prior_Conviction_Episodes_GunCharges',
+                   'Prior_Revocations_Parole',
+                   'Prior_Revocations_Probation',
+                   'Condition_MH_SA',
+                   'Condition_Cog_Ed',
+                   'Condition_Other',
+                   'Violations_ElectronicMonitoring',
+                   'Violations_Instruction',
+                   'Violations_FailToReport',
+                   'Violations_MoveWithoutPermission',
+                   'Employment_Exempt') 
+
+  numeric   <- c('Supervision_Risk_Score_First',
+                 'Dependents',
+                 'Prior_Arrest_Episodes_Felony',
+                 'Prior_Arrest_Episodes_Misd',
+                 'Prior_Arrest_Episodes_Violent',
+                 'Prior_Arrest_Episodes_Property',
+                 'Prior_Arrest_Episodes_Drug',
+                 'Prior_Arrest_Episodes_PPViolationCharges',
+                 'Prior_Conviction_Episodes_Felony',
+                 'Prior_Conviction_Episodes_Misd',
+                 'Prior_Conviction_Episodes_Prop',
+                 'Prior_Conviction_Episodes_Drug',
+                 'Delinquency_Reports',
+                 'Program_Attendances',
+                 'Program_UnexcusedAbsences',
+                 'Residence_Changes',
+                 'Avg_Days_per_DrugTest',
+                 'Jobs_Per_Year')
+  
+  props      <- c('DrugTests_THC_Positive',
+                  'DrugTests_Cocaine_Positive',
+                  'DrugTests_Meth_Positive',
+                  'DrugTests_Other_Positive',
+                  'Percent_Days_Employed')
+  
+  # Convert all nominal, ordinal, and binary variables to factors
+  # Leave the rest as is
+  
+  for(i in categorical){
+    
+    recidivism[,i] <- as.factor(recidivism[,i])
+    
+  }
+  
+  # For variables that represent proportions, add/substract a small number
+  # to 0s/1s for logit transformation
+  
+  for(i in props){
+    recidivism[,i] <- ifelse(recidivism[,i]==0,.0001,recidivism[,i])
+    recidivism[,i] <- ifelse(recidivism[,i]==1,.9999,recidivism[,i])
+  }
+
+  # Blueprint for processing variables
+    
+  require(recipes)
+  
+  blueprint_recidivism <- recipe(x  = recidivism,
+                                 vars  = c(categorical,numeric,props,outcome),
+                                 roles = c(rep('predictor',48),'outcome')) %>%
+    step_indicate_na(all_of(categorical),all_of(numeric),all_of(props)) %>%
+    step_zv(all_numeric()) %>%
+    step_impute_mean(all_of(numeric),all_of(props)) %>%
+    step_impute_mode(all_of(categorical)) %>%
+    step_logit(all_of(props)) %>%
+    step_ns(all_of(numeric),all_of(props),deg_free=3) %>%
+    step_normalize(paste0(numeric,'_ns_1'),
+                   paste0(numeric,'_ns_2'),
+                   paste0(numeric,'_ns_3'),
+                   paste0(props,'_ns_1'),
+                   paste0(props,'_ns_2'),
+                   paste0(props,'_ns_3')) %>%
+    step_dummy(all_of(categorical),one_hot=TRUE)  %>%
+    step_num2factor(Recidivism_Arrest_Year2,
+                  transform = function(x) x + 1,
+                  levels=c('No','Yes'))
+
+
+```
+
+**2. Train/Test Split**
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+  loc <- which(recidivism$Training_Sample==1)
+  
+  recidivism_tr  <- recidivism[loc, ]
+  recidivism_te  <- recidivism[-loc, ]
+```
+
+**3. Cross-validation settings**
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+# Randomly shuffle the training data
+
+  set.seed(10302021) # for reproducibility
+  
+  recidivism_tr = recidivism_tr[sample(nrow(recidivism_tr)),]
+
+# Create 10 folds with equal size
+
+  folds = cut(seq(1,nrow(recidivism_tr)),breaks=10,labels=FALSE)
+
+# Create the list for each fold 
+
+  my.indices <- vector('list',10)
+  for(i in 1:10){
+    my.indices[[i]] <- which(folds!=i)
+  }
+  
+  
+# Cross-validation settings
+      
+  cv <- trainControl(method = "cv",
+                     index  = my.indices,
+                     classProbs = TRUE,
+                     summaryFunction = mnLogLoss)
+```
+
+**4. Tuning grid for the complexity parameter**
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+grid <- data.frame(cp=seq(0,0.02,.001))
+```
+
+**5. Train the model**
+
+```{r, echo=TRUE,eval=FALSE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE}
+
+caret_rpart2 <- caret::train(blueprint_recidivism,
+                             data      = recidivism_tr,
+                             method    = 'rpart',
+                             tuneGrid  = grid,
+                             trControl = cv,
+                             metric    = 'logLoss',
+                             control   = list(minsplit=20,
+                                             minbucket = 2,
+                                             maxdepth = 60))
+
+
+plot(caret_rpart2)
+
+caret_rpart2$bestTune
+
+fancyRpartPlot(caret_rpart2$finalModel,type=2,sub='')
+
+```
+
+```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+load("B:/UO Teaching/EDLD 654/Books&Resources/largedata/rpart_recidivism_caretfit.RData")
+
+plot(caret_rpart2)
+
+caret_rpart2$bestTune
+
+fancyRpartPlot(caret_rpart2$finalModel,type=2,sub='')
+
+```
+
+**6. Evaluate the model performance on the test set**
+
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
+
+# Predict the probabilities for the observations in the test dataset
+
+predicted_te <- predict(caret_rpart2, recidivism_te, type='prob')
+
+dim(predicted_te)
+
+head(predicted_te)
+
+# Compute the AUC
+
+require(cutpointr)
+
+cut.obj <- cutpointr(x     = predicted_te$Yes,
+                     class = recidivism_te$Recidivism_Arrest_Year2)
+
+auc(cut.obj)
+
+# Confusion matrix assuming the threshold is 0.5
+
+pred_class <- ifelse(predicted_te$Yes>.5,1,0)
+
+confusion <- table(recidivism_te$Recidivism_Arrest_Year2,pred_class)
+
+confusion
+
+# True Negative Rate
+
+confusion[1,1]/(confusion[1,1]+confusion[1,2])
+
+# False Positive Rate
+
+confusion[1,2]/(confusion[1,1]+confusion[1,2])
+
+# True Positive Rate
+
+confusion[2,2]/(confusion[2,1]+confusion[2,2])
+ 
+
+# Precision
+
+confusion[2,2]/(confusion[1,2]+confusion[2,2])
+ 
+```
+
+**7. Variable Importance Plot**
+
+```{r, echo=TRUE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=6}
+
+require(vip)
+
+vip(caret_rpart2, 
+    num_features = 10, 
+    geom = "point") + 
+  theme_bw()
+
+```
+
+**8. Comparison of model performance**
+
+
+|                                         | -LL  | AUC  | ACC | TPR | TNR | FPR |PRE  |
+|-----------------------------------------|:----:|:----:|:---:|:---:|:---:|:---:|:---:|
+| Logistic Regression                     |0.5096|0.7192|0.755|0.142|0.949|0.051|0.471|
+| Logistic Regression with Ridge Penalty  |0.5111|0.7181|0.754|0.123|0.954|0.046|0.461|
+| Logistic Regression with Lasso Penalty  |0.5090|0.7200|0.754|0.127|0.952|0.048|0.458|
+| Logistic Regression with Elastic Net    |0.5091|0.7200|0.753|0.127|0.952|0.048|0.456|
+| Decision Tree                           |0.5522|0.6521|0.752|0.089|0.962|0.038|0.427|
 
