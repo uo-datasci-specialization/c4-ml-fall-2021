@@ -339,7 +339,7 @@ for(i in 1:2833){
   a <- as.matrix(baked_read[1,1:887])
   b <- as.matrix(baked_read[dist[i+1,1],1:887])
   dist[i,]$dist   <- sqrt(sum((a-b)^2))
-  dist[i,]$target <- baked_read[dist[i,1],]$target
+  dist[i,]$target <- baked_read[dist[i+1,1],]$target
 
   #print(i)
 }
@@ -508,7 +508,7 @@ for(i in 1:18110){
   a <- as.matrix(baked_recidivism[1,2:165])
   b <- as.matrix(baked_recidivism[dist2[i+1,1],2:165])
   dist2[i,]$dist   <- sqrt(sum((a-b)^2))
-  dist2[i,]$target <- as.character(baked_recidivism[dist2[i,1],]$Recidivism_Arrest_Year2)
+  dist2[i,]$target <- as.character(baked_recidivism[dist2[i+1,1],]$Recidivism_Arrest_Year2)
 
   #print(i)
 }
