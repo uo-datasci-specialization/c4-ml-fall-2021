@@ -397,7 +397,7 @@ The code below implements this idea and saves the results from each iteration in
                                 trControl = cv,
                                 tuneGrid  = grid,
                                 num.trees = i,
-                                max.depth = 60,)
+                                max.depth = 60)
       
     }
 
