@@ -122,11 +122,10 @@ sum(readability_sub$res1^2)
 ```{r, echo=FALSE,eval=TRUE,class.source='klippy',class.source = 'fold-show',message=FALSE, warning=FALSE,fig.width=8,fig.height=8}
 
 ggplot(data=readability_sub)+
-  geom_point(aes(x=sents,y=target))
+  geom_point(aes(x=sents,y=target))+
+  theme_bw()+
+  geom_line(aes(x=sents,y=pred1),lty=2)
 
-#+
-#  theme_bw()+
-#  geom_line(aes(x=sents,y=pred1),lty=2)+
 #  annotate(geom = "curve", x = 25, y = -0.5, xend = 23, yend = -1.11,curvature = 0, arrow = arrow(length #= unit(2, "mm"))) +
 #  annotate(geom = "text", x = 25.1, y = -0.5, label = "Predictions 1", hjust = "left")
 ```
