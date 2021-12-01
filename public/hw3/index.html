@@ -804,7 +804,7 @@
   <span class="nf">View</span><span class="p">(</span><span class="n">blueprint_oregon</span> <span class="o">%&gt;%</span> <span class="nf">prep</span><span class="p">()</span> <span class="o">%&gt;%</span> <span class="n">summary</span><span class="p">)</span>
 </code></pre></div><p><strong>Task 2.1.</strong> Split the original data into two subsets: training and test. Let the training data have the 80% of cases and the test data have the  20% of the cases.</p>
 <p><strong>Task 2.2.</strong> Use the <code>caret::train()</code> function and <code>ranger</code> engine to train a model with 10-fold cross-validation for predicting the scores using a Bagged Trees model with 500 trees.</p>
-<p><strong>Task 2.3.</strong> Use the <code>caret::train()</code> function and <code>ranger</code> engine to train a model with 10-fold cross-validation for predicting the scores using a Random Forest model with 500 trees. Set the number of predictors to consider to 250 for each tree while growing a random forest.</p>
+<p><strong>Task 2.3.</strong> Use the <code>caret::train()</code> function and <code>ranger</code> engine to train a model with 10-fold cross-validation for predicting the scores using a Random Forest model with 500 trees. Set the number of predictors to consider to 25 for each tree while growing a random forest.</p>
 <p><strong>Task 2.4</strong> Evaluate the performance of the Bagged Tree models (2.2) and Random Forest Model (2.3) on the test dataset. Calculate and report the root mean squared error (RMSE), mean absolute error (MAE), and R-square. Summarize these numbers in a table like the following.</p>
 <table>
 <thead>

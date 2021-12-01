@@ -140,7 +140,7 @@ blueprint_oregon <- recipe(x     = oregon,
 
 **Task 2.2.** Use the `caret::train()` function and `ranger` engine to train a model with 10-fold cross-validation for predicting the scores using a Bagged Trees model with 500 trees. 
 
-**Task 2.3.** Use the `caret::train()` function and `ranger` engine to train a model with 10-fold cross-validation for predicting the scores using a Random Forest model with 500 trees. Set the number of predictors to consider to 250 for each tree while growing a random forest. 
+**Task 2.3.** Use the `caret::train()` function and `ranger` engine to train a model with 10-fold cross-validation for predicting the scores using a Random Forest model with 500 trees. Set the number of predictors to consider to 25 for each tree while growing a random forest. 
 
 **Task 2.4** Evaluate the performance of the Bagged Tree models (2.2) and Random Forest Model (2.3) on the test dataset. Calculate and report the root mean squared error (RMSE), mean absolute error (MAE), and R-square. Summarize these numbers in a table like the following. 
 
